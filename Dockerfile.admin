@@ -32,6 +32,6 @@ COPY --from=builder /app/prisma ./prisma
 
 RUN mkdir -p uploads/maps uploads/speakers
 
-EXPOSE 3000 3001
+EXPOSE 3001
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/admin/server.js"]

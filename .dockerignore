@@ -1,4 +1,16 @@
 node_modules
 dist
+dist-miniapp
+.git
+.gitignore
+*.md
 .env
+.env.*
+!.env.example
+miniapp/node_modules
+miniapp/dist
+uploads
 *.log
+.DS_Store
+coverage
+.nyc_output

@@ -1,8 +1,28 @@
+# Dependencies
 node_modules/
+miniapp/node_modules/
+
+# Build output
 dist/
 dist-miniapp/
-uploads/*
-!uploads/.gitkeep
+miniapp/dist/
+
+# Environment
 .env
+.env.local
+.env.production
+
+# Uploads (генерируются на сервере)
+uploads/
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

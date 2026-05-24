@@ -1,24 +1,59 @@
+version: '3.9'
+
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: vkcloud_conf
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-vkconf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vkconf_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-vkcloud_conf}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-vkconf}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
   bot:
-    build: .
-    env_file: .env
-    depends_on:
-      - postgres
-    ports:
-      - "3000:3000"
-      - "3001:3001"
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
+    env_file: .env
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - app-network
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - '3001:3001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data:
+  uploads_data:
