@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  maxUserId  BigInt   @unique
+  chatId     BigInt
+  fullName   String
+  email      String
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  questions   QuestionToSpeaker[]
+  feedbacks   Feedback[]
+  quizResults QuizResult[]
+}
+
+model Speaker {
+  id        String   @id @default(cuid())
+  name      String
+  bio       String   @db.Text
+  photoUrl  String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  questions QuestionToSpeaker[]
+  sessions  ScheduleSession[]
+}
+
+model ScheduleSession {
+  id          String    @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime
+  title       String
+  description String?   @db.Text
+  location    String?
+  speakerId   String?
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  speaker Speaker? @relation(fields: [speakerId], references: [id], onDelete: SetNull)
+}
+
+model Config {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model QuestionToSpeaker {
+  id        String   @id @default(cuid())
+  userId    String
+  speakerId String
+  question  String   @db.Text
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  speaker Speaker @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+enum QuizCorrectOption {
+  a
+  b
+  c
+  d
+}
+
+model QuizQuestion {
+  id            String            @id @default(cuid())
+  question      String            @db.Text
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption QuizCorrectOption
+  order         Int               @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  results QuizResult[]
+}
+
+model QuizResult {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  answer     String
+  isCorrect  Boolean
+  createdAt  DateTime @default(now())
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  text        String    @db.Text
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  isSent      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,78 @@
+.progressTrack {
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #005ff9;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.question {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #111827;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optionBtn {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  background: #fff;
+  color: #111827;
+}
+
+.optionBtn:disabled {
+  cursor: default;
+}
+
+.optionCorrect {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
+}
+
+.optionWrong {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.resultWinner {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  border-radius: 12px;
+}
+
+.resultScore {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #374151;
+  background: #fff;
+  border-radius: 12px;
+}

@@ -1,0 +1,15 @@
+.layout {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f6f8;
+  box-sizing: border-box;
+}
+
+.main {
+  flex: 1;
+  padding: 12px 16px 80px;
+  overflow-y: auto;
+}
