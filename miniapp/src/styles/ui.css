@@ -304,3 +304,8 @@
   border-radius: var(--radius-md);
   font-size: 15px;
 }
+
+.program-page {
+  gap: 0;
+  max-width: 100%;
+}
