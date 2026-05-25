@@ -233,8 +233,20 @@ curl -s http://127.0.0.1:3001/health
 Логи:
 
 ```bash
+```bash
+chmod +x scripts/view-logs.sh
+./scripts/view-logs.sh              # снимок: bot, admin, postgres, nginx
+./scripts/view-logs.sh -f bot       # follow логов бота (откройте miniapp в MAX)
+./scripts/view-logs.sh -n 200 bot   # только бот, 200 строк
+```
+
+Вручную:
+
+```bash
 docker compose logs -f bot
 docker compose logs -f admin
+sudo tail -f /var/log/nginx/error.log
+```
 ```
 
 ---
