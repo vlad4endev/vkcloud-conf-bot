@@ -411,17 +411,26 @@ export function filterByTrack(track: TrackId): ScheduleItem[] {
   return scheduleData.filter((item) => item.track === track);
 }
 
-export const tagStyles: Record<string, string> = {
-  KeyNote: 'bg-[#005ff9]/20 text-[#5eb0ff] border-[#005ff9]/40',
-  DevOps: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
-  Data: 'bg-violet-500/15 text-violet-300 border-violet-500/30',
-  ИИ: 'bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30',
-  Security: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  Бизнес: 'bg-orange-500/15 text-orange-300 border-orange-500/30',
-  Кейс: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  default: 'bg-slate-500/15 text-slate-300 border-slate-500/30',
+export type TagStyleKey =
+  | 'tagKeynote'
+  | 'tagDevops'
+  | 'tagData'
+  | 'tagAi'
+  | 'tagSecurity'
+  | 'tagBusiness'
+  | 'tagCase'
+  | 'tagDefault';
+
+const tagStyles: Record<string, TagStyleKey> = {
+  KeyNote: 'tagKeynote',
+  DevOps: 'tagDevops',
+  Data: 'tagData',
+  ИИ: 'tagAi',
+  Security: 'tagSecurity',
+  Бизнес: 'tagBusiness',
+  Кейс: 'tagCase',
 };
 
-export function getTagClass(tag: string): string {
-  return tagStyles[tag] ?? tagStyles.default;
+export function getTagStyleKey(tag: string): TagStyleKey {
+  return tagStyles[tag] ?? 'tagDefault';
 }

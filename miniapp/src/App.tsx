@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import EventInfo from './pages/EventInfo';
 import ScheduleHub from './pages/ScheduleHub';
@@ -22,9 +22,9 @@ export default function App() {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
-          color: 'var(--color-text-secondary)',
+          color: '#7b9cc0',
           fontSize: 15,
-          background: 'var(--color-bg)',
+          background: '#0a0f1e',
         }}
       >
         Загрузка…
@@ -36,7 +36,7 @@ export default function App() {
 
   return (
     <UserContext.Provider value={userContext}>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<EventInfo />} />
@@ -49,7 +49,7 @@ export default function App() {
             <Route path="/feedback" element={<Feedback />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </UserContext.Provider>
   );
 }
