@@ -13,7 +13,7 @@ build_miniapp() {
       -v "${ROOT}:/workspace" \
       -w /workspace/miniapp \
       node:20-bookworm-slim \
-      bash -c "rm -rf node_modules && npm ci && npm run build"
+      bash -c "rm -rf node_modules && npm ci --include=optional && npm run build"
     return
   fi
 
