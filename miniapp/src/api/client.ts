@@ -86,12 +86,21 @@ export interface CreatedResource {
   id: string;
 }
 
+export const UNAUTHORIZED_ERROR = 'Пользователь не авторизован';
+
+function requireUserId(userId: number | undefined | null): number {
+  if (userId == null || !Number.isInteger(userId) || userId <= 0) {
+    throw new Error(UNAUTHORIZED_ERROR);
+  }
+  return userId;
+}
+
 const api = axios.create({
   baseURL: '/api',
 });
 
 api.interceptors.request.use((config) => {
-  const initData = window.MaxBridge?.initData;
+  const initData = window.WebApp?.initData ?? window.MaxBridge?.initData;
   if (initData) {
     config.headers.set('X-Max-Init-Data', initData);
   }
@@ -129,6 +138,7 @@ export async function postQuestion(
   speakerId: string,
   payload: QuestionPayload,
 ): Promise<CreatedResource> {
+  requireUserId(payload.userId);
   const { data } = await api.post<CreatedResource>(
     `/speakers/${speakerId}/questions`,
     payload,
@@ -144,11 +154,13 @@ export async function getQuizQuestions(): Promise<QuizQuestion[]> {
 export async function postQuizAnswer(
   payload: QuizAnswerPayload,
 ): Promise<QuizAnswerResult> {
+  requireUserId(payload.userId);
   const { data } = await api.post<QuizAnswerResult>('/quiz/answer', payload);
   return data;
 }
 
 export async function getQuizStatus(userId: number): Promise<QuizStatus> {
-  const { data } = await api.get<QuizStatus>(`/quiz/status/${userId}`);
+  const validUserId = requireUserId(userId);
+  const { data } = await api.get<QuizStatus>(`/quiz/status/${validUserId}`);
   return data;
 }

@@ -3,6 +3,7 @@ import { prisma } from '../db/client';
 import { env } from '../shared/env';
 import { createBot } from './app';
 import { processPendingNotifications } from './jobs/notifications';
+import { resolveMaxMiniAppOpenUrl } from '../shared/maxMiniAppLink';
 import { setupWebhook } from './webhook';
 import { createWebhookServer } from './webhookServer';
 
@@ -26,6 +27,7 @@ async function main(): Promise<void> {
   if (env.NODE_ENV === 'production' && process.env.WEBHOOK_URL) {
     const webhookServer = await createWebhookServer(bot);
     bot.botInfo ??= await bot.api.getMyInfo();
+    await resolveMaxMiniAppOpenUrl(bot.api);
     await webhookServer.listen({ port: env.PORT, host: '0.0.0.0' });
     await setupWebhook(bot, process.env.WEBHOOK_URL + '/webhook');
   } else {

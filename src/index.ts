@@ -4,6 +4,7 @@ import { handleStart, handleMessage } from './bot/handlers';
 import { setBotInstance, startNotificationScheduler } from './bot/notifications';
 import { setupWebhook } from './bot/webhook';
 import { createWebhookServer } from './bot/webhookServer';
+import { resolveMaxMiniAppOpenUrl } from './shared/maxMiniAppLink';
 
 const botToken = process.env.BOT_TOKEN;
 
@@ -26,6 +27,7 @@ async function main(): Promise<void> {
     const webhookServer = await createWebhookServer(bot);
     const port = Number(process.env.PORT ?? 3000);
     bot.botInfo ??= await bot.api.getMyInfo();
+    await resolveMaxMiniAppOpenUrl(bot.api);
     await webhookServer.listen({ port, host: '0.0.0.0' });
     await setupWebhook(bot, process.env.WEBHOOK_URL + '/webhook');
   } else {

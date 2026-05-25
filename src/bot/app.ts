@@ -1,5 +1,6 @@
-import { Bot, type Context, Keyboard } from '@maxhub/max-bot-api';
+import { Bot, type Api, type Context, Keyboard } from '@maxhub/max-bot-api';
 import { env } from '../shared/env';
+import { resolveMaxMiniAppOpenUrl } from '../shared/maxMiniAppLink';
 import { registerProgramHandlers } from './handlers/program';
 import { registerQuizHandlers } from './handlers/quiz';
 import { ensureBotUser } from './services/user';
@@ -21,15 +22,16 @@ const HELP_TEXT = `Доступные команды:
 /program — программа конференции
 /quiz — квиз`;
 
-function welcomeExtra() {
-  if (!env.MINI_APP_URL) {
+async function welcomeExtra(api: Api) {
+  const openUrl = await resolveMaxMiniAppOpenUrl(api);
+  if (!openUrl) {
     return undefined;
   }
 
   return {
     attachments: [
       Keyboard.inlineKeyboard([
-        [Keyboard.button.link('Открыть мини-приложение', env.MINI_APP_URL)],
+        [Keyboard.button.link('Открыть мини-приложение', openUrl)],
       ]),
     ],
   };
@@ -53,7 +55,7 @@ export function createBot(): Bot {
 
   const sendWelcome = async (ctx: Context) => {
     await ensureBotUser(ctx);
-    await ctx.reply(WELCOME_TEXT, welcomeExtra());
+    await ctx.reply(WELCOME_TEXT, await welcomeExtra(bot.api));
   };
 
   bot.on('bot_started', sendWelcome);

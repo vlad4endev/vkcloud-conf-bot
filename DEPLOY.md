@@ -168,6 +168,27 @@ curl -s http://127.0.0.1:3001/health
 - [ ] `GET https://YOUR_DOMAIN/api/config` — JSON конфигурации
 - [ ] `GET http://127.0.0.1:3001/admin/users` — **401** без токена (норма)
 - [ ] Мини-приложение открывается по `MINI_APP_URL`
+- [ ] В панели MAX привязан URL `MINI_APP_URL`, кнопка в чате открывает **внутри MAX** (не браузер)
+
+### Мини-приложение внутри MAX (не обычная ссылка)
+
+1. **Панель MAX** → Чат-боты → ваш бот → **Чат-бот и мини-приложение** → URL: `https://vkconf.skypath.fun/` → Сохранить.  
+   После этого в чате появится штатная кнопка запуска mini app.
+
+2. **Кнопка в сообщениях бота** должна вести на диплинк, а не на `MINI_APP_URL` напрямую:
+   ```env
+   MAX_BOT_USERNAME=ИмяВашегоБота
+   ```
+   Или полный URL: `MAX_STARTAPP_URL=https://max.ru/ИмяВашегоБота?startapp`  
+   Имя бота — как в ссылке `https://max.ru/ИмяВашегоБота`.
+
+3. Пересоберите и перезапустите бота после смены `.env`:
+   ```bash
+   ./deploy.sh
+   docker compose restart bot
+   ```
+
+4. Miniapp подключает `https://st.max.ru/js/max-web-app.js` (`window.WebApp`) — без этого MAX Bridge не работает.
 
 Логи:
 
@@ -200,11 +221,33 @@ docker compose restart bot admin
 
 | Симптом | Решение |
 |---|---|
+| `/health` и `/api/config` — HTML 404, `/` — **615 байт** | Активен **дефолтный** nginx, не vkconf. См. ниже |
 | Бот не стартует | `docker compose logs bot` — проверьте `BOT_TOKEN`, `WEBHOOK_URL` |
 | `Invalid environment variables` | `./scripts/check-env.sh`, длина `ADMIN_JWT_SECRET` ≥ 32 |
 | Webhook 404 | nginx: `location /webhook` → порт 3000 |
 | Miniapp не грузит API | nginx: `location /api/` → порт 3001 |
 | Seed падает | Повторный запуск безопасен; админ уже есть — можно игнорировать |
+
+### HTML 404 на `/health` и дефолтная страница на `/`
+
+Значит запросы **не попадают** в `nginx/vkconf.skypath.fun.conf` (часто включён `sites-enabled/default`).
+
+```bash
+cd /opt/vkconf
+git pull
+sudo ./scripts/install-nginx-vkconf.sh
+./scripts/publish-miniapp.sh
+./scripts/verify-production.sh
+```
+
+Ручная проверка:
+
+```bash
+ls -la /etc/nginx/sites-enabled/
+sudo nginx -T | grep -E 'server_name|root '
+curl -s http://127.0.0.1:3000/health
+curl -s http://127.0.0.1:3001/api/config
+```
 
 ---
 
