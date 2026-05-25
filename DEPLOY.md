@@ -115,24 +115,7 @@ chmod +x scripts/publish-miniapp.sh
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Сборка miniapp на VPS: скрипт сначала пробует **Docker**, при отсутствии прав — **локальный `npm ci` на Linux**.  
-Если `git pull` пишет `dubious ownership`:
-
-```bash
-git config --global --add safe.directory /opt/vkconf
-# при необходимости: sudo chown -R ubuntu:ubuntu /opt/vkconf
-```
-
-Если `permission denied` на `docker.sock` — после `git pull` скрипт соберёт локально; либо `sudo usermod -aG docker ubuntu` и **перелогиниться**.
-
-Если `EACCES` на `miniapp/node_modules` (папка от root после Docker):
-
-```bash
-sudo rm -rf /opt/vkconf/miniapp/node_modules
-sudo chown -R ubuntu:ubuntu /opt/vkconf/miniapp /opt/vkconf/dist-miniapp
-./scripts/publish-miniapp.sh
-```
-
+Сборка miniapp на VPS: скрипт использует **Docker** (`node:20-bookworm-slim`), чтобы установить Linux-зависимости Vite/Rolldown.  
 Если ошибка `Cannot find native binding @rolldown/binding-linux-x64-gnu` — не собирайте на Mac-копии `node_modules`, только `./scripts/publish-miniapp.sh` на сервере.
 
 Альтернатива — собрать на Mac и залить статику:
@@ -219,7 +202,7 @@ curl -s http://127.0.0.1:3001/health
    docker compose up -d bot
    ```
 
-4. Miniapp подключает `https://st.max.ru/js/max-web-app.js` (`window.WebApp`) — без этого MAX Bridge не работает. После первого рендера вызывается **`WebApp.ready()`** — без этого в MAX часто остаётся белый экран.
+4. Miniapp подключает `https://st.max.ru/js/max-web-app.js` (`window.WebApp`) — без этого MAX Bridge не работает.
 
 ### «Не удалось открыть мини-приложение» в MAX
 
@@ -233,20 +216,8 @@ curl -s http://127.0.0.1:3001/health
 Логи:
 
 ```bash
-```bash
-chmod +x scripts/view-logs.sh
-./scripts/view-logs.sh              # снимок: bot, admin, postgres, nginx
-./scripts/view-logs.sh -f bot       # follow логов бота (откройте miniapp в MAX)
-./scripts/view-logs.sh -n 200 bot   # только бот, 200 строк
-```
-
-Вручную:
-
-```bash
 docker compose logs -f bot
 docker compose logs -f admin
-sudo tail -f /var/log/nginx/error.log
-```
 ```
 
 ---
@@ -278,9 +249,7 @@ docker compose restart bot admin
 | `Invalid environment variables` | `./scripts/check-env.sh`, длина `ADMIN_JWT_SECRET` ≥ 32 |
 | Webhook 404 | nginx: `location /webhook` → порт 3000 |
 | Miniapp не грузит API | nginx: `location /api/` → порт 3001 |
-| `/` → HTTP 500 или **redirection cycle** `index.html` в nginx | Нет miniapp на диске: `./scripts/publish-miniapp.sh`, затем `sudo ./scripts/install-nginx-vkconf.sh` |
-| Белый экран / miniapp не открывается в MAX | `./scripts/diagnose-server.sh` — проверьте бота в панели MAX и `MAX_BOT_USERNAME` в `.env` |
-| `MAX_BOT_USERNAME не совпадает с ботом токена` в логах | Удалите `MAX_BOT_USERNAME` из `.env` или укажите `@id…_bot` из токена; miniapp в панели MAX — **на том же боте** |
+| `/` → HTTP 500 или цикл `index.html` в nginx error.log | `./scripts/publish-miniapp.sh`, затем `sudo ./scripts/install-nginx-vkconf.sh` |
 | Seed падает | Повторный запуск безопасен; админ уже есть — можно игнорировать |
 
 ### HTML 404 на `/health` и дефолтная страница на `/`

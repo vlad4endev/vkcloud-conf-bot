@@ -13,7 +13,6 @@ declare global {
 
 const STORAGE_KEY = 'conf_user_id';
 const DEV_STORAGE_KEY = 'dev_user_id';
-const BRIDGE_TIMEOUT_MS = 2500;
 
 type HapticType = 'success' | 'error' | 'warning';
 
@@ -30,24 +29,8 @@ function parsePositiveInt(raw: string | null): number | null {
   return value;
 }
 
-function safeStorageGet(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function safeStorageSet(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // WebView may block storage — app should still work
-  }
-}
-
 function readStoredUserId(): number | null {
-  return parsePositiveInt(safeStorageGet(STORAGE_KEY));
+  return parsePositiveInt(localStorage.getItem(STORAGE_KEY));
 }
 
 function readUrlUserId(): number | null {
@@ -57,9 +40,9 @@ function readUrlUserId(): number | null {
 
 function getOrCreateDevUserId(): number {
   const devId =
-    parsePositiveInt(safeStorageGet(DEV_STORAGE_KEY)) ??
+    parsePositiveInt(localStorage.getItem(DEV_STORAGE_KEY)) ??
     Math.floor(Math.random() * 900000) + 100000;
-  safeStorageSet(DEV_STORAGE_KEY, String(devId));
+  localStorage.setItem(DEV_STORAGE_KEY, String(devId));
   return devId;
 }
 
@@ -71,7 +54,7 @@ function resolveFallbackUserId(): number {
 
   const fromUrl = readUrlUserId();
   if (fromUrl !== null) {
-    safeStorageSet(STORAGE_KEY, String(fromUrl));
+    localStorage.setItem(STORAGE_KEY, String(fromUrl));
     return fromUrl;
   }
 
@@ -79,41 +62,19 @@ function resolveFallbackUserId(): number {
 }
 
 function readWebAppUser(): { userId: number; name: string } | null {
-  try {
-    const user = window.WebApp?.initDataUnsafe?.user;
-    if (!user) {
-      return null;
-    }
-
-    const userId = user.id ?? user.user_id;
-    if (userId == null || !Number.isInteger(userId) || userId <= 0) {
-      return null;
-    }
-
-    const name = user.first_name ?? user.name ?? '';
-    safeStorageSet(STORAGE_KEY, String(userId));
-    return { userId, name };
-  } catch {
+  const user = window.WebApp?.initDataUnsafe?.user;
+  if (!user) {
     return null;
   }
-}
 
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = window.setTimeout(() => {
-      reject(new Error('bridge_timeout'));
-    }, ms);
+  const userId = user.id ?? user.user_id;
+  if (userId == null || !Number.isInteger(userId) || userId <= 0) {
+    return null;
+  }
 
-    promise
-      .then((value) => {
-        window.clearTimeout(timer);
-        resolve(value);
-      })
-      .catch((error: unknown) => {
-        window.clearTimeout(timer);
-        reject(error);
-      });
-  });
+  const name = user.first_name ?? user.name ?? '';
+  localStorage.setItem(STORAGE_KEY, String(userId));
+  return { userId, name };
 }
 
 async function resolveUserId(): Promise<{ userId: number; name: string }> {
@@ -125,9 +86,9 @@ async function resolveUserId(): Promise<{ userId: number; name: string }> {
   const legacyBridge = window.MaxBridge;
   if (legacyBridge) {
     try {
-      const info = await withTimeout(legacyBridge.getUserInfo(), BRIDGE_TIMEOUT_MS);
+      const info = await legacyBridge.getUserInfo();
       if (info.userId > 0) {
-        safeStorageSet(STORAGE_KEY, String(info.userId));
+        localStorage.setItem(STORAGE_KEY, String(info.userId));
         return { userId: info.userId, name: info.name };
       }
     } catch {
@@ -139,27 +100,21 @@ async function resolveUserId(): Promise<{ userId: number; name: string }> {
 }
 
 export function useMaxBridge() {
-  const [userId, setUserId] = useState(() => resolveFallbackUserId());
+  const [userId, setUserId] = useState(0);
   const [userName, setUserName] = useState('');
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    void resolveUserId()
-      .then(({ userId: resolvedId, name }) => {
-        if (cancelled) {
-          return;
-        }
-        setUserId(resolvedId);
-        setUserName(name);
-      })
-      .catch(() => {
-        if (cancelled) {
-          return;
-        }
-        setUserId(resolveFallbackUserId());
-        setUserName('');
-      });
+    void resolveUserId().then(({ userId: resolvedId, name }) => {
+      if (cancelled) {
+        return;
+      }
+      setUserId(resolvedId);
+      setUserName(name);
+      setIsReady(true);
+    });
 
     return () => {
       cancelled = true;
@@ -180,5 +135,5 @@ export function useMaxBridge() {
     window.MaxBridge?.hapticFeedback(type);
   }, []);
 
-  return { userId, userName, close, haptic };
+  return { userId, userName, isReady, close, haptic };
 }
