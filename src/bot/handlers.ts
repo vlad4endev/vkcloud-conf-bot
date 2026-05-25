@@ -1,7 +1,6 @@
 import type { Context } from '@maxhub/max-bot-api';
 import { prisma } from '../db/client';
 import { sessions } from '../shared/types';
-import { getMainMenuKeyboard } from './keyboards';
 import { MESSAGES } from './messages';
 
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
@@ -65,18 +64,38 @@ async function getConfig(key: string): Promise<string | null> {
   }
 }
 
-async function getMainMenuAttachment() {
-  const miniAppUrl = process.env.MINI_APP_URL ?? '';
+async function sendMainMenu(ctx: Context) {
   const chatUrl = (await getConfig('chat_url')) ?? '';
   const stickerUrl = (await getConfig('sticker_url')) ?? '';
+  const miniAppUrl = process.env.MINI_APP_URL ?? '';
 
-  return getMainMenuKeyboard(miniAppUrl, chatUrl, stickerUrl);
-}
+  const buttons: Array<Array<{ type: 'link'; text: string; url: string }>> = [];
 
-async function sendMainMenu(ctx: Context) {
-  await ctx.reply(MESSAGES.ALREADY_REGISTERED, {
+  if (miniAppUrl && miniAppUrl.startsWith('https://')) {
+    buttons.push([{ type: 'link', text: '🚀 Приложение конференции', url: miniAppUrl }]);
+  }
+  if (chatUrl && chatUrl.startsWith('https://')) {
+    buttons.push([{ type: 'link', text: '💬 Чат участников', url: chatUrl }]);
+  }
+  if (stickerUrl && stickerUrl.startsWith('https://')) {
+    buttons.push([{ type: 'link', text: '🎨 Стикерпак', url: stickerUrl }]);
+  }
+
+  const text = '🎉 Вы зарегистрированы! Добро пожаловать на VK Cloud Conf 2026.';
+
+  if (buttons.length === 0) {
+    await ctx.reply(text, { format: 'markdown' });
+    return;
+  }
+
+  await ctx.reply(text, {
+    attachments: [
+      {
+        type: 'inline_keyboard',
+        payload: { buttons },
+      },
+    ],
     format: 'markdown',
-    attachments: [await getMainMenuAttachment()],
   });
 }
 

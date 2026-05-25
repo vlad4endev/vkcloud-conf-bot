@@ -22,6 +22,16 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+DEFAULT_MINI_APP_URL='https://vkcon.api.skypath.fun/health'
+if ! grep -qE '^MINI_APP_URL=https?://' .env; then
+  if grep -q '^MINI_APP_URL=' .env; then
+    sed -i "s|^MINI_APP_URL=.*|MINI_APP_URL=${DEFAULT_MINI_APP_URL}|" .env
+  else
+    echo "MINI_APP_URL=${DEFAULT_MINI_APP_URL}" >> .env
+  fi
+  echo -e "${YELLOW}⚠️  MINI_APP_URL был пуст — установлен временный: ${DEFAULT_MINI_APP_URL}${NC}"
+fi
+
 chmod +x scripts/check-env.sh 2>/dev/null || true
 ./scripts/check-env.sh
 

@@ -1,7 +1,6 @@
 import { Keyboard } from '@maxhub/max-bot-api';
-import { BUTTONS } from './messages';
 
-type OpenAppButton = {
+export type OpenAppButton = {
   type: 'open_app';
   text: string;
   web_app?: string;
@@ -27,16 +26,6 @@ if (!buttonApi.openApp) {
   });
 }
 
-export function getMainMenuKeyboard(
-  miniAppUrl: string,
-  chatUrl: string,
-  stickerUrl: string,
-): ReturnType<typeof Keyboard.inlineKeyboard> {
-  return Keyboard.inlineKeyboard([
-    [(Keyboard.button as ButtonApi).openApp(BUTTONS.OPEN_APP, miniAppUrl) as never],
-    [
-      Keyboard.button.link(BUTTONS.CHAT, chatUrl),
-      Keyboard.button.link(BUTTONS.STICKER_PACK, stickerUrl),
-    ],
-  ]);
+export function openAppButton(text: string, webApp: string): OpenAppButton {
+  return buttonApi.openApp(text, webApp);
 }
