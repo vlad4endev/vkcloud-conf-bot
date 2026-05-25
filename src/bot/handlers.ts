@@ -4,7 +4,7 @@ import { sessions } from '../shared/types';
 import { getMainMenuKeyboard } from './keyboards';
 import { MESSAGES } from './messages';
 
-const EMAIL_REGEX = /\S+@\S+\.\S+/;
+const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const messageTimestamps = new Map<number, number[]>();
@@ -26,18 +26,26 @@ function isRateLimited(userId: number): boolean {
 
 function parseUserData(text: string): { fullName: string; email: string } | null {
   const trimmed = text.trim();
-  const emailMatch = trimmed.match(EMAIL_REGEX);
+  const emailMatches = [...trimmed.matchAll(EMAIL_REGEX)];
 
-  if (!emailMatch) {
+  if (emailMatches.length === 0) {
     return null;
   }
 
-  const email = emailMatch[0];
-  if (!email.includes('@')) {
+  const lastMatch = emailMatches[emailMatches.length - 1];
+  const email = lastMatch[0];
+  const emailIndex = lastMatch.index;
+
+  if (emailIndex === undefined) {
     return null;
   }
 
-  const fullName = trimmed.replace(email, '').trim().replace(/\s+/g, ' ');
+  const afterEmail = trimmed.slice(emailIndex + email.length).trim();
+  if (afterEmail.length > 0) {
+    return null;
+  }
+
+  const fullName = trimmed.slice(0, emailIndex).trim().replace(/\s+/g, ' ');
   const words = fullName.split(/\s+/).filter(Boolean);
 
   if (words.length < 2) {
@@ -74,75 +82,59 @@ async function sendMainMenu(ctx: Context) {
 
 export async function handleStart(ctx: Context) {
   const userId = ctx.user?.user_id;
-  if (userId === undefined) {
+  if (!userId) {
     return;
   }
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { maxUserId: BigInt(userId) },
-    });
+  const existing = await prisma.user.findUnique({
+    where: { maxUserId: BigInt(userId) },
+  });
 
-    if (user?.isVerified === true) {
-      await sendMainMenu(ctx);
-      return;
-    }
-
-    sessions.set(userId, { state: 'waiting_data', createdAt: Date.now() });
-    const welcomeText = (await getConfig('bot_welcome')) ?? MESSAGES.WELCOME;
-    await ctx.reply(welcomeText, { format: 'markdown' });
-  } catch (error) {
-    console.error('handleStart error:', error);
-    await ctx.reply(MESSAGES.REGISTRATION_ERROR, { format: 'markdown' });
+  if (existing?.isVerified) {
+    return sendMainMenu(ctx);
   }
+
+  sessions.set(userId, { state: 'waiting_data', createdAt: Date.now() });
+  await ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
 }
 
 export async function handleMessage(ctx: Context) {
-  const text = ctx.message?.body.text?.trim();
-  if (!text) {
+  const userId = ctx.user?.user_id;
+  const chatId = ctx.message?.recipient?.chat_id ?? ctx.chatId;
+  if (!userId || chatId === undefined) {
     return;
   }
 
-  const maxUser = ctx.user;
-  if (!maxUser) {
+  if (isRateLimited(userId)) {
     return;
   }
 
-  if (isRateLimited(maxUser.user_id)) {
-    return;
+  const existing = await prisma.user.findUnique({
+    where: { maxUserId: BigInt(userId) },
+  });
+
+  if (existing?.isVerified) {
+    return sendMainMenu(ctx);
+  }
+
+  const text = ctx.message?.body?.text ?? '';
+  const parsed = parseUserData(text);
+
+  if (!parsed) {
+    return ctx.reply(MESSAGES.REGISTRATION_ERROR, { format: 'markdown' });
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { maxUserId: BigInt(maxUser.user_id) },
-    });
-
-    if (user?.isVerified) {
-      await sendMainMenu(ctx);
-      return;
-    }
-
-    const parsed = parseUserData(text);
-    if (!parsed) {
-      await ctx.reply(MESSAGES.REGISTRATION_ERROR, { format: 'markdown' });
-      return;
-    }
-
-    const chatId = ctx.chatId;
-    if (chatId === undefined) {
-      return;
-    }
-
     await prisma.user.upsert({
-      where: { maxUserId: BigInt(maxUser.user_id) },
-      create: {
-        maxUserId: BigInt(maxUser.user_id),
-        chatId: BigInt(chatId),
-        fullName: parsed.fullName,
-        email: parsed.email,
-        isVerified: true,
-      },
+      where: { maxUserId: BigInt(userId) },
       update: {
+        fullName: parsed.fullName,
+        email: parsed.email,
+        chatId: BigInt(chatId),
+        isVerified: true,
+      },
+      create: {
+        maxUserId: BigInt(userId),
         chatId: BigInt(chatId),
         fullName: parsed.fullName,
         email: parsed.email,
@@ -150,17 +142,16 @@ export async function handleMessage(ctx: Context) {
       },
     });
 
-    sessions.set(maxUser.user_id, {
-      state: 'registered',
-      createdAt: Date.now(),
-    });
+    sessions.set(userId, { state: 'registered', createdAt: Date.now() });
 
-    await ctx.reply(MESSAGES.REGISTRATION_SUCCESS(parsed.fullName), {
-      format: 'markdown',
-      attachments: [await getMainMenuAttachment()],
-    });
-  } catch (error) {
-    console.error('handleMessage error:', error);
-    await ctx.reply(MESSAGES.REGISTRATION_ERROR, { format: 'markdown' });
+    await ctx.reply(
+      `✅ Спасибо, *${parsed.fullName}*! Вы зарегистрированы.`,
+      { format: 'markdown' },
+    );
+
+    await sendMainMenu(ctx);
+  } catch (e) {
+    console.error('Ошибка сохранения пользователя:', e);
+    await ctx.reply('Произошла ошибка. Попробуйте ещё раз.');
   }
 }

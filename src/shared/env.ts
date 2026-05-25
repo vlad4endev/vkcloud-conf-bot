@@ -29,6 +29,7 @@ const envSchema = z.object({
     emptyToUndefined,
     z.string().url().optional(),
   ),
+  SUPPORT_CONTACT: z.preprocess(emptyToUndefined, z.string().optional()),
 }).superRefine((data, ctx) => {
   if (data.NODE_ENV !== 'production') {
     return;
