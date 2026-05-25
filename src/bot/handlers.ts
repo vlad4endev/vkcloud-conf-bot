@@ -67,13 +67,9 @@ async function getConfig(key: string): Promise<string | null> {
 async function sendMainMenu(ctx: Context) {
   const chatUrl = (await getConfig('chat_url')) ?? '';
   const stickerUrl = (await getConfig('sticker_url')) ?? '';
-  const miniAppUrl = process.env.MINI_APP_URL ?? '';
-
+  const text = '🎉 Добро пожаловать на VK Cloud Conf 2026!';
   const buttons: Array<Array<{ type: 'link'; text: string; url: string }>> = [];
 
-  if (miniAppUrl && miniAppUrl.startsWith('https://')) {
-    buttons.push([{ type: 'link', text: '🚀 Приложение конференции', url: miniAppUrl }]);
-  }
   if (chatUrl && chatUrl.startsWith('https://')) {
     buttons.push([{ type: 'link', text: '💬 Чат участников', url: chatUrl }]);
   }
@@ -81,21 +77,13 @@ async function sendMainMenu(ctx: Context) {
     buttons.push([{ type: 'link', text: '🎨 Стикерпак', url: stickerUrl }]);
   }
 
-  const text = '🎉 Вы зарегистрированы! Добро пожаловать на VK Cloud Conf 2026.';
-
   if (buttons.length === 0) {
-    await ctx.reply(text, { format: 'markdown' });
+    await ctx.reply(text);
     return;
   }
 
   await ctx.reply(text, {
-    attachments: [
-      {
-        type: 'inline_keyboard',
-        payload: { buttons },
-      },
-    ],
-    format: 'markdown',
+    attachments: [{ type: 'inline_keyboard', payload: { buttons } }],
   });
 }
 
