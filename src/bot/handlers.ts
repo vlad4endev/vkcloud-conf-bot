@@ -4,7 +4,7 @@ import { sessions } from '../shared/types';
 import { getMainMenuKeyboard } from './keyboards';
 import { MESSAGES } from './messages';
 
-const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const messageTimestamps = new Map<number, number[]>();
@@ -86,16 +86,22 @@ export async function handleStart(ctx: Context) {
     return;
   }
 
-  const existing = await prisma.user.findUnique({
-    where: { maxUserId: BigInt(userId) },
-  });
+  try {
+    const existing = await prisma.user.findUnique({
+      where: { maxUserId: BigInt(userId) },
+    });
 
-  if (existing?.isVerified) {
-    return sendMainMenu(ctx);
+    if (existing?.isVerified) {
+      return sendMainMenu(ctx);
+    }
+
+    sessions.set(userId, { state: 'waiting_data', createdAt: Date.now() });
+    await ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
+  } catch (error) {
+    console.error('handleStart error:', error);
+    sessions.set(userId, { state: 'waiting_data', createdAt: Date.now() });
+    await ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
   }
-
-  sessions.set(userId, { state: 'waiting_data', createdAt: Date.now() });
-  await ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
 }
 
 export async function handleMessage(ctx: Context) {
@@ -117,7 +123,13 @@ export async function handleMessage(ctx: Context) {
     return sendMainMenu(ctx);
   }
 
-  const text = ctx.message?.body?.text ?? '';
+  const text = (ctx.message?.body?.text ?? '').trim();
+
+  // Пустые сообщения и команды (/start) не парсим — приветствие уже в handleStart
+  if (!text || text.startsWith('/')) {
+    return;
+  }
+
   const parsed = parseUserData(text);
 
   if (!parsed) {
