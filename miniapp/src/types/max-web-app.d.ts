@@ -20,6 +20,7 @@ interface MaxWebAppHapticFeedback {
 interface MaxWebApp {
   initData?: string;
   initDataUnsafe?: MaxWebAppInitDataUnsafe;
+  ready?: () => void;
   close?: () => void;
   HapticFeedback?: MaxWebAppHapticFeedback;
 }

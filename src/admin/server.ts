@@ -33,10 +33,7 @@ export async function createAdminServer() {
   });
 
   await app.register(cors, {
-    origin:
-      env.NODE_ENV === 'production'
-        ? (env.ADMIN_CORS_ORIGIN ?? 'http://localhost:5173')
-        : true,
+    origin: false, // CORS в nginx, не дублируем заголовки в Fastify
   });
 
   await app.register(jwt, {
