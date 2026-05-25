@@ -9,7 +9,7 @@
 | `postgres` | 5432 (внутри Docker) | База данных |
 | `bot` | 3000 | MAX webhook, планировщик уведомлений |
 | `admin` | 3001 | Admin API + Mini App API (`/api`) |
-| `nginx` + `dist-miniapp` | 443 | HTTPS, статика мини-приложения |
+| `nginx` + `dist-miniapp` | 443 | HTTPS: miniapp, `/api`, `/webhook` на **одном домене** |
 
 ## Требования к серверу
 
@@ -75,9 +75,15 @@ nano .env   # или vim
 | `BOT_TOKEN` | из [business.max.ru](https://business.max.ru) | Токен бота MAX |
 | `ADMIN_JWT_SECRET` | 32+ случайных символов | Секрет JWT админки |
 | `ADMIN_CODE_WORD` | ваше слово | Код входа в админку |
-| `WEBHOOK_URL` | `https://api.example.com` | **Без** `/webhook` — путь добавится автоматически |
-| `MINI_APP_URL` | `https://app.example.com/` | URL мини-приложения в MAX |
-| `ADMIN_CORS_ORIGIN` | `https://admin.example.com` | Origin фронтенда админки (если есть) |
+| `WEBHOOK_URL` | `https://vkconf.skypath.fun` | **Без** `/webhook` — путь добавится автоматически |
+| `MINI_APP_URL` | `https://vkconf.skypath.fun/` | URL мини-приложения в MAX (корень того же домена) |
+| `ADMIN_CORS_ORIGIN` | `https://vkconf.skypath.fun` | CORS админки (тот же домен) |
+
+Один домен на всё — скрипт:
+
+```bash
+./scripts/setup-domain-env.sh vkconf.skypath.fun
+```
 | `POSTGRES_PASSWORD` | сильный пароль | Пароль БД (смените дефолт!) |
 
 `DATABASE_URL` в Docker подставляется из `docker-compose.yml` — для контейнеров оставьте значение из `.env.example`.
@@ -90,25 +96,33 @@ openssl rand -base64 48
 
 ---
 
-## Шаг 4. SSL и nginx (мини-приложение + прокси)
+## Шаг 4. SSL и nginx (один домен `vkconf.skypath.fun`)
+
+DNS: **A-запись** `vkconf.skypath.fun` → IP сервера.
 
 ```bash
 sudo apt install -y nginx certbot python3-certbot-nginx
-sudo certbot --nginx -d YOUR_DOMAIN
+sudo cp nginx/vkconf.skypath.fun.conf /etc/nginx/sites-available/vkconf
+sudo ln -sf /etc/nginx/sites-available/vkconf /etc/nginx/sites-enabled/
+sudo certbot --nginx -d vkconf.skypath.fun
 ```
 
-Скопируйте и отредактируйте конфиг:
+Статика miniapp (после `npm run build:miniapp` на сервере или после rsync `dist-miniapp`):
 
 ```bash
-sudo cp nginx.conf.example /etc/nginx/sites-available/vkconf
-sudo nano /etc/nginx/sites-available/vkconf
-# замените YOUR_DOMAIN и путь root на dist-miniapp
-
-sudo mkdir -p /var/www/vkconf
-sudo cp -r dist-miniapp /var/www/vkconf/
-sudo ln -s /etc/nginx/sites-available/vkconf /etc/nginx/sites-enabled/
+chmod +x scripts/publish-miniapp.sh
+./scripts/publish-miniapp.sh
 sudo nginx -t && sudo systemctl reload nginx
 ```
+
+Проверка маршрутов:
+
+| URL | Ожидание |
+|-----|----------|
+| `https://vkconf.skypath.fun/` | HTML miniapp |
+| `https://vkconf.skypath.fun/api/config` | JSON |
+| `https://vkconf.skypath.fun/health` | `{"status":"ok"}` |
+| `https://vkconf.skypath.fun/webhook` | POST от MAX (через nginx → bot) |
 
 ---
 

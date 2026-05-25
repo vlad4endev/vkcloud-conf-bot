@@ -22,14 +22,26 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-DEFAULT_MINI_APP_URL='https://vkcon.api.skypath.fun/health'
+PRODUCTION_DOMAIN='vkconf.skypath.fun'
+DEFAULT_BASE_URL="https://${PRODUCTION_DOMAIN}"
+DEFAULT_MINI_APP_URL="${DEFAULT_BASE_URL}/"
+
+if ! grep -qE '^WEBHOOK_URL=https?://' .env; then
+  if grep -q '^WEBHOOK_URL=' .env; then
+    sed -i "s|^WEBHOOK_URL=.*|WEBHOOK_URL=${DEFAULT_BASE_URL}|" .env
+  else
+    echo "WEBHOOK_URL=${DEFAULT_BASE_URL}" >> .env
+  fi
+  echo -e "${YELLOW}⚠️  WEBHOOK_URL был пуст — установлен: ${DEFAULT_BASE_URL}${NC}"
+fi
+
 if ! grep -qE '^MINI_APP_URL=https?://' .env; then
   if grep -q '^MINI_APP_URL=' .env; then
     sed -i "s|^MINI_APP_URL=.*|MINI_APP_URL=${DEFAULT_MINI_APP_URL}|" .env
   else
     echo "MINI_APP_URL=${DEFAULT_MINI_APP_URL}" >> .env
   fi
-  echo -e "${YELLOW}⚠️  MINI_APP_URL был пуст — установлен временный: ${DEFAULT_MINI_APP_URL}${NC}"
+  echo -e "${YELLOW}⚠️  MINI_APP_URL был пуст — установлен: ${DEFAULT_MINI_APP_URL}${NC}"
 fi
 
 chmod +x scripts/check-env.sh 2>/dev/null || true
@@ -63,11 +75,18 @@ $COMPOSE logs --tail=20 bot
 WEBHOOK_BASE=$(grep -E '^WEBHOOK_URL=' .env | cut -d= -f2- | tr -d '\r')
 BOT_TOKEN=$(grep -E '^BOT_TOKEN=' .env | cut -d= -f2- | tr -d '\r')
 
+MINI_APP_URL=$(grep -E '^MINI_APP_URL=' .env | cut -d= -f2- | tr -d '\r')
+
 echo -e "${GREEN}✅ Деплой завершён!${NC}"
 echo ""
 echo "Admin API:  http://localhost:3001/health"
 echo "Bot health: http://localhost:3000/health"
 echo "Webhook:    ${WEBHOOK_BASE}/webhook"
+echo "Miniapp:    ${MINI_APP_URL}"
+echo ""
+echo -e "${YELLOW}Не забудьте на сервере:${NC}"
+echo "  sudo cp nginx/vkconf.skypath.fun.conf /etc/nginx/sites-available/vkconf"
+echo "  ./scripts/publish-miniapp.sh"
 echo ""
 if [ -n "$WEBHOOK_BASE" ]; then
   echo -e "${YELLOW}Webhook регистрируется автоматически при старте бота (WEBHOOK_URL в .env).${NC}"
