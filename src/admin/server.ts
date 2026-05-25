@@ -25,7 +25,13 @@ export async function createAdminServer() {
     ) as typeof payload;
   });
 
-  await app.register(helmet);
+  await app.register(helmet, {
+    contentSecurityPolicy: false, // управляем через nginx
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+    frameguard: false, // без X-Frame-Options — miniapp в iframe MAX
+  });
 
   await app.register(rateLimit, {
     max: 100,
