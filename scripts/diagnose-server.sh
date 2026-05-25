@@ -39,8 +39,10 @@ echo "=== MAX bot / miniapp (из логов docker) ==="
 if docker compose logs bot 2>/dev/null | tail -80 | grep -q 'не совпадает с ботом токена'; then
   warn "MAX_BOT_USERNAME в .env не совпадает с BOT_TOKEN"
   docker compose logs bot 2>/dev/null | grep 'miniapp' | tail -5 | sed 's/^/    /' || true
-  echo "    Исправление: удалите MAX_BOT_USERNAME из .env или укажите username из токена."
-  echo "    В панели MAX мини-приложение привяжите к боту из лога (@id280106037423_bot)."
+  echo "    Исправление на сервере:"
+  echo "      sed -i '/^MAX_BOT_USERNAME=/d' .env"
+  echo "      docker compose up -d bot --force-recreate"
+  echo "    В панели MAX мини-приложение привяжите к @username из лога (не к display name)."
 else
   docker compose logs bot 2>/dev/null | grep 'miniapp' | tail -3 | sed 's/^/    /' || warn "нет строк miniapp в логах bot"
 fi

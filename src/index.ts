@@ -31,11 +31,11 @@ async function main(): Promise<void> {
     const botUsername = await resolveBotUsername(bot.api);
     const startappUrl = await resolveMaxMiniAppOpenUrl(bot.api);
     console.log(
-      `[miniapp] bot="${bot.botInfo.name}" @${botUsername ?? '?'} startapp=${startappUrl ?? 'n/a'}`,
+      `[miniapp] name="${bot.botInfo.name}" username=@${botUsername ?? '?'} startapp=${startappUrl ?? 'n/a'}`,
     );
-    if (env.MINI_APP_URL) {
+    if (env.MINI_APP_URL && botUsername) {
       console.log(
-        `[miniapp] В панели MAX → «Чат-бот и мини-приложение» для @${botUsername}: ${env.MINI_APP_URL}`,
+        `[miniapp] Панель MAX → бот @${botUsername} → мини-приложение → URL: ${env.MINI_APP_URL}`,
       );
     }
     await webhookServer.listen({ port, host: '0.0.0.0' });
