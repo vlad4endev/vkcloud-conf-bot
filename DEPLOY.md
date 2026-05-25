@@ -204,6 +204,15 @@ curl -s http://127.0.0.1:3001/health
 
 4. Miniapp подключает `https://st.max.ru/js/max-web-app.js` (`window.WebApp`) — без этого MAX Bridge не работает.
 
+### «Не удалось открыть мини-приложение» в MAX
+
+Чаще всего одна из причин:
+
+1. **URL не привязан к этому боту** — в панели MAX откройте **того же бота**, с которым вы переписываетесь (не другой тестовый/прод), раздел **Чат-бот и мини-приложение** → `https://vkconf.skypath.fun/` → **Сохранить**.
+2. **`MAX_BOT_USERNAME` в `.env` от другого бота** — после деплоя смотрите лог:  
+   `docker compose logs bot | grep miniapp` — должно быть `@имя_вашего_бота`. Если warning про несовпадение — удалите или исправьте `MAX_BOT_USERNAME`.
+3. **Старый образ бота** — `docker compose build bot && docker compose up -d bot`, затем `/start` заново.
+
 Логи:
 
 ```bash
