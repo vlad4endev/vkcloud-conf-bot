@@ -10,27 +10,11 @@ import Quiz from './pages/Quiz';
 import Feedback from './pages/Feedback';
 import { createUserContextValue, UserContext } from './context/UserContext';
 import { useMaxBridge } from './hooks/useMaxBridge';
+import { useWebAppReady } from './hooks/useWebAppReady';
 
 export default function App() {
-  const { userId, haptic, isReady } = useMaxBridge();
-
-  if (!isReady) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          color: '#7b9cc0',
-          fontSize: 15,
-          background: '#0a0f1e',
-        }}
-      >
-        Загрузка…
-      </div>
-    );
-  }
+  const { userId, haptic } = useMaxBridge();
+  useWebAppReady();
 
   const userContext = createUserContextValue(userId, haptic);
 

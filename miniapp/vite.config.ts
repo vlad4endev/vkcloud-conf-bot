@@ -12,7 +12,7 @@ export default defineConfig({
   },
   build: {
     outDir: '../dist-miniapp',
-    target: ['es2020', 'chrome87', 'safari14'],
-    cssTarget: 'chrome87',
+    target: ['es2018', 'chrome80', 'safari13'],
+    cssTarget: 'chrome80',
   },
 })

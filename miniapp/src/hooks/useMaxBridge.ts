@@ -139,9 +139,8 @@ async function resolveUserId(): Promise<{ userId: number; name: string }> {
 }
 
 export function useMaxBridge() {
-  const [userId, setUserId] = useState(0);
+  const [userId, setUserId] = useState(() => resolveFallbackUserId());
   const [userName, setUserName] = useState('');
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,7 +152,6 @@ export function useMaxBridge() {
         }
         setUserId(resolvedId);
         setUserName(name);
-        setIsReady(true);
       })
       .catch(() => {
         if (cancelled) {
@@ -161,7 +159,6 @@ export function useMaxBridge() {
         }
         setUserId(resolveFallbackUserId());
         setUserName('');
-        setIsReady(true);
       });
 
     return () => {
@@ -183,5 +180,5 @@ export function useMaxBridge() {
     window.MaxBridge?.hapticFeedback(type);
   }, []);
 
-  return { userId, userName, isReady, close, haptic };
+  return { userId, userName, close, haptic };
 }
