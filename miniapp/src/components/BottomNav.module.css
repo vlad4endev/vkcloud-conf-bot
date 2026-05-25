@@ -7,30 +7,44 @@
   max-width: 480px;
   display: flex;
   justify-content: space-around;
-  align-items: center;
-  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-  background-color: #fff;
-  border-top: 1px solid #e5e7eb;
+  align-items: stretch;
+  height: 64px;
+  padding-bottom: env(safe-area-inset-bottom);
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
   box-sizing: border-box;
   z-index: 100;
 }
 
 .link {
+  position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   text-decoration: none;
   font-size: 11px;
   font-weight: 500;
-  padding: 4px 12px;
-  border-radius: 8px;
-  color: #6b7280;
-  transition: color 0.15s;
+  color: var(--color-text-secondary);
+  transition: color 0.15s ease;
 }
 
 .linkActive {
-  color: #005ff9;
+  color: var(--color-primary);
+}
+
+.linkActive::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent);
 }
 
 .icon {

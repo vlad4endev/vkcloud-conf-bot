@@ -1,13 +1,12 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postFeedback } from '../api/client';
-import { UserContext } from '../context/UserContext';
-import styles from './Page.module.css';
+import { useUserContext } from '../context/UserContext';
 
 export default function Feedback() {
   const navigate = useNavigate();
-  const { userId } = useContext(UserContext);
+  const { userId } = useUserContext();
 
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -26,7 +25,7 @@ export default function Feedback() {
     try {
       await postFeedback({
         text: trimmed,
-        ...(userId ? { userId } : {}),
+        userId,
       });
       navigate('/', {
         state: { notification: 'Спасибо! Обратная связь отправлена.' },
@@ -38,14 +37,14 @@ export default function Feedback() {
   }
 
   return (
-    <div className={styles.page}>
-      <h1 className={styles.title}>Обратная связь</h1>
+    <div className="page">
+      <h1 className="title">Обратная связь</h1>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        {error && <p className={styles.error}>{error}</p>}
+      <form className="form" onSubmit={handleSubmit}>
+        {error && <p className="error">{error}</p>}
 
         <textarea
-          className={styles.textarea}
+          className="textarea"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Ваш отзыв или предложение…"
@@ -54,7 +53,7 @@ export default function Feedback() {
 
         <button
           type="submit"
-          className={styles.btn}
+          className="btn"
           disabled={submitting || text.trim().length < 5}
         >
           Отправить

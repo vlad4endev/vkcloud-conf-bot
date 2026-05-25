@@ -5,9 +5,7 @@ import {
   getQuizStatus,
   postQuizAnswer,
 } from '../api/client';
-import { useContext } from 'react';
-import { UserContext } from '../context/UserContext';
-import styles from './Page.module.css';
+import { useUserContext } from '../context/UserContext';
 import quizStyles from './Quiz.module.css';
 
 type QuizPageStatus = 'loading' | 'idle' | 'in_progress' | 'finished';
@@ -32,7 +30,7 @@ function optionText(question: QuizQuestion, option: QuizOption): string {
 }
 
 export default function Quiz() {
-  const { userId, haptic } = useContext(UserContext);
+  const { userId, haptic } = useUserContext();
 
   const [status, setStatus] = useState<QuizPageStatus>('loading');
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -57,12 +55,6 @@ export default function Quiz() {
   }, []);
 
   useEffect(() => {
-    if (!userId) {
-      setError('Для участия в квизе нужен идентификатор пользователя');
-      setStatus('idle');
-      return;
-    }
-
     let cancelled = false;
     const uid = userId;
 
@@ -109,7 +101,7 @@ export default function Quiz() {
   }
 
   async function handleAnswer(option: QuizOption) {
-    if (!userId || answering) {
+    if (answering) {
       return;
     }
 
@@ -187,17 +179,17 @@ export default function Quiz() {
 
   if (status === 'loading') {
     return (
-      <div className={styles.page}>
-        <p className={styles.placeholder}>Загрузка…</p>
+      <div className="page">
+        <p className="placeholder">Загрузка…</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.page}>
-      <h1 className={styles.title}>Квиз</h1>
+    <div className="page">
+      <h1 className="title">Квиз</h1>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <p className="error">{error}</p>}
 
       {status === 'in_progress' && questions.length > 0 && (
         <div className={quizStyles.progressTrack} aria-hidden>
@@ -210,15 +202,14 @@ export default function Quiz() {
 
       {status === 'idle' && (
         <>
-          {questions.length === 0 && userId ? (
-            <p className={styles.placeholder}>Квиз скоро появится</p>
+          {questions.length === 0 ? (
+            <p className="placeholder">Квиз скоро появится</p>
           ) : questions.length > 0 ? (
-            <div className={styles.actions}>
+            <div className="actions">
               <button
                 type="button"
-                className={styles.btn}
+                className="btn"
                 onClick={handleStart}
-                disabled={!userId}
               >
                 Начать квиз
               </button>

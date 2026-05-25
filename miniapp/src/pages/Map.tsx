@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { getConfig } from '../api/client';
-import styles from './Page.module.css';
 
 export default function Map() {
   const [mapImageUrl, setMapImageUrl] = useState('');
@@ -13,15 +12,22 @@ export default function Map() {
       .finally(() => setLoading(false));
   }, []);
 
+  const hasMap = mapImageUrl.trim().length > 0;
+
   return (
-    <div className={styles.page}>
-      <h1 className={styles.title}>Карта</h1>
+    <div className="page">
+      <h1 className="title">Карта площадки</h1>
+
       {loading ? (
-        <p className={styles.placeholder}>Загрузка…</p>
-      ) : mapImageUrl.trim() ? (
-        <img src={mapImageUrl} alt="Карта площадки" style={{ width: '100%' }} />
+        <p className="placeholder">Загрузка…</p>
+      ) : hasMap ? (
+        <img
+          src={mapImageUrl}
+          alt="Карта мероприятия"
+          className="mapImage"
+        />
       ) : (
-        <p className={styles.placeholder}>Карта скоро появится</p>
+        <div className="mapPlaceholder">🗺 Карта площадки появится здесь</div>
       )}
     </div>
   );

@@ -1,13 +1,14 @@
 .progressTrack {
   height: 4px;
-  background: #e5e7eb;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: #005ff9;
+  background: var(--color-primary);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
@@ -17,7 +18,7 @@
   font-size: 17px;
   font-weight: 500;
   line-height: 1.4;
-  color: #111827;
+  color: var(--color-text);
 }
 
 .options {
@@ -29,16 +30,22 @@
 .optionBtn {
   display: block;
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  padding: 12px var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   font-size: 15px;
   font-weight: 500;
+  font-family: var(--font-primary);
   text-align: left;
   cursor: pointer;
   box-sizing: border-box;
-  background: #fff;
-  color: #111827;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color 0.15s ease;
+}
+
+.optionBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
 }
 
 .optionBtn:disabled {
@@ -46,33 +53,35 @@
 }
 
 .optionCorrect {
-  background: #ecfdf5;
-  border-color: #10b981;
-  color: #047857;
+  background: rgba(0, 200, 117, 0.12);
+  border-color: var(--color-success);
+  color: var(--color-success);
 }
 
 .optionWrong {
-  background: #fef2f2;
-  border-color: #ef4444;
-  color: #b91c1c;
+  background: rgba(255, 77, 77, 0.12);
+  border-color: var(--color-error);
+  color: var(--color-error);
 }
 
 .resultWinner {
-  padding: 24px 16px;
+  padding: var(--spacing-lg) var(--spacing-md);
   text-align: center;
   font-size: 18px;
   font-weight: 600;
-  color: #047857;
-  background: #ecfdf5;
-  border-radius: 12px;
+  color: var(--color-success);
+  background: rgba(0, 200, 117, 0.12);
+  border: 1px solid rgba(0, 200, 117, 0.35);
+  border-radius: var(--radius-md);
 }
 
 .resultScore {
-  padding: 24px 16px;
+  padding: var(--spacing-lg) var(--spacing-md);
   text-align: center;
   font-size: 16px;
   font-weight: 500;
-  color: #374151;
-  background: #fff;
-  border-radius: 12px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }

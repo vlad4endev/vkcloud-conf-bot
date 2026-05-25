@@ -1,17 +1,17 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   getSpeakerById,
   postQuestion,
   type Speaker,
 } from '../api/client';
-import { UserContext } from '../context/UserContext';
-import styles from './Page.module.css';
+import { useUserContext } from '../context/UserContext';
 
 export default function SpeakerDetail() {
   const { id } = useParams<{ id: string }>();
-  const { userId, haptic } = useContext(UserContext);
+  const navigate = useNavigate();
+  const { userId, haptic } = useUserContext();
 
   const [speaker, setSpeaker] = useState<Speaker | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,6 @@ export default function SpeakerDetail() {
   const [question, setQuestion] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -46,9 +45,11 @@ export default function SpeakerDetail() {
 
     try {
       await postQuestion(id, { userId, question: question.trim() });
-      setSubmitted(true);
       setQuestion('');
       haptic('success');
+      navigate('/speakers', {
+        state: { notification: 'Вопрос отправлен спикеру!' },
+      });
     } catch {
       setSubmitError('Не удалось отправить вопрос');
       haptic('error');
@@ -59,71 +60,54 @@ export default function SpeakerDetail() {
 
   if (loading) {
     return (
-      <div className={styles.page}>
-        <p className={styles.placeholder}>Загрузка…</p>
+      <div className="page">
+        <p className="placeholder">Загрузка…</p>
       </div>
     );
   }
 
   if (error || !speaker) {
     return (
-      <div className={styles.page}>
-        <p className={styles.error}>{error ?? 'Спикер не найден'}</p>
+      <div className="page">
+        <p className="error">{error ?? 'Спикер не найден'}</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.page}>
+    <div className="page">
       {speaker.photoUrl ? (
-        <img
-          src={speaker.photoUrl}
-          alt=""
-          className={styles.detailPhoto}
-        />
+        <img src={speaker.photoUrl} alt="" className="detailPhoto" />
       ) : (
-        <div className={styles.detailAvatar} aria-hidden>
+        <div className="detailAvatar" aria-hidden>
           👤
         </div>
       )}
 
-      <h1 className={styles.title}>{speaker.name}</h1>
-      {speaker.bio && <p className={styles.text}>{speaker.bio}</p>}
+      <h1 className="title">{speaker.name}</h1>
+      {speaker.bio && <p className="text">{speaker.bio}</p>}
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h2 className={styles.title} style={{ fontSize: '18px' }}>
+      <form className="form" onSubmit={handleSubmit}>
+        <h2 className="title" style={{ fontSize: '18px' }}>
           Задать вопрос спикеру
         </h2>
 
-        {submitted && (
-          <p className={styles.success} role="status">
-            Вопрос отправлен!
-          </p>
-        )}
-        {submitError && <p className={styles.error}>{submitError}</p>}
-        {!userId && (
-          <p className={styles.error}>
-            Для отправки вопроса нужен идентификатор пользователя
-          </p>
-        )}
+        {submitError && <p className="error">{submitError}</p>}
 
         <textarea
-          className={styles.textarea}
+          className="textarea"
           value={question}
-          onChange={(e) => {
-            setQuestion(e.target.value);
-            setSubmitted(false);
-          }}
+          onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ваш вопрос…"
           disabled={submitting}
         />
 
         <button
           type="submit"
-          className={styles.btn}
-          disabled={submitting || !userId || question.trim().length < 10}
+          className="btn"
+          disabled={submitting || question.trim().length < 10}
         >
-          Отправить
+          Подтвердить отправку
         </button>
       </form>
     </div>

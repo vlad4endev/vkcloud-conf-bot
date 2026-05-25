@@ -1,0 +1,29 @@
+:root {
+  /* Основные цвета */
+  --color-primary: #005ff9;
+  --color-primary-dark: #0040cc;
+  --color-accent: #00d1ff;
+  --color-bg: #0a0f1e;
+  --color-surface: #111827;
+  --color-surface-2: #1c2539;
+  --color-border: #1e3a5f;
+  --color-text: #e8edf5;
+  --color-text-secondary: #7b9cc0;
+  --color-success: #00c875;
+  --color-error: #ff4d4d;
+  --color-warning: #ffb800;
+
+  /* Типографика */
+  --font-primary: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  /* Размеры */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}

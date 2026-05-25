@@ -1,30 +1,41 @@
-import { Link, useLocation } from 'react-router-dom'
-import styles from './BottomNav.module.css'
+import { Link, useLocation } from 'react-router-dom';
+import styles from './BottomNav.module.css';
 
 const tabs = [
-  { path: '/', label: 'Главная', icon: '🏠', match: (p: string) => p === '/' },
-  {
-    path: '/schedule',
-    label: 'Программа',
-    icon: '📅',
-    match: (p: string) => p === '/schedule' || p.startsWith('/schedule/'),
-  },
-  {
-    path: '/speakers',
-    label: 'Спикеры',
-    icon: '👥',
-    match: (p: string) => p === '/speakers' || p.startsWith('/speakers/'),
-  },
-  { path: '/quiz', label: 'Квиз', icon: '🎮', match: (p: string) => p === '/quiz' || p.startsWith('/quiz/') },
-] as const
+  { path: '/', label: 'Главная', icon: '🏠' },
+  { path: '/schedule-hub', label: 'Программа', icon: '📋' },
+  { path: '/quiz', label: 'Квиз', icon: '🎮' },
+  { path: '/feedback', label: 'Связь', icon: '💬' },
+] as const;
+
+function isTabActive(pathname: string, tabPath: string): boolean {
+  switch (tabPath) {
+    case '/':
+      return pathname === '/';
+    case '/schedule-hub':
+      return (
+        pathname === '/schedule-hub' ||
+        pathname === '/map' ||
+        pathname === '/schedule' ||
+        pathname === '/speakers' ||
+        pathname.startsWith('/speakers/')
+      );
+    case '/quiz':
+      return pathname === '/quiz';
+    case '/feedback':
+      return pathname === '/feedback';
+    default:
+      return false;
+  }
+}
 
 export default function BottomNav() {
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
 
   return (
     <nav className={styles.nav} aria-label="Основная навигация">
-      {tabs.map(({ path, label, icon, match }) => {
-        const active = match(pathname)
+      {tabs.map(({ path, label, icon }) => {
+        const active = isTabActive(pathname, path);
         return (
           <Link
             key={path}
@@ -37,8 +48,8 @@ export default function BottomNav() {
             </span>
             <span>{label}</span>
           </Link>
-        )
+        );
       })}
     </nav>
-  )
+  );
 }

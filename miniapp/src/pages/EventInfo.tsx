@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getConfig } from '../api/client';
-import styles from './Page.module.css';
+import styles from './EventInfo.module.css';
 
 type LocationState = {
   notification?: string;
@@ -32,26 +32,40 @@ export default function EventInfo() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>О конференции</h1>
+      <section className={styles.hero} aria-labelledby="event-hero-title">
+        <div className={styles.heroContent}>
+          <span className={styles.heroLabel}>Конструкторское бюро будущего</span>
+          <h1 id="event-hero-title" className={styles.heroTitle}>
+            VK Cloud Conf 2026
+          </h1>
+          <p className={styles.heroSubtitle}>17 июня · Москва</p>
+          <span className={styles.heroAccent} aria-hidden />
+        </div>
+      </section>
 
       {notification && (
-        <p className={styles.notification} role="status">
+        <p className="notification" role="status">
           {notification}
         </p>
       )}
 
-      {loading ? (
-        <p className={styles.placeholder}>Загрузка…</p>
-      ) : eventDescription ? (
-        <p className={styles.text}>{eventDescription}</p>
-      ) : (
-        <p className={styles.placeholder}>Описание мероприятия скоро появится</p>
-      )}
+      <section className={styles.section} aria-labelledby="about-title">
+        <h2 id="about-title" className={styles.sectionTitle}>
+          О мероприятии
+        </h2>
+        {loading ? (
+          <p className="placeholder">Загрузка…</p>
+        ) : eventDescription ? (
+          <p className={styles.description}>{eventDescription}</p>
+        ) : (
+          <p className="placeholder">Описание мероприятия скоро появится</p>
+        )}
+      </section>
 
-      <div className={styles.actions}>
+      <div className="actions">
         {chatUrl && (
           <a
-            className={styles.linkBtn}
+            className="linkBtn"
             href={chatUrl}
             target="_blank"
             rel="noopener noreferrer"
@@ -61,7 +75,7 @@ export default function EventInfo() {
         )}
         {stickerUrl && (
           <a
-            className={styles.linkBtn}
+            className="linkBtn"
             href={stickerUrl}
             target="_blank"
             rel="noopener noreferrer"
@@ -69,16 +83,12 @@ export default function EventInfo() {
             Стикерпак
           </a>
         )}
-        <button
-          type="button"
-          className={styles.btn}
-          onClick={() => navigate('/quiz')}
-        >
-          Перейти к Квизу
+        <button type="button" className="btn" onClick={() => navigate('/quiz')}>
+          Перейти к квизу
         </button>
         <button
           type="button"
-          className={`${styles.btn} ${styles.btnSecondary}`}
+          className="btn btnSecondary"
           onClick={() => navigate('/feedback')}
         >
           Отправить обратную связь

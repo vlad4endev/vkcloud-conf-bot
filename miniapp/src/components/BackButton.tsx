@@ -1,19 +1,42 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import styles from './BackButton.module.css'
+import { useLocation, useNavigate } from 'react-router-dom';
+import styles from './BackButton.module.css';
 
-const MAIN_SECTIONS = ['/', '/schedule', '/speakers', '/quiz']
+const MAIN_SECTIONS = ['/', '/schedule-hub', '/quiz', '/feedback'];
 
-export default function BackButton() {
-  const { pathname } = useLocation()
-  const navigate = useNavigate()
+type BackButtonProps = {
+  backTo?: string;
+};
+
+function resolveBackTo(pathname: string): string | undefined {
+  if (pathname === '/map') {
+    return '/schedule-hub';
+  }
+  if (/^\/speakers\/[^/]+$/.test(pathname)) {
+    return '/speakers';
+  }
+  if (pathname === '/schedule' || pathname === '/speakers') {
+    return '/schedule-hub';
+  }
+  return undefined;
+}
+
+export default function BackButton({ backTo }: BackButtonProps) {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   if (MAIN_SECTIONS.includes(pathname)) {
-    return null
+    return null;
   }
 
+  const target = backTo ?? resolveBackTo(pathname);
+
   return (
-    <button type="button" className={styles.button} onClick={() => navigate(-1)}>
-      ← Назад
+    <button
+      type="button"
+      className={styles.button}
+      onClick={() => (target ? navigate(target) : navigate(-1))}
+    >
+      ← НАЗАД
     </button>
-  )
+  );
 }
