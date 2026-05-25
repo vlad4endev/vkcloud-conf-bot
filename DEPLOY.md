@@ -278,7 +278,9 @@ docker compose restart bot admin
 | `Invalid environment variables` | `./scripts/check-env.sh`, длина `ADMIN_JWT_SECRET` ≥ 32 |
 | Webhook 404 | nginx: `location /webhook` → порт 3000 |
 | Miniapp не грузит API | nginx: `location /api/` → порт 3001 |
-| `/` → HTTP 500 или цикл `index.html` в nginx error.log | `./scripts/publish-miniapp.sh`, затем `sudo ./scripts/install-nginx-vkconf.sh` |
+| `/` → HTTP 500 или **redirection cycle** `index.html` в nginx | Нет miniapp на диске: `./scripts/publish-miniapp.sh`, затем `sudo ./scripts/install-nginx-vkconf.sh` |
+| Белый экран / miniapp не открывается в MAX | `./scripts/diagnose-server.sh` — проверьте бота в панели MAX и `MAX_BOT_USERNAME` в `.env` |
+| `MAX_BOT_USERNAME не совпадает с ботом токена` в логах | Удалите `MAX_BOT_USERNAME` из `.env` или укажите `@id…_bot` из токена; miniapp в панели MAX — **на том же боте** |
 | Seed падает | Повторный запуск безопасен; админ уже есть — можно игнорировать |
 
 ### HTML 404 на `/health` и дефолтная страница на `/`
