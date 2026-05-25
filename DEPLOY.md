@@ -125,6 +125,14 @@ git config --global --add safe.directory /opt/vkconf
 
 Если `permission denied` на `docker.sock` — после `git pull` скрипт соберёт локально; либо `sudo usermod -aG docker ubuntu` и **перелогиниться**.
 
+Если `EACCES` на `miniapp/node_modules` (папка от root после Docker):
+
+```bash
+sudo rm -rf /opt/vkconf/miniapp/node_modules
+sudo chown -R ubuntu:ubuntu /opt/vkconf/miniapp /opt/vkconf/dist-miniapp
+./scripts/publish-miniapp.sh
+```
+
 Если ошибка `Cannot find native binding @rolldown/binding-linux-x64-gnu` — не собирайте на Mac-копии `node_modules`, только `./scripts/publish-miniapp.sh` на сервере.
 
 Альтернатива — собрать на Mac и залить статику:
@@ -211,7 +219,7 @@ curl -s http://127.0.0.1:3001/health
    docker compose up -d bot
    ```
 
-4. Miniapp подключает `https://st.max.ru/js/max-web-app.js` (`window.WebApp`) — без этого MAX Bridge не работает.
+4. Miniapp подключает `https://st.max.ru/js/max-web-app.js` (`window.WebApp`) — без этого MAX Bridge не работает. После первого рендера вызывается **`WebApp.ready()`** — без этого в MAX часто остаётся белый экран.
 
 ### «Не удалось открыть мини-приложение» в MAX
 

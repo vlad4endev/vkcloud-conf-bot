@@ -5,25 +5,44 @@ set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "${ROOT}"
 WEB_ROOT="${WEB_ROOT:-/var/www/vkconf/dist-miniapp}"
+BUILD_USER="${BUILD_USER:-$(id -u):$(id -g)}"
 
 docker_available() {
   command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1
 }
 
+ensure_miniapp_writable() {
+  # node_modules после Docker часто принадлежит root — ломает npm ci у ubuntu
+  if [ -d miniapp/node_modules ] && [ ! -w miniapp/node_modules ]; then
+    echo "🔧 Исправление прав miniapp/node_modules (были root)..."
+    sudo rm -rf miniapp/node_modules
+  fi
+
+  if [ -d miniapp/node_modules ]; then
+    rm -rf miniapp/node_modules 2>/dev/null || sudo rm -rf miniapp/node_modules
+  fi
+
+  sudo chown -R "${BUILD_USER}" miniapp 2>/dev/null || true
+}
+
 build_miniapp_local() {
   echo "📦 Сборка miniapp локально на сервере..."
-  rm -rf miniapp/node_modules
+  ensure_miniapp_writable
   (cd miniapp && npm ci)
   npm run build:miniapp
+  sudo chown -R "${BUILD_USER}" dist-miniapp 2>/dev/null || true
 }
 
 build_miniapp_docker() {
-  echo "📦 Сборка miniapp в Docker (Linux, исправляет rolldown на VPS)..."
+  echo "📦 Сборка miniapp в Docker (Linux)..."
+  ensure_miniapp_writable
   if docker run --rm \
+    -u "${BUILD_USER}" \
     -v "${ROOT}:/workspace" \
     -w /workspace/miniapp \
     node:20-bookworm-slim \
-    bash -c "rm -rf node_modules && npm ci && npm run build"; then
+    bash -c "npm ci && npm run build"; then
+    sudo chown -R "${BUILD_USER}" dist-miniapp miniapp/node_modules 2>/dev/null || true
     return 0
   fi
   return 1
@@ -34,10 +53,9 @@ build_miniapp() {
     if build_miniapp_docker; then
       return
     fi
-    echo "⚠️  Docker недоступен — сборка продолжится локально на Linux..."
+    echo "⚠️  Docker-сборка не удалась — пробуем локально..."
   elif command -v docker >/dev/null 2>&1; then
-    echo "⚠️  Docker установлен, но нет доступа к docker.sock."
-    echo "   Добавьте пользователя в группу docker и перелогиньтесь, либо соберём локально..."
+    echo "⚠️  Docker установлен, но нет доступа к docker.sock — собираем локально..."
   fi
 
   build_miniapp_local
