@@ -3,6 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getConfig } from '../api/client';
 import styles from './EventInfo.module.css';
 
+const EVENT_ABOUT_LEAD =
+  'Облачная конференция VK Tech для бизнеса и разработчиков';
+
+const EVENT_ABOUT_BODY =
+  'Покажем, как строить безопасную и производительную инфраструктуру для бизнес-критичных систем в облаке — от высоконагруженных баз данных до ИИ-сервисов. Представим новые сервисы облачной платформы, расскажем про планы развития VK Cloud и эксклюзивно презентуем исследование рынка искусственного интеллекта России с прогнозом развития на 2026–2030 годы';
+
 type LocationState = {
   notification?: string;
 };
@@ -55,10 +61,13 @@ export default function EventInfo() {
         </h2>
         {loading ? (
           <p className="placeholder">Загрузка…</p>
-        ) : eventDescription ? (
-          <p className={styles.description}>{eventDescription}</p>
         ) : (
-          <p className="placeholder">Описание мероприятия скоро появится</p>
+          <>
+            <p className={styles.aboutLead}>{EVENT_ABOUT_LEAD}</p>
+            <p className={styles.description}>
+              {eventDescription || EVENT_ABOUT_BODY}
+            </p>
+          </>
         )}
       </section>
 
