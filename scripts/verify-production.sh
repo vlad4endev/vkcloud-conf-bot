@@ -85,13 +85,16 @@ else
   fail "/api/config → ${config:0:80}"
 fi
 
-root_len=$(curl -skI "${BASE}/" 2>/dev/null | grep -i content-length | awk '{print $2}' | tr -d '\r')
-if [ "$root_len" = "615" ]; then
+root_code=$(curl -sk -o /dev/null -w "%{http_code}" "${BASE}/" 2>/dev/null || echo "000")
+root_body=$(curl -sk "${BASE}/" 2>/dev/null | head -c 200 || true)
+if [ "$root_code" = "500" ]; then
+  fail "/ → HTTP 500 (нет index.html или права nginx — запустите ./scripts/publish-miniapp.sh)"
+elif [ "$root_code" = "200" ] && echo "$root_body" | grep -q 'id="root"\|VK Cloud'; then
+  ok "/ → miniapp HTML (HTTP 200)"
+elif [ "$root_code" = "200" ] && [ "$(curl -skI "${BASE}/" 2>/dev/null | grep -i content-length | awk '{print $2}' | tr -d '\r')" = "615" ]; then
   fail "/ → 615 байт (дефолтная страница nginx, не miniapp)"
-elif curl -sk "${BASE}/" 2>/dev/null | grep -q 'VK Cloud\|root\|id="root"'; then
-  ok "/ → miniapp HTML"
 else
-  warn "/ → проверьте вручную (Content-Length: ${root_len:-?})"
+  fail "/ → HTTP ${root_code} — ${root_body:0:60}"
 fi
 
 echo ""

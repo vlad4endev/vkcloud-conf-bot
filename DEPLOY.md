@@ -226,6 +226,7 @@ docker compose restart bot admin
 | `Invalid environment variables` | `./scripts/check-env.sh`, длина `ADMIN_JWT_SECRET` ≥ 32 |
 | Webhook 404 | nginx: `location /webhook` → порт 3000 |
 | Miniapp не грузит API | nginx: `location /api/` → порт 3001 |
+| `/` → HTTP 500 | `./scripts/publish-miniapp.sh`, права `www-data` на `/var/www/vkconf/dist-miniapp` |
 | Seed падает | Повторный запуск безопасен; админ уже есть — можно игнорировать |
 
 ### HTML 404 на `/health` и дефолтная страница на `/`
