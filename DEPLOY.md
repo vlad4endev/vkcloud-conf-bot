@@ -190,17 +190,16 @@ curl -s http://127.0.0.1:3001/health
 1. **Панель MAX** → Чат-боты → ваш бот → **Чат-бот и мини-приложение** → URL: `https://vkconf.skypath.fun/` → Сохранить.  
    После этого в чате появится штатная кнопка запуска mini app.
 
-2. **Кнопка в сообщениях бота** должна вести на диплинк, а не на `MINI_APP_URL` напрямую:
+2. **Кнопка в сообщениях бота** — тип `open_app` (не `link`):
    ```env
-   MAX_BOT_USERNAME=ИмяВашегоБота
+   MAX_BOT_USERNAME=id280106037423_bot
    ```
-   Или полный URL: `MAX_STARTAPP_URL=https://max.ru/ИмяВашегоБота?startapp`  
-   Имя бота — как в ссылке `https://max.ru/ИмяВашегоБота`.
 
-3. Пересоберите и перезапустите бота после смены `.env`:
+3. **Пересоберите образ бота** (обязательно, не только `restart`):
    ```bash
-   ./deploy.sh
-   docker compose restart bot
+   git pull
+   docker compose build bot
+   docker compose up -d bot
    ```
 
 4. Miniapp подключает `https://st.max.ru/js/max-web-app.js` (`window.WebApp`) — без этого MAX Bridge не работает.

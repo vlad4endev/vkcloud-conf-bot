@@ -1,7 +1,7 @@
 import type { Context } from '@maxhub/max-bot-api';
 import { prisma } from '../db/client';
 import { sessions } from '../shared/types';
-import { resolveMaxMiniAppOpenUrl } from '../shared/maxMiniAppLink';
+import { resolveBotUsername } from '../shared/maxMiniAppLink';
 import { getMainMenuKeyboard } from './keyboards';
 import { MESSAGES } from './messages';
 
@@ -67,11 +67,11 @@ async function getConfig(key: string): Promise<string | null> {
 }
 
 async function sendMainMenu(ctx: Context) {
-  const miniAppOpenUrl = (await resolveMaxMiniAppOpenUrl(ctx.api)) ?? '';
+  const miniAppBotUsername = await resolveBotUsername(ctx.api);
   const chatUrl = (await getConfig('chat_url')) ?? '';
   const stickerUrl = (await getConfig('sticker_url')) ?? '';
 
-  const keyboard = getMainMenuKeyboard(miniAppOpenUrl, chatUrl, stickerUrl);
+  const keyboard = getMainMenuKeyboard(miniAppBotUsername, chatUrl, stickerUrl);
 
   if (keyboard) {
     await ctx.reply(MESSAGES.MAIN_MENU, { attachments: [keyboard] });

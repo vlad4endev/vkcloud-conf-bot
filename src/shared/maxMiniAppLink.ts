@@ -41,3 +41,20 @@ export async function resolveMaxMiniAppOpenUrl(api?: Api): Promise<string | null
   cachedOpenUrl = buildMaxStartAppUrl(username);
   return cachedOpenUrl;
 }
+
+/** Имя бота для кнопки open_app (поле web_app) */
+export async function resolveBotUsername(api?: Api): Promise<string | null> {
+  const username =
+    env.MAX_BOT_USERNAME ??
+    (api ? (await api.getMyInfo()).username : null) ??
+    null;
+
+  if (!username) {
+    console.error(
+      'MAX_BOT_USERNAME не задан — укажите имя бота в .env (например id280106037423_bot)',
+    );
+    return null;
+  }
+
+  return username.replace(/^@/, '').trim();
+}
