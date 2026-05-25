@@ -19,22 +19,25 @@ build_miniapp_local() {
 
 build_miniapp_docker() {
   echo "📦 Сборка miniapp в Docker (Linux, исправляет rolldown на VPS)..."
-  docker run --rm \
+  if docker run --rm \
     -v "${ROOT}:/workspace" \
     -w /workspace/miniapp \
     node:20-bookworm-slim \
-    bash -c "rm -rf node_modules && npm ci && npm run build"
+    bash -c "rm -rf node_modules && npm ci && npm run build"; then
+    return 0
+  fi
+  return 1
 }
 
 build_miniapp() {
   if docker_available; then
-    build_miniapp_docker
-    return
-  fi
-
-  if command -v docker >/dev/null 2>&1; then
-    echo "⚠️  Docker установлен, но нет доступа к docker.sock (добавьте пользователя в группу docker или используйте sudo)."
-    echo "   Сборка продолжится локально на Linux..."
+    if build_miniapp_docker; then
+      return
+    fi
+    echo "⚠️  Docker недоступен — сборка продолжится локально на Linux..."
+  elif command -v docker >/dev/null 2>&1; then
+    echo "⚠️  Docker установлен, но нет доступа к docker.sock."
+    echo "   Добавьте пользователя в группу docker и перелогиньтесь, либо соберём локально..."
   fi
 
   build_miniapp_local

@@ -115,7 +115,16 @@ chmod +x scripts/publish-miniapp.sh
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Сборка miniapp на VPS: скрипт использует **Docker** (`node:20-bookworm-slim`), чтобы установить Linux-зависимости Vite/Rolldown.  
+Сборка miniapp на VPS: скрипт сначала пробует **Docker**, при отсутствии прав — **локальный `npm ci` на Linux**.  
+Если `git pull` пишет `dubious ownership`:
+
+```bash
+git config --global --add safe.directory /opt/vkconf
+# при необходимости: sudo chown -R ubuntu:ubuntu /opt/vkconf
+```
+
+Если `permission denied` на `docker.sock` — после `git pull` скрипт соберёт локально; либо `sudo usermod -aG docker ubuntu` и **перелогиниться**.
+
 Если ошибка `Cannot find native binding @rolldown/binding-linux-x64-gnu` — не собирайте на Mac-копии `node_modules`, только `./scripts/publish-miniapp.sh` на сервере.
 
 Альтернатива — собрать на Mac и залить статику:
