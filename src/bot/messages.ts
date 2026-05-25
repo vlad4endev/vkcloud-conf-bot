@@ -24,6 +24,8 @@ function buildWelcomeMessage(): string {
 export const MESSAGES = {
   WELCOME: buildWelcomeMessage(),
 
+  MAIN_MENU: '🎉 Добро пожаловать на VK Cloud Conf 2026!',
+
   ALREADY_REGISTERED: 'Вы уже зарегистрированы! Используйте кнопки ниже:',
 
   REGISTRATION_SUCCESS: (name: string) =>

@@ -1,31 +1,24 @@
 import { Keyboard } from '@maxhub/max-bot-api';
+import { BUTTONS } from './messages';
 
-export type OpenAppButton = {
-  type: 'open_app';
-  text: string;
-  web_app?: string;
-  contact_id?: number;
-};
+export function getMainMenuKeyboard(
+  miniAppUrl: string,
+  chatUrl: string,
+  stickerUrl: string
+): ReturnType<typeof Keyboard.inlineKeyboard> | null {
+  const rows: ReturnType<typeof Keyboard.button.link>[][] = [];
 
-type ButtonApi = typeof Keyboard.button & {
-  openApp: (
-    text: string,
-    webApp?: string,
-    contactId?: number,
-  ) => OpenAppButton;
-};
+  if (chatUrl && chatUrl.startsWith('https://')) {
+    rows.push([Keyboard.button.link(BUTTONS.CHAT, chatUrl)]);
+  }
+  if (stickerUrl && stickerUrl.startsWith('https://')) {
+    rows.push([Keyboard.button.link(BUTTONS.STICKER_PACK, stickerUrl)]);
+  }
+  if (miniAppUrl && miniAppUrl.startsWith('https://')) {
+    rows.push([Keyboard.button.link(BUTTONS.OPEN_APP, miniAppUrl)]);
+  }
 
-const buttonApi = Keyboard.button as ButtonApi;
+  if (rows.length === 0) return null;
 
-if (!buttonApi.openApp) {
-  buttonApi.openApp = (text, webApp, contactId) => ({
-    type: 'open_app',
-    text,
-    ...(webApp !== undefined ? { web_app: webApp } : {}),
-    ...(contactId !== undefined ? { contact_id: contactId } : {}),
-  });
-}
-
-export function openAppButton(text: string, webApp: string): OpenAppButton {
-  return buttonApi.openApp(text, webApp);
+  return Keyboard.inlineKeyboard(rows);
 }
