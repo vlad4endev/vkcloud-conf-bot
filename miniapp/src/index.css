@@ -10,13 +10,12 @@
   box-sizing: border-box;
 }
 
-#root {
-  width: 100%;
-  min-height: 100svh;
+html {
+  background-color: var(--color-bg);
 }
 
 body {
-  background: var(--color-bg);
+  background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-primary);
   margin: 0;
@@ -24,6 +23,13 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 h1,

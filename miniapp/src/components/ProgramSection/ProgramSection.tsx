@@ -1,5 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Clock, Sparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   filterByTrack,
@@ -9,6 +7,49 @@ import {
   type Speaker,
   type TrackId,
 } from '../../data/scheduleData';
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`size-4 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden
+    >
+      <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      className="size-4 shrink-0 text-[#00d1ff]"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function speakerInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return '?';
+  }
+  return parts
+    .map((part) => part[0] ?? '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 function SessionCard({ item }: { item: ScheduleItem }) {
   const [expanded, setExpanded] = useState(false);
@@ -29,12 +70,7 @@ function SessionCard({ item }: { item: ScheduleItem }) {
       </div>
 
       <h3 className="text-lg font-bold leading-snug text-white sm:text-xl">
-        {isSecret && (
-          <Sparkles
-            className="mr-1.5 inline-block size-4 text-[#00d1ff]"
-            aria-hidden
-          />
-        )}
+        {isSecret && <span className="mr-1 text-[#00d1ff]" aria-hidden>✦</span>}
         {item.title}
       </h3>
 
@@ -55,31 +91,22 @@ function SessionCard({ item }: { item: ScheduleItem }) {
             aria-expanded={expanded}
           >
             Подробнее
-            <motion.span
-              animate={{ rotate: expanded ? 180 : 0 }}
-              transition={{ duration: 0.25 }}
-              className="inline-flex"
-            >
-              <ChevronDown className="size-4" aria-hidden />
-            </motion.span>
+            <ChevronIcon open={expanded} />
           </button>
 
-          <AnimatePresence initial={false}>
-            {expanded && (
-              <motion.div
-                key="description"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                className="overflow-hidden"
-              >
-                <p className="pt-3 text-sm leading-relaxed text-[#7b9cc0]">
-                  {item.description}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div
+            className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+              expanded
+                ? 'grid-rows-[1fr] opacity-100'
+                : 'grid-rows-[0fr] opacity-0'
+            }`}
+          >
+            <div className="overflow-hidden">
+              <p className="pt-3 text-sm leading-relaxed text-[#7b9cc0]">
+                {item.description}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </article>
@@ -87,21 +114,18 @@ function SessionCard({ item }: { item: ScheduleItem }) {
 }
 
 function SpeakerRow({ speaker }: { speaker: Speaker }) {
-  const initials = speaker.name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = speakerInitials(speaker.name);
+  const [showPhoto, setShowPhoto] = useState(Boolean(speaker.avatar));
 
   return (
     <li className="flex items-center gap-3">
-      {speaker.avatar ? (
+      {showPhoto && speaker.avatar ? (
         <img
           src={speaker.avatar}
           alt=""
           className="size-10 shrink-0 rounded-full border border-[#1e3a5f] object-cover"
           loading="lazy"
+          onError={() => setShowPhoto(false)}
         />
       ) : (
         <span
@@ -129,7 +153,9 @@ function TimelineRow({ item }: { item: ScheduleItem }) {
     <li className="relative grid grid-cols-1 gap-3 pb-8 last:pb-0 md:grid-cols-[88px_1fr] md:gap-6">
       <div className="md:sticky md:top-4 md:self-start">
         <div className="flex items-center gap-2 md:flex-col md:items-start md:gap-1">
-          <Clock className="size-4 shrink-0 text-[#00d1ff] md:hidden" aria-hidden />
+          <span className="md:hidden">
+            <ClockIcon />
+          </span>
           <time
             dateTime={`2026-06-17T${item.time}`}
             className="font-mono text-2xl font-bold tracking-tight text-[#00d1ff] sm:text-3xl"
@@ -155,7 +181,7 @@ export default function ProgramSection() {
   );
 
   return (
-    <section className="w-full font-[Inter,system-ui,sans-serif]">
+    <section className="w-full text-[#e8edf5]">
       <header className="mb-6">
         <p className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#00d1ff]">
           VK Cloud Conf 2026 · 17 июня
@@ -170,7 +196,7 @@ export default function ProgramSection() {
       </header>
 
       <div
-        className="hide-scrollbar -mx-1 mb-8 flex gap-2 overflow-x-auto px-1 pb-1"
+        className="program-tabs -mx-1 mb-8 flex gap-2 overflow-x-auto px-1 pb-1"
         role="tablist"
         aria-label="Треки конференции"
       >
@@ -196,35 +222,19 @@ export default function ProgramSection() {
         })}
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.ul
-          key={activeTrack}
-          role="tabpanel"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.25 }}
-          className="relative m-0 list-none p-0"
-        >
-          {sessions.length === 0 ? (
-            <li className="rounded-2xl border border-dashed border-[#1e3a5f] bg-[#111827]/50 px-4 py-10 text-center text-sm text-[#7b9cc0]">
-              В этом треке пока нет сессий
-            </li>
-          ) : (
-            sessions.map((item) => <TimelineRow key={item.id} item={item} />)
-          )}
-        </motion.ul>
-      </AnimatePresence>
-
-      <style>{`
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
+      <ul
+        key={activeTrack}
+        role="tabpanel"
+        className="program-track-list relative m-0 list-none p-0"
+      >
+        {sessions.length === 0 ? (
+          <li className="rounded-2xl border border-dashed border-[#1e3a5f] bg-[#111827]/50 px-4 py-10 text-center text-sm text-[#7b9cc0]">
+            В этом треке пока нет сессий
+          </li>
+        ) : (
+          sessions.map((item) => <TimelineRow key={item.id} item={item} />)
+        )}
+      </ul>
     </section>
   );
 }
