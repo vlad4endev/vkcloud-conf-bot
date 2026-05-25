@@ -6,21 +6,38 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "${ROOT}"
 WEB_ROOT="${WEB_ROOT:-/var/www/vkconf/dist-miniapp}"
 
-build_miniapp() {
-  if command -v docker >/dev/null 2>&1; then
-    echo "📦 Сборка miniapp в Docker (Linux, исправляет rolldown на VPS)..."
-    docker run --rm \
-      -v "${ROOT}:/workspace" \
-      -w /workspace/miniapp \
-      node:20-bookworm-slim \
-      bash -c "rm -rf node_modules && npm ci --include=optional && npm run build"
-    return
-  fi
+docker_available() {
+  command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1
+}
 
-  echo "📦 Сборка miniapp локально (переустановка зависимостей)..."
+build_miniapp_local() {
+  echo "📦 Сборка miniapp локально на сервере..."
   rm -rf miniapp/node_modules
   (cd miniapp && npm ci)
   npm run build:miniapp
+}
+
+build_miniapp_docker() {
+  echo "📦 Сборка miniapp в Docker (Linux, исправляет rolldown на VPS)..."
+  docker run --rm \
+    -v "${ROOT}:/workspace" \
+    -w /workspace/miniapp \
+    node:20-bookworm-slim \
+    bash -c "rm -rf node_modules && npm ci && npm run build"
+}
+
+build_miniapp() {
+  if docker_available; then
+    build_miniapp_docker
+    return
+  fi
+
+  if command -v docker >/dev/null 2>&1; then
+    echo "⚠️  Docker установлен, но нет доступа к docker.sock (добавьте пользователя в группу docker или используйте sudo)."
+    echo "   Сборка продолжится локально на Linux..."
+  fi
+
+  build_miniapp_local
 }
 
 build_miniapp
