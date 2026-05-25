@@ -4,22 +4,16 @@ import { PrismaClient, QuizCorrectOption } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const CONFIG_ENTRIES = [
-  { key: 'chat_url', value: '' },
-  { key: 'sticker_url', value: '' },
-  { key: 'map_image_url', value: '' },
-  {
-    key: 'event_description',
-    value:
-      'Покажем, как строить безопасную и производительную инфраструктуру для бизнес-критичных систем в облаке — от высоконагруженных баз данных до ИИ-сервисов. Представим новые сервисы облачной платформы, расскажем про планы развития VK Cloud и эксклюзивно презентуем исследование рынка искусственного интеллекта России с прогнозом развития на 2026–2030 годы',
-  },
-  { key: 'quiz_url', value: '' },
-  {
-    key: 'bot_welcome',
-    value:
-      'Добро пожаловать на VK Cloud Conf 2026! Здесь вы найдёте программу, спикеров, карту площадки и квиз.',
-  },
-] as const;
+const configDefaults: Record<string, string> = {
+  chat_url: '',
+  sticker_url: '',
+  map_image_url: '',
+  quiz_url: '',
+  event_description:
+    'Покажем, как строить безопасную и производительную инфраструктуру для бизнес-критичных систем в облаке — от высоконагруженных баз данных до ИИ-сервисов. Представим новые сервисы облачной платформы, расскажем про планы развития VK Cloud и эксклюзивно презентуем исследование рынка искусственного интеллекта России с прогнозом развития на 2026–2030 годы',
+  bot_welcome:
+    'Добро пожаловать на VK Cloud Conf 2026! Здесь вы найдёте программу, спикеров, карту площадки и квиз.',
+};
 
 const QUIZ_QUESTIONS = [
   {
@@ -69,14 +63,18 @@ async function main(): Promise<void> {
 
   console.log('Admin upserted:', admin.email);
 
-  for (const { key, value } of CONFIG_ENTRIES) {
-    const config = await prisma.config.upsert({
+  for (const [key, defaultValue] of Object.entries(configDefaults)) {
+    const existing = await prisma.config.findUnique({ where: { key } });
+    if (existing && existing.value && existing.value.trim() !== '') {
+      console.log(`Config kept: ${key} = ${existing.value}`);
+      continue;
+    }
+    await prisma.config.upsert({
       where: { key },
-      create: { key, value },
-      update: { value },
+      update: { value: defaultValue },
+      create: { key, value: defaultValue },
     });
-
-    console.log('Config upserted:', config.key);
+    console.log(`Config upserted: ${key}`);
   }
 
   for (const quizQuestion of QUIZ_QUESTIONS) {
