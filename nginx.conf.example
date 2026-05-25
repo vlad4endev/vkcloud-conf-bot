@@ -65,12 +65,9 @@ server {
         proxy_set_header Host $host;
     }
 
-    # Соберите miniapp: npm run build:miniapp
-    # Укажите MINI_APP_URL=https://YOUR_DOMAIN/
-    root /var/www/vkconf/dist-miniapp;
-    index index.html;
-
     location / {
-        try_files $uri $uri/ /index.html;
+        root /var/www/vkconf/dist-miniapp;
+        index index.html;
+        try_files $uri $uri/ /index.html =404;
     }
 }

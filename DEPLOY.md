@@ -115,6 +115,21 @@ chmod +x scripts/publish-miniapp.sh
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
+Сборка miniapp на VPS: скрипт использует **Docker** (`node:20-bookworm-slim`), чтобы установить Linux-зависимости Vite/Rolldown.  
+Если ошибка `Cannot find native binding @rolldown/binding-linux-x64-gnu` — не собирайте на Mac-копии `node_modules`, только `./scripts/publish-miniapp.sh` на сервере.
+
+Альтернатива — собрать на Mac и залить статику:
+
+```bash
+# Mac
+npm run build:miniapp
+rsync -avz dist-miniapp/ ubuntu@YOUR_SERVER:/tmp/dist-miniapp/
+# Сервер
+sudo mkdir -p /var/www/vkconf/dist-miniapp
+sudo cp -a /tmp/dist-miniapp/. /var/www/vkconf/dist-miniapp/
+sudo chown -R www-data:www-data /var/www/vkconf/dist-miniapp
+```
+
 Проверка маршрутов:
 
 | URL | Ожидание |
@@ -226,7 +241,7 @@ docker compose restart bot admin
 | `Invalid environment variables` | `./scripts/check-env.sh`, длина `ADMIN_JWT_SECRET` ≥ 32 |
 | Webhook 404 | nginx: `location /webhook` → порт 3000 |
 | Miniapp не грузит API | nginx: `location /api/` → порт 3001 |
-| `/` → HTTP 500 | `./scripts/publish-miniapp.sh`, права `www-data` на `/var/www/vkconf/dist-miniapp` |
+| `/` → HTTP 500 или цикл `index.html` в nginx error.log | `./scripts/publish-miniapp.sh`, затем `sudo ./scripts/install-nginx-vkconf.sh` |
 | Seed падает | Повторный запуск безопасен; админ уже есть — можно игнорировать |
 
 ### HTML 404 на `/health` и дефолтная страница на `/`
