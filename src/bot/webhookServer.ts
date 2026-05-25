@@ -9,6 +9,10 @@ interface BotInternal {
 export async function createWebhookServer(bot: Bot) {
   const app = Fastify({ logger: true });
 
+  app.get('/health', async (_request, reply) => {
+    return reply.status(200).send({ status: 'ok' });
+  });
+
   app.post('/webhook', async (request, reply) => {
     const update = request.body as Update;
     await (bot as unknown as BotInternal).handleUpdate(update);

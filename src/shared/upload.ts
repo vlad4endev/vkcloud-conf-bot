@@ -4,13 +4,41 @@ import path from 'path';
 import { pipeline } from 'stream/promises';
 import type { MultipartFile } from '@fastify/multipart';
 
+const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+
+function assertSafeSubfolder(subfolder: string): void {
+  const normalized = path.normalize(subfolder);
+  if (
+    normalized.includes('..') ||
+    path.isAbsolute(normalized) ||
+    normalized.startsWith('..')
+  ) {
+    throw new Error('Invalid upload subfolder');
+  }
+}
+
 export async function saveUploadedFile(
   file: MultipartFile,
   subfolder: string,
 ): Promise<string> {
-  const ext = path.extname(file.filename);
+  assertSafeSubfolder(subfolder);
+
+  const ext = path.extname(file.filename).toLowerCase();
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    throw new Error('Invalid file type. Allowed: jpg, jpeg, png, webp');
+  }
+
+  if (file.file.truncated) {
+    throw new Error('File exceeds maximum size of 10MB');
+  }
+
   const filename = `${crypto.randomUUID()}${ext}`;
-  const dir = path.join(process.cwd(), 'uploads', subfolder);
+  const uploadsRoot = path.join(process.cwd(), 'uploads');
+  const dir = path.join(uploadsRoot, subfolder);
+
+  if (!dir.startsWith(uploadsRoot)) {
+    throw new Error('Invalid upload path');
+  }
 
   await fs.promises.mkdir(dir, { recursive: true });
 

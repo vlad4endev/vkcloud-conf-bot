@@ -1,6 +1,8 @@
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
+import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import Fastify from 'fastify';
 import path from 'path';
@@ -15,8 +17,26 @@ export async function createAdminServer() {
     logger: true,
   });
 
+  app.addHook('preSerialization', async (_request, _reply, payload) => {
+    return JSON.parse(
+      JSON.stringify(payload, (_key, value) =>
+        typeof value === 'bigint' ? value.toString() : value,
+      ),
+    ) as typeof payload;
+  });
+
+  await app.register(helmet);
+
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+  });
+
   await app.register(cors, {
-    origin: true,
+    origin:
+      env.NODE_ENV === 'production'
+        ? (env.ADMIN_CORS_ORIGIN ?? 'http://localhost:5173')
+        : true,
   });
 
   await app.register(jwt, {
@@ -32,6 +52,10 @@ export async function createAdminServer() {
     prefix: '/uploads/',
   });
 
+  app.get('/health', async (_request, reply) => {
+    return reply.status(200).send({ status: 'ok' });
+  });
+
   await app.register(adminRoutes, { prefix: '/admin' });
   await app.register(miniappRoutes, { prefix: '/api' });
 
@@ -41,6 +65,10 @@ export async function createAdminServer() {
         error: 'Validation failed',
         details: error.flatten(),
       });
+    }
+
+    if (error instanceof Error && error.message.includes('Invalid file')) {
+      return reply.status(400).send({ error: error.message });
     }
 
     app.log.error(error);

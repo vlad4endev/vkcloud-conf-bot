@@ -9,72 +9,84 @@ datasource db {
 
 model User {
   id         String   @id @default(cuid())
-  maxUserId  BigInt   @unique
-  chatId     BigInt
-  fullName   String
+  maxUserId  BigInt   @unique @map("max_user_id")
+  chatId     BigInt   @map("chat_id")
+  fullName   String   @map("full_name")
   email      String
-  isVerified Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  isVerified Boolean  @default(false) @map("is_verified")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   questions   QuestionToSpeaker[]
   feedbacks   Feedback[]
   quizResults QuizResult[]
+
+  @@map("users")
 }
 
 model Speaker {
   id        String   @id @default(cuid())
   name      String
   bio       String   @db.Text
-  photoUrl  String?
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  photoUrl  String?  @map("photo_url")
+  order     Int      @default(0) @map("display_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   questions QuestionToSpeaker[]
   sessions  ScheduleSession[]
+
+  @@map("speakers")
 }
 
 model ScheduleSession {
   id          String    @id @default(cuid())
-  startTime   DateTime
-  endTime     DateTime
+  startTime   DateTime  @map("start_time")
+  endTime     DateTime  @map("end_time")
   title       String
   description String?   @db.Text
   location    String?
-  speakerId   String?
-  order       Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  speakerId   String?   @map("speaker_id")
+  order       Int       @default(0) @map("display_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   speaker Speaker? @relation(fields: [speakerId], references: [id], onDelete: SetNull)
+
+  @@map("schedule_sessions")
 }
 
 model Config {
   id        String   @id @default(cuid())
   key       String   @unique
   value     String   @db.Text
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("configs")
 }
 
 model QuestionToSpeaker {
   id        String   @id @default(cuid())
-  userId    String
-  speakerId String
+  userId    String   @map("user_id")
+  speakerId String   @map("speaker_id")
   question  String   @db.Text
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   speaker Speaker @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+
+  @@map("questions_to_speaker")
 }
 
 model Feedback {
   id        String   @id @default(cuid())
-  userId    String?
+  userId    String?  @map("user_id")
   text      String   @db.Text
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("feedbacks")
 }
 
 enum QuizCorrectOption {
@@ -87,39 +99,44 @@ enum QuizCorrectOption {
 model QuizQuestion {
   id            String            @id @default(cuid())
   question      String            @db.Text
-  optionA       String
-  optionB       String
-  optionC       String
-  optionD       String
-  correctOption QuizCorrectOption
-  order         Int               @default(0)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  optionA       String            @map("option_a")
+  optionB       String            @map("option_b")
+  optionC       String            @map("option_c")
+  optionD       String            @map("option_d")
+  correctOption QuizCorrectOption @map("correct_option")
+  order         Int               @unique @default(0) @map("display_order")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
 
   results QuizResult[]
+
+  @@map("quiz_questions")
 }
 
 model QuizResult {
   id         String   @id @default(cuid())
-  userId     String
-  questionId String
+  userId     String   @map("user_id")
+  questionId String   @map("question_id")
   answer     String
-  isCorrect  Boolean
-  createdAt  DateTime @default(now())
+  isCorrect  Boolean  @map("is_correct")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, questionId])
+  @@map("quiz_results")
 }
 
 model Notification {
   id          String    @id @default(cuid())
   text        String    @db.Text
-  scheduledAt DateTime?
-  sentAt      DateTime?
-  isSent      Boolean   @default(false)
-  createdAt   DateTime  @default(now())
+  scheduledAt DateTime? @map("scheduled_at")
+  sentAt      DateTime? @map("sent_at")
+  isSent      Boolean   @default(false) @map("is_sent")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("notifications")
 }
 
 model Admin {
@@ -127,5 +144,7 @@ model Admin {
   email     String   @unique
   password  String
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
 }

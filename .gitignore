@@ -23,6 +23,8 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# IDE
+# IDE / editor
 .vscode/
+.cursor/
+.cursorignore
 .idea/

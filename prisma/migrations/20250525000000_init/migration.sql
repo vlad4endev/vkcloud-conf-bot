@@ -5,156 +5,159 @@ CREATE SCHEMA IF NOT EXISTS "public";
 CREATE TYPE "QuizCorrectOption" AS ENUM ('a', 'b', 'c', 'd');
 
 -- CreateTable
-CREATE TABLE "User" (
+CREATE TABLE "users" (
     "id" TEXT NOT NULL,
-    "maxUserId" BIGINT NOT NULL,
-    "chatId" BIGINT NOT NULL,
-    "fullName" TEXT NOT NULL,
+    "max_user_id" BIGINT NOT NULL,
+    "chat_id" BIGINT NOT NULL,
+    "full_name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "isVerified" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "is_verified" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Speaker" (
+CREATE TABLE "speakers" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "bio" TEXT NOT NULL,
-    "photoUrl" TEXT,
-    "order" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "photo_url" TEXT,
+    "display_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Speaker_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "speakers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "ScheduleSession" (
+CREATE TABLE "schedule_sessions" (
     "id" TEXT NOT NULL,
-    "startTime" TIMESTAMP(3) NOT NULL,
-    "endTime" TIMESTAMP(3) NOT NULL,
+    "start_time" TIMESTAMP(3) NOT NULL,
+    "end_time" TIMESTAMP(3) NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "location" TEXT,
-    "speakerId" TEXT,
-    "order" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "speaker_id" TEXT,
+    "display_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "ScheduleSession_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "schedule_sessions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Config" (
+CREATE TABLE "configs" (
     "id" TEXT NOT NULL,
     "key" TEXT NOT NULL,
     "value" TEXT NOT NULL,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Config_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "configs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "QuestionToSpeaker" (
+CREATE TABLE "questions_to_speaker" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "speakerId" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "speaker_id" TEXT NOT NULL,
     "question" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "QuestionToSpeaker_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "questions_to_speaker_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Feedback" (
+CREATE TABLE "feedbacks" (
     "id" TEXT NOT NULL,
-    "userId" TEXT,
+    "user_id" TEXT,
     "text" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "Feedback_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "feedbacks_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "QuizQuestion" (
+CREATE TABLE "quiz_questions" (
     "id" TEXT NOT NULL,
     "question" TEXT NOT NULL,
-    "optionA" TEXT NOT NULL,
-    "optionB" TEXT NOT NULL,
-    "optionC" TEXT NOT NULL,
-    "optionD" TEXT NOT NULL,
-    "correctOption" "QuizCorrectOption" NOT NULL,
-    "order" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "option_a" TEXT NOT NULL,
+    "option_b" TEXT NOT NULL,
+    "option_c" TEXT NOT NULL,
+    "option_d" TEXT NOT NULL,
+    "correct_option" "QuizCorrectOption" NOT NULL,
+    "display_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "QuizQuestion_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "quiz_questions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "QuizResult" (
+CREATE TABLE "quiz_results" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "questionId" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "question_id" TEXT NOT NULL,
     "answer" TEXT NOT NULL,
-    "isCorrect" BOOLEAN NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "is_correct" BOOLEAN NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "QuizResult_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "quiz_results_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Notification" (
+CREATE TABLE "notifications" (
     "id" TEXT NOT NULL,
     "text" TEXT NOT NULL,
-    "scheduledAt" TIMESTAMP(3),
-    "sentAt" TIMESTAMP(3),
-    "isSent" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "scheduled_at" TIMESTAMP(3),
+    "sent_at" TIMESTAMP(3),
+    "is_sent" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Admin" (
+CREATE TABLE "admins" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "admins_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_maxUserId_key" ON "User"("maxUserId");
+CREATE UNIQUE INDEX "users_max_user_id_key" ON "users"("max_user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Config_key_key" ON "Config"("key");
+CREATE UNIQUE INDEX "configs_key_key" ON "configs"("key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "QuizResult_userId_questionId_key" ON "QuizResult"("userId", "questionId");
+CREATE UNIQUE INDEX "quiz_questions_display_order_key" ON "quiz_questions"("display_order");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Admin_email_key" ON "Admin"("email");
+CREATE UNIQUE INDEX "quiz_results_user_id_question_id_key" ON "quiz_results"("user_id", "question_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "admins_email_key" ON "admins"("email");
 
 -- AddForeignKey
-ALTER TABLE "ScheduleSession" ADD CONSTRAINT "ScheduleSession_speakerId_fkey" FOREIGN KEY ("speakerId") REFERENCES "Speaker"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "schedule_sessions" ADD CONSTRAINT "schedule_sessions_speaker_id_fkey" FOREIGN KEY ("speaker_id") REFERENCES "speakers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "QuestionToSpeaker" ADD CONSTRAINT "QuestionToSpeaker_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "questions_to_speaker" ADD CONSTRAINT "questions_to_speaker_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "QuestionToSpeaker" ADD CONSTRAINT "QuestionToSpeaker_speakerId_fkey" FOREIGN KEY ("speakerId") REFERENCES "Speaker"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "questions_to_speaker" ADD CONSTRAINT "questions_to_speaker_speaker_id_fkey" FOREIGN KEY ("speaker_id") REFERENCES "speakers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "feedbacks" ADD CONSTRAINT "feedbacks_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "QuizResult" ADD CONSTRAINT "QuizResult_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "quiz_results" ADD CONSTRAINT "quiz_results_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "QuizResult" ADD CONSTRAINT "QuizResult_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "QuizQuestion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "quiz_results" ADD CONSTRAINT "quiz_results_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "quiz_questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;

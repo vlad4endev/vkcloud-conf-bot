@@ -16,7 +16,6 @@ async function main(): Promise<void> {
   });
 
   const shutdown = () => {
-    console.log('Shutting down bot...');
     bot.stop();
     void prisma.$disconnect().finally(() => process.exit(0));
   };
@@ -24,13 +23,10 @@ async function main(): Promise<void> {
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);
 
-  console.log('Starting VK Cloud Conf 2026 bot...');
-
   if (env.NODE_ENV === 'production' && process.env.WEBHOOK_URL) {
     const webhookServer = await createWebhookServer(bot);
     bot.botInfo ??= await bot.api.getMyInfo();
     await webhookServer.listen({ port: env.PORT, host: '0.0.0.0' });
-    console.log(`Webhook server listening on http://0.0.0.0:${env.PORT}`);
     await setupWebhook(bot, process.env.WEBHOOK_URL + '/webhook');
   } else {
     await bot.start();

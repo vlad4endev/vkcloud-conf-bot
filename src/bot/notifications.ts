@@ -4,6 +4,8 @@ import { prisma } from '../db/client';
 
 let botInstance: Bot | null = null;
 
+const BROADCAST_BATCH_SIZE = 100;
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -17,22 +19,38 @@ export async function broadcastToAll(text: string): Promise<number> {
     throw new Error('Bot instance is not set. Call setBotInstance() first.');
   }
 
-  const users = await prisma.user.findMany({
-    where: { isVerified: true },
-    select: { chatId: true },
-  });
-
   let sentCount = 0;
+  let offset = 0;
 
-  for (const user of users) {
-    try {
-      await botInstance.api.sendMessageToChat(Number(user.chatId), text);
-      sentCount += 1;
-    } catch (error) {
-      console.error(`Failed to send message to chat ${user.chatId}:`, error);
+  for (;;) {
+    const users = await prisma.user.findMany({
+      where: { isVerified: true },
+      select: { chatId: true },
+      take: BROADCAST_BATCH_SIZE,
+      skip: offset,
+      orderBy: { id: 'asc' },
+    });
+
+    if (users.length === 0) {
+      break;
     }
 
-    await sleep(50);
+    for (const user of users) {
+      try {
+        await botInstance.api.sendMessageToChat(Number(user.chatId), text);
+        sentCount += 1;
+      } catch (error) {
+        console.error(`Failed to send message to chat ${user.chatId}:`, error);
+      }
+
+      await sleep(50);
+    }
+
+    if (users.length < BROADCAST_BATCH_SIZE) {
+      break;
+    }
+
+    offset += BROADCAST_BATCH_SIZE;
   }
 
   return sentCount;
@@ -53,16 +71,12 @@ export function startNotificationScheduler(): void {
 
         for (const notification of pending) {
           try {
-            const sentCount = await broadcastToAll(notification.text);
+            await broadcastToAll(notification.text);
 
             await prisma.notification.update({
               where: { id: notification.id },
               data: { isSent: true, sentAt: new Date() },
             });
-
-            console.log(
-              `Notification ${notification.id} sent to ${sentCount} verified users`,
-            );
           } catch (error) {
             console.error(
               `Failed to process notification ${notification.id}:`,

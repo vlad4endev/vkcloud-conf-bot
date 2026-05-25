@@ -23,7 +23,6 @@ export async function setupWebhook(bot: Bot, webhookUrl: string): Promise<void> 
       return;
     }
 
-    console.log(`Webhook subscription registered: ${webhookUrl}`);
   } catch (error) {
     console.error('Webhook subscription error:', error);
   }

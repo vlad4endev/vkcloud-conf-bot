@@ -28,10 +28,8 @@ async function main(): Promise<void> {
     bot.botInfo ??= await bot.api.getMyInfo();
     await webhookServer.listen({ port, host: '0.0.0.0' });
     await setupWebhook(bot, process.env.WEBHOOK_URL + '/webhook');
-    console.log('Bot webhook server started');
   } else {
     await bot.start();
-    console.log('Bot started successfully');
   }
 }
 
