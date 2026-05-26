@@ -1,5 +1,7 @@
+import { ImagePlus, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  deleteMapImage,
   getLinks,
   getTexts,
   updateLinks,
@@ -17,6 +19,7 @@ export default function SettingsPage() {
   const [texts, setTexts] = useState<TextsConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [mapBusy, setMapBusy] = useState(false);
   const mapRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -63,12 +66,30 @@ export default function SettingsPage() {
   }
 
   async function handleMapUpload(file: File) {
+    setMapBusy(true);
     try {
       const url = await uploadMapImage(file);
       setLinks((prev) => (prev ? { ...prev, mapImageUrl: url } : prev));
-      toast('Карта загружена', 'success');
+      toast(links?.mapImageUrl ? 'Карта обновлена' : 'Карта загружена', 'success');
     } catch (error) {
       toast(getErrorMessage(error), 'error');
+    } finally {
+      setMapBusy(false);
+    }
+  }
+
+  async function handleMapDelete() {
+    if (!links?.mapImageUrl) return;
+    if (!confirm('Удалить карту площадки?')) return;
+    setMapBusy(true);
+    try {
+      await deleteMapImage();
+      setLinks((prev) => (prev ? { ...prev, mapImageUrl: '' } : prev));
+      toast('Карта удалена', 'success');
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    } finally {
+      setMapBusy(false);
     }
   }
 
@@ -113,29 +134,51 @@ export default function SettingsPage() {
 
         <Card className="space-y-4">
           <h2 className="font-semibold text-white">Карта</h2>
-          {links.mapImageUrl ? (
-            <img
-              src={links.mapImageUrl}
-              alt="Карта"
-              className="max-h-48 rounded-xl border border-[var(--color-border)] object-contain"
-            />
-          ) : (
-            <p className="text-sm text-slate-500">Карта не загружена</p>
-          )}
-          <input
-            ref={mapRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void handleMapUpload(file);
-              e.target.value = '';
-            }}
-          />
-          <Button variant="secondary" onClick={() => mapRef.current?.click()}>
-            Загрузить карту
-          </Button>
+          <div className="flex flex-wrap items-start gap-4">
+            {links.mapImageUrl ? (
+              <img
+                src={links.mapImageUrl}
+                alt="Карта"
+                className="max-h-48 max-w-full rounded-xl border border-[var(--color-border)] object-contain"
+              />
+            ) : (
+              <div className="flex h-36 w-full min-w-[8rem] max-w-xs items-center justify-center rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)] text-slate-500 sm:w-48">
+                <ImagePlus size={32} />
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <input
+                ref={mapRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleMapUpload(file);
+                  e.target.value = '';
+                }}
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={mapBusy}
+                onClick={() => mapRef.current?.click()}
+              >
+                {links.mapImageUrl ? 'Изменить карту' : 'Загрузить карту'}
+              </Button>
+              {links.mapImageUrl ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={mapBusy}
+                  onClick={() => void handleMapDelete()}
+                >
+                  <X size={16} />
+                  Удалить карту
+                </Button>
+              ) : null}
+            </div>
+          </div>
         </Card>
 
         <Card className="space-y-4 xl:col-span-2">

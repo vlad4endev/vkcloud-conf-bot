@@ -1,7 +1,8 @@
 import { Download, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   createQuizQuestion,
+  deleteQuizParticipant,
   deleteQuizQuestion,
   getQuizQuestions,
   getQuizResults,
@@ -23,6 +24,7 @@ import {
 import { useToast } from '../context/ToastContext';
 import { downloadAdminExport } from '../lib/download';
 import { getErrorMessage } from '../lib/format';
+import { QUIZ_RANK_ROW_CLASS, rankQuizResults } from '../lib/quizRank';
 
 type QuizForm = {
   question: string;
@@ -72,6 +74,11 @@ export default function QuizPage() {
     void load();
   }, [load]);
 
+  const rankedResults = useMemo(
+    () => (results ? rankQuizResults(results.results) : []),
+    [results],
+  );
+
   function openCreate() {
     setForm(emptyForm);
     setEditing(null);
@@ -115,6 +122,20 @@ export default function QuizPage() {
     try {
       await deleteQuizQuestion(q.id);
       toast('Вопрос удалён', 'success');
+      await load();
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    }
+  }
+
+  async function handleDeleteParticipant(userId: string, fullName: string) {
+    const label = fullName.trim() || 'участника';
+    if (!confirm(`Удалить результаты квиза для «${label}»? Участник сможет пройти квиз заново.`)) {
+      return;
+    }
+    try {
+      await deleteQuizParticipant(userId);
+      toast('Результаты участника удалены', 'success');
       await load();
     } catch (error) {
       toast(getErrorMessage(error), 'error');
@@ -220,33 +241,65 @@ export default function QuizPage() {
           <table className="w-full text-left text-sm">
             <thead className="bg-[var(--color-surface-2)] text-slate-400">
               <tr>
+                <th className="px-4 py-3 w-16">Место</th>
                 <th className="px-4 py-3">Участник</th>
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Правильно</th>
                 <th className="px-4 py-3">Статус</th>
+                <th className="px-4 py-3 w-12" />
               </tr>
             </thead>
             <tbody>
-              {results.results.map((row) => {
-                const isWinner =
-                  row.totalQuestions > 0 &&
-                  row.correctAnswers === row.totalQuestions;
+              {rankedResults.map((row) => {
+                const rowHighlight = QUIZ_RANK_ROW_CLASS[row.rank] ?? '';
                 return (
                   <tr
                     key={row.userId}
-                    className="border-t border-[var(--color-border)]"
+                    className={`border-t border-[var(--color-border)] ${rowHighlight}`}
                   >
-                    <td className="px-4 py-3 text-white">{row.fullName}</td>
+                    <td className="px-4 py-3">
+                      {row.medal ? (
+                        <span
+                          className="text-2xl leading-none"
+                          title={`${row.rank} место`}
+                          aria-label={`${row.rank} место`}
+                        >
+                          {row.medal}
+                        </span>
+                      ) : (
+                        <span className="text-slate-500" title={`${row.rank} место`}>
+                          {row.rank}.
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-white">{row.fullName}</td>
                     <td className="px-4 py-3 text-slate-300">{row.email}</td>
                     <td className="px-4 py-3">
                       {row.correctAnswers} / {row.totalQuestions}
                     </td>
                     <td className="px-4 py-3">
-                      {isWinner ? (
-                        <Badge tone="success">Победитель</Badge>
+                      {row.medal ? (
+                        <Badge tone="success">
+                          {row.rank} место
+                          {row.isPerfect ? ' · 100%' : ''}
+                        </Badge>
+                      ) : row.isPerfect ? (
+                        <Badge tone="success">100%</Badge>
                       ) : (
                         <Badge>Участник</Badge>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Удалить из результатов"
+                        onClick={() =>
+                          void handleDeleteParticipant(row.userId, row.fullName)
+                        }
+                      >
+                        <Trash2 size={16} className="text-red-400" />
+                      </Button>
                     </td>
                   </tr>
                 );

@@ -363,6 +363,25 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     },
   );
 
+  fastify.delete<{ Params: { id: string } }>(
+    '/users/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'User');
+      }
+
+      try {
+        await prisma.user.delete({ where: { id } });
+      } catch {
+        return notFound(reply, 'User');
+      }
+
+      return reply.status(204).send();
+    },
+  );
+
   fastify.get('/users/export', auth, async (_request, reply) => {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
@@ -624,6 +643,27 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     return { results, winners };
   });
 
+  fastify.delete<{ Params: { id: string } }>(
+    '/quiz/participants/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Participant');
+      }
+
+      const deleted = await prisma.quizResult.deleteMany({
+        where: { userId: id },
+      });
+
+      if (deleted.count === 0) {
+        return notFound(reply, 'Participant');
+      }
+
+      return reply.status(204).send();
+    },
+  );
+
   fastify.get('/quiz/results/export', auth, async (_request, reply) => {
     const { totalQuestions, participants } = await getQuizParticipantStats();
 
@@ -759,6 +799,16 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     return { url };
   });
 
+  fastify.delete('/config/map-image', auth, async (_request, reply) => {
+    await prisma.config.upsert({
+      where: { key: LINK_CONFIG_KEYS.mapImageUrl },
+      create: { key: LINK_CONFIG_KEYS.mapImageUrl, value: '' },
+      update: { value: '' },
+    });
+
+    return reply.status(204).send();
+  });
+
   fastify.get('/links', auth, async () => {
     const config = await getConfigMap(Object.values(LINK_CONFIG_KEYS));
 
@@ -866,6 +916,28 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       }
 
       return { url };
+    },
+  );
+
+  fastify.delete<{ Params: { id: string } }>(
+    '/speakers/:id/photo',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Speaker');
+      }
+
+      try {
+        await prisma.speaker.update({
+          where: { id },
+          data: { photoUrl: null },
+        });
+      } catch {
+        return notFound(reply, 'Speaker');
+      }
+
+      return reply.status(204).send();
     },
   );
 

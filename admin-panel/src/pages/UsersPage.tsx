@@ -1,6 +1,6 @@
-import { Download, Pencil } from 'lucide-react';
+import { Download, Pencil, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { getUsers, updateUser } from '../api/client';
+import { deleteUser, getUsers, updateUser } from '../api/client';
 import type { User } from '../api/types';
 import {
   Badge,
@@ -81,6 +81,27 @@ export default function UsersPage() {
     }
   }
 
+  async function handleDelete(user: User) {
+    const label = user.fullName.trim() || user.email;
+    if (
+      !confirm(
+        `Удалить участника «${label}»?\n\nБудут удалены ответы квиза и вопросы спикерам. Отзывы останутся без привязки к пользователю.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await deleteUser(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      if (editing?.id === user.id) {
+        setEditing(null);
+      }
+      toast('Участник удалён', 'success');
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -148,9 +169,19 @@ export default function UsersPage() {
                     {formatDateTime(user.createdAt)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(user)}>
-                      <Pencil size={16} />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(user)}>
+                        <Pencil size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Удалить участника"
+                        onClick={() => void handleDelete(user)}
+                      >
+                        <Trash2 size={16} className="text-red-400" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

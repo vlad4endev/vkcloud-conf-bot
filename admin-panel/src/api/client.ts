@@ -105,6 +105,10 @@ export async function updateUser(
   return data;
 }
 
+export async function deleteUser(id: string): Promise<void> {
+  await api.delete(`/users/${id}`);
+}
+
 export async function getSpeakers(): Promise<Speaker[]> {
   const { data } = await api.get<Speaker[]>('/speakers');
   return data;
@@ -141,6 +145,10 @@ export async function uploadSpeakerPhoto(id: string, file: File): Promise<string
   form.append('photo', file);
   const { data } = await api.post<{ url: string }>(`/speakers/${id}/photo`, form);
   return data.url;
+}
+
+export async function deleteSpeakerPhoto(id: string): Promise<void> {
+  await api.delete(`/speakers/${id}/photo`);
 }
 
 export async function getSchedule(): Promise<ScheduleSession[]> {
@@ -207,6 +215,10 @@ export async function getQuizResults(): Promise<QuizResultsResponse> {
   return data;
 }
 
+export async function deleteQuizParticipant(userId: string): Promise<void> {
+  await api.delete(`/quiz/participants/${userId}`);
+}
+
 export async function getQuestions(): Promise<SpeakerQuestion[]> {
   const { data } = await api.get<SpeakerQuestion[]>('/questions');
   return data;
@@ -252,4 +264,8 @@ export async function uploadMapImage(file: File): Promise<string> {
   form.append('image', file);
   const { data } = await api.post<{ url: string }>('/config/map-image', form);
   return data.url;
+}
+
+export async function deleteMapImage(): Promise<void> {
+  await api.delete('/config/map-image');
 }

@@ -1,8 +1,9 @@
-import { ImagePlus, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ImagePlus, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createSpeaker,
   deleteSpeaker,
+  deleteSpeakerPhoto,
   getSpeakers,
   reorderSpeakers,
   updateSpeaker,
@@ -25,7 +26,32 @@ import { getErrorMessage } from '../lib/format';
 
 type SpeakerForm = { name: string; bio: string };
 
+type PhotoDraft =
+  | { kind: 'none' }
+  | { kind: 'existing'; url: string }
+  | { kind: 'preview'; file: File; previewUrl: string };
+
 const emptyForm: SpeakerForm = { name: '', bio: '' };
+const emptyPhoto: PhotoDraft = { kind: 'none' };
+
+function revokePreviewUrl(photo: PhotoDraft) {
+  if (photo.kind === 'preview') {
+    URL.revokeObjectURL(photo.previewUrl);
+  }
+}
+
+function photoFromSpeaker(speaker: Speaker | null): PhotoDraft {
+  if (speaker?.photoUrl) {
+    return { kind: 'existing', url: speaker.photoUrl };
+  }
+  return { kind: 'none' };
+}
+
+function photoDisplayUrl(photo: PhotoDraft): string | null {
+  if (photo.kind === 'existing') return photo.url;
+  if (photo.kind === 'preview') return photo.previewUrl;
+  return null;
+}
 
 export default function SpeakersPage() {
   const { toast } = useToast();
@@ -34,9 +60,9 @@ export default function SpeakersPage() {
   const [modal, setModal] = useState<'create' | 'edit' | null>(null);
   const [editing, setEditing] = useState<Speaker | null>(null);
   const [form, setForm] = useState<SpeakerForm>(emptyForm);
+  const [photo, setPhoto] = useState<PhotoDraft>(emptyPhoto);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [photoTarget, setPhotoTarget] = useState<Speaker | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,29 +79,72 @@ export default function SpeakersPage() {
     void load();
   }, [load]);
 
+  function closeModal() {
+    setPhoto((current) => {
+      revokePreviewUrl(current);
+      return emptyPhoto;
+    });
+    setModal(null);
+    setEditing(null);
+  }
+
   function openCreate() {
     setForm(emptyForm);
     setEditing(null);
+    setPhoto(emptyPhoto);
     setModal('create');
   }
 
   function openEdit(speaker: Speaker) {
     setForm({ name: speaker.name, bio: speaker.bio });
     setEditing(speaker);
+    setPhoto(photoFromSpeaker(speaker));
     setModal('edit');
+  }
+
+  function selectPhotoFile(file: File) {
+    setPhoto((current) => {
+      revokePreviewUrl(current);
+      return {
+        kind: 'preview',
+        file,
+        previewUrl: URL.createObjectURL(file),
+      };
+    });
+  }
+
+  function clearPhoto() {
+    setPhoto((current) => {
+      revokePreviewUrl(current);
+      return emptyPhoto;
+    });
+  }
+
+  async function applyPhotoChanges(speakerId: string, hadPhoto: boolean) {
+    if (photo.kind === 'preview') {
+      await uploadSpeakerPhoto(speakerId, photo.file);
+      return;
+    }
+    if (photo.kind === 'none' && hadPhoto) {
+      await deleteSpeakerPhoto(speakerId);
+    }
   }
 
   async function handleSave() {
     setSaving(true);
     try {
       if (modal === 'create') {
-        await createSpeaker(form);
+        const created = await createSpeaker(form);
+        if (photo.kind === 'preview') {
+          await uploadSpeakerPhoto(created.id, photo.file);
+        }
         toast('Спикер добавлен', 'success');
       } else if (editing) {
         await updateSpeaker(editing.id, form);
+        await applyPhotoChanges(editing.id, Boolean(editing.photoUrl));
         toast('Спикер обновлён', 'success');
       }
-      setModal(null);
+      closeModal();
       await load();
     } catch (error) {
       toast(getErrorMessage(error), 'error');
@@ -110,18 +179,7 @@ export default function SpeakersPage() {
     }
   }
 
-  async function handlePhoto(file: File) {
-    if (!photoTarget) return;
-    try {
-      await uploadSpeakerPhoto(photoTarget.id, file);
-      toast('Фото загружено', 'success');
-      await load();
-    } catch (error) {
-      toast(getErrorMessage(error), 'error');
-    } finally {
-      setPhotoTarget(null);
-    }
-  }
+  const previewUrl = photoDisplayUrl(photo);
 
   return (
     <div>
@@ -134,18 +192,6 @@ export default function SpeakersPage() {
             Добавить
           </Button>
         }
-      />
-
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) void handlePhoto(file);
-          e.target.value = '';
-        }}
       />
 
       {loading ? (
@@ -178,16 +224,6 @@ export default function SpeakersPage() {
                 <p className="mt-1 line-clamp-2 text-sm text-slate-400">{speaker.bio}</p>
               </div>
               <div className="flex shrink-0 flex-col gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setPhotoTarget(speaker);
-                    fileRef.current?.click();
-                  }}
-                >
-                  <ImagePlus size={16} />
-                </Button>
                 <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
                   <Pencil size={16} />
                 </Button>
@@ -203,8 +239,51 @@ export default function SpeakersPage() {
       {modal ? (
         <Modal
           title={modal === 'create' ? 'Новый спикер' : 'Редактировать спикера'}
-          onClose={() => setModal(null)}
+          onClose={closeModal}
         >
+          <div className="space-y-3">
+            <span className="text-sm text-slate-400">Фото</span>
+            <div className="flex flex-wrap items-start gap-4">
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt=""
+                  className="h-28 w-28 rounded-xl border border-[var(--color-border)] object-cover"
+                />
+              ) : (
+                <div className="flex h-28 w-28 items-center justify-center rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)] text-slate-500">
+                  <ImagePlus size={28} />
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) selectPhotoFile(file);
+                    e.target.value = '';
+                  }}
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {previewUrl ? 'Изменить фото' : 'Загрузить фото'}
+                </Button>
+                {previewUrl ? (
+                  <Button variant="ghost" size="sm" onClick={clearPhoto}>
+                    <X size={16} />
+                    Удалить фото
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
           <Input
             label="Имя"
             value={form.name}
@@ -217,7 +296,7 @@ export default function SpeakersPage() {
             onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
           />
           <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setModal(null)}>
+            <Button variant="secondary" onClick={closeModal}>
               Отмена
             </Button>
             <Button onClick={() => void handleSave()} disabled={saving}>
