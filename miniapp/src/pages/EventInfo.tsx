@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getConfig } from '../api/client';
+import { useAdmin } from '../context/AdminContext';
 import styles from './EventInfo.module.css';
 
 const EVENT_ABOUT_LEAD =
@@ -15,7 +16,10 @@ type LocationState = {
 
 export default function EventInfo() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAdminMode, openUnlockModal } = useAdmin();
   const notification = (location.state as LocationState | null)?.notification;
+  const needUnlock = (location.state as { needAdminUnlock?: boolean } | null)?.needAdminUnlock;
 
   const [eventDescription, setEventDescription] = useState('');
   const [loading, setLoading] = useState(true);
@@ -30,6 +34,18 @@ export default function EventInfo() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (needUnlock) {
+      openUnlockModal();
+    }
+  }, [needUnlock, openUnlockModal]);
+
+  useEffect(() => {
+    if (isAdminMode) {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAdminMode, navigate]);
 
   return (
     <div className={styles.page}>
@@ -64,6 +80,12 @@ export default function EventInfo() {
             </p>
           </>
         )}
+      </section>
+
+      <section className={styles.section}>
+        <button type="button" className="btn btnSecondary" onClick={openUnlockModal}>
+          Вход для организаторов
+        </button>
       </section>
     </div>
   );

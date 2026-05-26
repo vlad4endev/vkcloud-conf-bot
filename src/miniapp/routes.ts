@@ -7,6 +7,8 @@ import {
   parseBody,
   validationError,
 } from '../admin/lib/http';
+import { env } from '../shared/env';
+import type { AdminJwtPayload } from '../shared/jwt';
 import { validateMaxUser } from '../shared/maxValidation';
 import { quizOptionSchema } from '../shared/schemas/admin';
 
@@ -26,6 +28,25 @@ async function maxInitDataPreHandler(
     return reply.status(403).send({ error: 'Invalid MAX init data' });
   }
 }
+
+async function requireMaxInitData(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<void> {
+  const raw = request.headers[MAX_INIT_DATA_HEADER];
+  if (!raw) {
+    return reply.status(403).send({ error: 'MAX init data required' });
+  }
+
+  const initData = Array.isArray(raw) ? raw[0] : raw;
+  if (!initData || !validateMaxUser(initData)) {
+    return reply.status(403).send({ error: 'Invalid MAX init data' });
+  }
+}
+
+const adminUnlockSchema = z.object({
+  codeWord: z.string().trim().min(1),
+});
 
 const CONFIG_KEYS = [
   'event_description',
@@ -276,6 +297,40 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
         answeredQuestions,
         correctAnswers,
         isWinner: totalQuestions > 0 && correctAnswers === totalQuestions,
+      };
+    },
+  );
+
+  app.post(
+    '/admin/unlock',
+    { preHandler: requireMaxInitData },
+    async (request, reply) => {
+      const parsed = parseBody(adminUnlockSchema, request.body);
+      if (!parsed.success) {
+        return validationError(reply, parsed.error);
+      }
+
+      if (parsed.data.codeWord !== env.ADMIN_CODE_WORD) {
+        return reply.status(401).send({ error: 'Invalid code word' });
+      }
+
+      const admin = await prisma.admin.findFirst({
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (!admin) {
+        return reply.status(503).send({ error: 'Admin account is not configured' });
+      }
+
+      const token = await request.server.jwt.sign({
+        sub: admin.id,
+        email: admin.email,
+        role: 'admin',
+      } satisfies AdminJwtPayload);
+
+      return {
+        token,
+        admin: { id: admin.id, email: admin.email, name: admin.name },
       };
     },
   );
