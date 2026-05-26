@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-surface: #0f1629;
+  --color-surface-2: #151d33;
+  --color-border: #243049;
+  --color-accent: #005ff9;
+  --color-accent-hover: #1a6fff;
+  --color-danger: #ef4444;
+  --color-success: #22c55e;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #0a0f1e;
+  color: #e8edf5;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

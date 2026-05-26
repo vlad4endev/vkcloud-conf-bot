@@ -1,10 +1,12 @@
 # Dependencies
 node_modules/
 miniapp/node_modules/
+admin-panel/node_modules/
 
 # Build output
 dist/
 dist-miniapp/
+dist-adminpanel/
 miniapp/dist/
 
 # Environment

@@ -1,0 +1,115 @@
+export interface AdminInfo {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  admin: AdminInfo;
+}
+
+export interface DashboardStats {
+  usersTotal: number;
+  usersVerified: number;
+  speakers: number;
+  scheduleSessions: number;
+  questions: number;
+  feedback: number;
+  quizQuestions: number;
+  notificationsPending: number;
+}
+
+export interface User {
+  id: string;
+  maxUserId: string;
+  chatId: string;
+  fullName: string;
+  email: string;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Speaker {
+  id: string;
+  name: string;
+  bio: string;
+  photoUrl: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { sessions: number };
+}
+
+export interface ScheduleSession {
+  id: string;
+  startTime: string;
+  endTime: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  speakerId: string | null;
+  order: number;
+  speaker: { id: string; name: string } | null;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  optionA: string;
+  optionB: string;
+  optionC: string;
+  optionD: string;
+  correctOption: 'a' | 'b' | 'c' | 'd';
+  order: number;
+}
+
+export interface QuizResultsResponse {
+  results: Array<{
+    userId: string;
+    fullName: string;
+    email: string;
+    correctAnswers: number;
+    totalQuestions: number;
+  }>;
+  winners: Array<{
+    userId: string;
+    fullName: string;
+    email: string;
+    correctAnswers: number;
+    totalQuestions: number;
+  }>;
+}
+
+export interface SpeakerQuestion {
+  id: string;
+  question: string;
+  createdAt: string;
+  user: { id: string; fullName: string; email: string };
+  speaker: { id: string; name: string };
+}
+
+export interface FeedbackItem {
+  id: string;
+  text: string;
+  createdAt: string;
+  user: { id: string; fullName: string; email: string } | null;
+}
+
+export interface LinksConfig {
+  chatUrl: string;
+  stickerUrl: string;
+  quizUrl: string;
+  mapImageUrl: string;
+}
+
+export interface TextsConfig {
+  eventDescription: string;
+  botWelcome: string;
+}
+
+export interface ReorderItem {
+  id: string;
+  order: number;
+}

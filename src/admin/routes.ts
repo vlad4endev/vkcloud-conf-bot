@@ -32,6 +32,16 @@ const usersQuerySchema = z.object({
   search: z.string().trim().optional(),
 });
 
+const userUpdateSchema = z
+  .object({
+    fullName: z.string().trim().min(2).max(200).optional(),
+    email: z.string().email().optional(),
+    isVerified: z.boolean().optional(),
+  })
+  .refine((data) => Object.values(data).some((v) => v !== undefined), {
+    message: 'At least one field is required',
+  });
+
 const notificationSchema = z.object({
   text: z.string().trim().min(1),
   scheduledAt: z.coerce.date().optional(),
@@ -274,6 +284,39 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     };
   });
 
+  fastify.get('/stats', auth, async () => {
+    const [
+      usersTotal,
+      usersVerified,
+      speakers,
+      scheduleSessions,
+      questions,
+      feedback,
+      quizQuestions,
+      notificationsPending,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { isVerified: true } }),
+      prisma.speaker.count(),
+      prisma.scheduleSession.count(),
+      prisma.questionToSpeaker.count(),
+      prisma.feedback.count(),
+      prisma.quizQuestion.count(),
+      prisma.notification.count({ where: { isSent: false } }),
+    ]);
+
+    return {
+      usersTotal,
+      usersVerified,
+      speakers,
+      scheduleSessions,
+      questions,
+      feedback,
+      quizQuestions,
+      notificationsPending,
+    };
+  });
+
   fastify.get('/users', auth, async (request, reply) => {
     const query = usersQuerySchema.safeParse(request.query);
     if (!query.success) {
@@ -294,6 +337,31 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       orderBy: { createdAt: 'desc' },
     });
   });
+
+  fastify.patch<{ Params: { id: string } }>(
+    '/users/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'User');
+      }
+
+      const parsed = parseBody(userUpdateSchema, request.body);
+      if (!parsed.success) {
+        return validationError(reply, parsed.error);
+      }
+
+      try {
+        return await prisma.user.update({
+          where: { id },
+          data: parsed.data,
+        });
+      } catch {
+        return notFound(reply, 'User');
+      }
+    },
+  );
 
   fastify.get('/users/export', auth, async (_request, reply) => {
     const users = await prisma.user.findMany({
