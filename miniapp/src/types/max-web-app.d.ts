@@ -12,7 +12,8 @@ interface MaxWebAppInitDataUnsafe {
 }
 
 interface MaxWebAppHapticFeedback {
-  notificationOccurred: (
+  impactOccurred?: (type: 'success' | 'error' | 'warning') => void;
+  notificationOccurred?: (
     type: 'success' | 'error' | 'warning',
   ) => Promise<unknown>;
 }
