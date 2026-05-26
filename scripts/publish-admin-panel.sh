@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Сборка admin-panel и публикация в /var/www/vkconf/dist-adminpanel
+# Сборка admin-panel и публикация в /var/www/vkconf/panel
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-WEB_ROOT="${WEB_ROOT:-/var/www/vkconf/dist-adminpanel}"
+WEB_ROOT="${WEB_ROOT:-/var/www/vkconf/panel}"
 
 cd "$ROOT"
 
@@ -20,9 +20,21 @@ if [ ! -f dist-adminpanel/index.html ]; then
   exit 1
 fi
 
+if grep -q 'max-web-app' dist-adminpanel/index.html 2>/dev/null; then
+  echo "❌ В сборке admin-panel найден max-web-app — что-то не так"
+  exit 1
+fi
+
 echo "→ копирование в ${WEB_ROOT}"
 sudo mkdir -p "${WEB_ROOT}"
+sudo rm -rf "${WEB_ROOT:?}"/*
 sudo cp -a dist-adminpanel/. "${WEB_ROOT}/"
 sudo chown -R www-data:www-data "${WEB_ROOT}" 2>/dev/null || true
 
+if grep -q 'max-web-app' "${WEB_ROOT}/index.html" 2>/dev/null; then
+  echo "❌ На сервере в panel/index.html всё ещё miniapp — проверьте WEB_ROOT"
+  exit 1
+fi
+
 echo "✅ Админка: https://vkconf.skypath.fun/panel/"
+echo "   Проверка: curl -s https://vkconf.skypath.fun/panel/ | grep -i админка"

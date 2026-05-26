@@ -70,6 +70,21 @@ else
 fi
 
 echo ""
+echo "=== Admin panel static ==="
+if [ -f /var/www/vkconf/panel/index.html ]; then
+  ok "/var/www/vkconf/panel/index.html"
+  if grep -q 'max-web-app' /var/www/vkconf/panel/index.html 2>/dev/null; then
+    fail "panel/index.html — это miniapp, нужен ./scripts/publish-admin-panel.sh"
+  elif grep -qi 'админка' /var/www/vkconf/panel/index.html 2>/dev/null; then
+    ok "panel/index.html — админ-панель"
+  else
+    warn "panel/index.html без маркера «Админка» — проверьте сборку"
+  fi
+else
+  fail "нет /var/www/vkconf/panel/ — ./scripts/publish-admin-panel.sh"
+fi
+
+echo ""
 echo "=== HTTPS ${DOMAIN} ==="
 health=$(curl -sk "${BASE}/health" 2>/dev/null || true)
 if echo "$health" | grep -q '"status"'; then
@@ -102,6 +117,16 @@ elif [ "$root_code" = "200" ] && [ "$(curl -skI "${BASE}/" 2>/dev/null | grep -i
   fail "/ → 615 байт (дефолтная страница nginx, не miniapp)"
 else
   fail "/ → HTTP ${root_code} — ${root_body:0:60}"
+fi
+
+panel_code=$(curl -sk -o /dev/null -w "%{http_code}" "${BASE}/panel/" 2>/dev/null || echo "000")
+panel_body=$(curl -sk "${BASE}/panel/" 2>/dev/null | head -c 300 || true)
+if [ "$panel_code" = "200" ] && echo "$panel_body" | grep -q 'Админка\|admin'; then
+  ok "/panel/ → admin HTML (HTTP 200)"
+elif [ "$panel_code" = "200" ] && echo "$panel_body" | grep -q 'max-web-app'; then
+  fail "/panel/ → отдаётся miniapp (nginx try_files) — обновите nginx/vkconf.skypath.fun.conf"
+else
+  fail "/panel/ → HTTP ${panel_code} — ${panel_body:0:80}"
 fi
 
 echo ""
