@@ -1,21 +1,35 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { login } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Button, Card, Input } from '../components/ui';
 import { getErrorMessage } from '../lib/format';
 
+function toPanelRoute(path: string | null): string {
+  if (!path) {
+    return '/';
+  }
+  if (path.startsWith('/panel')) {
+    const rest = path.slice('/panel'.length);
+    return rest.length > 0 ? rest : '/';
+  }
+  return '/';
+}
+
 export default function LoginPage() {
-  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { isAuthenticated, refreshSession } = useAuth();
   const { toast } = useToast();
+  const sessionExpired = searchParams.get('expired') === '1';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [codeWord, setCodeWord] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={toPanelRoute(searchParams.get('next'))} replace />;
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -23,7 +37,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password, codeWord);
-      window.location.href = '/panel/';
+      refreshSession();
+      navigate(toPanelRoute(searchParams.get('next')), { replace: true });
     } catch (error) {
       toast(getErrorMessage(error), 'error');
     } finally {
@@ -38,6 +53,13 @@ export default function LoginPage() {
         <p className="mt-2 text-sm text-slate-400">
           VK Cloud Conf 2026 — управление контентом и участниками
         </p>
+
+        {sessionExpired ? (
+          <p className="mt-3 text-sm text-amber-300">
+            Сессия истекла или API отклонил токен. Войдите снова. Если повторяется —
+            на сервере выполните: docker compose build admin && docker compose up -d admin
+          </p>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <Input

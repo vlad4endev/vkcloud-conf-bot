@@ -33,7 +33,15 @@ export default function DashboardPage() {
   useEffect(() => {
     getStats()
       .then(setStats)
-      .catch((error) => toast(getErrorMessage(error), 'error'));
+      .catch((error) => {
+        const message = getErrorMessage(error);
+        toast(
+          message.includes('401') || message.toLowerCase().includes('unauthorized')
+            ? 'Нет доступа к API. Пересоберите контейнер admin на сервере.'
+            : message,
+          'error',
+        );
+      });
   }, [toast]);
 
   if (!stats) {

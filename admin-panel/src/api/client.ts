@@ -32,10 +32,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !error.config?.url?.includes('/login')) {
+    const url = error.config?.url ?? '';
+    const hadToken = Boolean(getStoredToken());
+
+    if (error.response?.status === 401 && !url.includes('/login') && hadToken) {
       clearSession();
-      window.location.href = '/panel/login';
+      const next = encodeURIComponent(
+        `${window.location.pathname}${window.location.search}`,
+      );
+      window.location.assign(`/panel/login?expired=1&next=${next}`);
     }
+
     return Promise.reject(error);
   },
 );

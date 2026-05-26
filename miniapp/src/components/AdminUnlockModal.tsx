@@ -10,6 +10,10 @@ export default function AdminUnlockModal() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const hasMaxBridge = Boolean(
+    window.WebApp?.initData?.trim() || window.MaxBridge?.initData?.trim(),
+  );
+
   if (!showUnlockModal) {
     return null;
   }
@@ -38,6 +42,15 @@ export default function AdminUnlockModal() {
         <p className="text" style={{ marginTop: 8, fontSize: 14, color: 'var(--color-text-secondary)' }}>
           Введите кодовое слово. Мини-приложение переключится в админ-режим.
         </p>
+        {!hasMaxBridge ? (
+          <p className="error" style={{ marginTop: 12 }}>
+            Админ-режим в MAX работает только внутри приложения MAX. В обычном браузере
+            используйте веб-админку:{' '}
+            <a href="/panel/login" style={{ color: 'var(--color-accent)' }}>
+              /panel/login
+            </a>
+          </p>
+        ) : null}
         <form className="form" style={{ marginTop: 16 }} onSubmit={handleSubmit}>
           <input
             className="input"
@@ -50,7 +63,7 @@ export default function AdminUnlockModal() {
           />
           {error ? <p className="error">{error}</p> : null}
           <div className="actions">
-            <button type="submit" className="btn" disabled={loading}>
+            <button type="submit" className="btn" disabled={loading || !hasMaxBridge}>
               {loading ? 'Проверка…' : 'Включить админ-режим'}
             </button>
             <button type="button" className="btn btnSecondary" onClick={closeUnlockModal}>
