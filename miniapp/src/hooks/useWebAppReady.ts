@@ -1,34 +1,9 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
+import { notifyWebAppReady } from '../lib/webApp';
 
-/** Сообщает клиенту MAX, что UI готов — иначе часто белый экран. */
+/** Сообщает клиенту MAX, что UI готов — иначе чёрный/белый экран до WebAppReady. */
 export function useWebAppReady(): void {
-  useEffect(() => {
-    let attempts = 0;
-
-    const notify = (): boolean => {
-      const ready = window.WebApp?.ready;
-      if (typeof ready !== 'function') {
-        return false;
-      }
-      try {
-        ready();
-      } catch (error) {
-        console.error('WebApp.ready failed:', error);
-      }
-      return true;
-    };
-
-    if (notify()) {
-      return;
-    }
-
-    const timer = window.setInterval(() => {
-      attempts += 1;
-      if (notify() || attempts >= 50) {
-        window.clearInterval(timer);
-      }
-    }, 100);
-
-    return () => window.clearInterval(timer);
+  useLayoutEffect(() => {
+    notifyWebAppReady();
   }, []);
 }

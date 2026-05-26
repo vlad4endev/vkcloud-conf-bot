@@ -1,112 +1,77 @@
 import { useCallback, useEffect, useState } from 'react';
-
-const STORAGE_ID_KEY = 'conf_user_id';
-const STORAGE_NAME_KEY = 'conf_user_name';
-const INIT_DELAY_MS = 500;
+import {
+  createDevUser,
+  notifyWebAppReady,
+  readStoredUser,
+  readWebAppUser,
+  resolveInitialUser,
+} from '../lib/webApp';
 
 type HapticType = 'success' | 'error' | 'warning';
 
-function safeStorageGet(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function safeStorageSet(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // WebView может блокировать storage
-  }
-}
-
-function readUserFromWebApp(): { userId: number; userName: string } | null {
-  const webApp = window.WebApp;
-  if (!webApp) {
-    return null;
-  }
-
-  console.log('[MaxBridge] WebApp found:', Object.keys(webApp));
-
-  const initData = webApp.initDataUnsafe;
-  console.log('[MaxBridge] initData:', JSON.stringify(initData));
-
-  const user = initData?.user;
-  const rawId = user?.id ?? user?.user_id;
-  if (rawId == null || !Number.isInteger(rawId) || rawId <= 0) {
-    return null;
-  }
-
-  const userName = user?.first_name ?? user?.name ?? '';
-  safeStorageSet(STORAGE_ID_KEY, String(rawId));
-  safeStorageSet(STORAGE_NAME_KEY, userName);
-
-  return { userId: rawId, userName };
-}
+const POLL_MS = 100;
+const POLL_MAX_ATTEMPTS = 30;
 
 export function useMaxBridge() {
-  const [userId, setUserId] = useState<number>(0);
-  const [userName, setUserName] = useState<string>('');
-  const [isReady, setIsReady] = useState<boolean>(false);
+  const [initialUser] = useState(() => resolveInitialUser());
+  const [userId, setUserId] = useState<number>(initialUser.userId);
+  const [userName, setUserName] = useState<string>(initialUser.userName);
+  const [isReady, setIsReady] = useState<boolean>(initialUser.userId > 0);
 
   useEffect(() => {
+    notifyWebAppReady();
+
     let cancelled = false;
+    let attempts = 0;
+
+    const applyUser = (user: { userId: number; userName: string }) => {
+      if (cancelled) {
+        return;
+      }
+      setUserId(user.userId);
+      setUserName(user.userName);
+      setIsReady(true);
+    };
 
     const init = () => {
       if (cancelled) {
         return;
       }
 
-      const fromWebApp = readUserFromWebApp();
+      const fromWebApp = readWebAppUser();
       if (fromWebApp) {
-        setUserId(fromWebApp.userId);
-        setUserName(fromWebApp.userName);
-        setIsReady(true);
+        console.log('[MaxBridge] user from WebApp:', fromWebApp.userId);
+        applyUser(fromWebApp);
         return;
       }
 
-      const savedId = safeStorageGet(STORAGE_ID_KEY);
-      if (savedId) {
-        const parsedId = Number.parseInt(savedId, 10);
-        if (Number.isInteger(parsedId) && parsedId > 0) {
-          setUserId(parsedId);
-          setUserName(safeStorageGet(STORAGE_NAME_KEY) ?? '');
-        }
-      } else {
-        const devId = Math.floor(Math.random() * 900000) + 100000;
-        safeStorageSet(STORAGE_ID_KEY, String(devId));
-        setUserId(devId);
-        setUserName('Гость');
+      const fromStorage = readStoredUser();
+      if (fromStorage) {
+        applyUser(fromStorage);
+        return;
       }
 
-      setIsReady(true);
+      if (attempts >= POLL_MAX_ATTEMPTS) {
+        applyUser(createDevUser());
+        return;
+      }
+
+      attempts += 1;
     };
 
-    if (window.WebApp) {
-      init();
-    } else {
-      window.addEventListener('load', init);
-    }
+    init();
 
-    const timeoutId = window.setTimeout(init, INIT_DELAY_MS);
+    const pollId = window.setInterval(init, POLL_MS);
 
     return () => {
       cancelled = true;
-      window.removeEventListener('load', init);
-      window.clearTimeout(timeoutId);
+      window.clearInterval(pollId);
     };
   }, []);
 
   const haptic = useCallback((type: HapticType) => {
     try {
-      const hapticApi = window.WebApp?.HapticFeedback;
-      if (hapticApi?.impactOccurred) {
-        hapticApi.impactOccurred(type);
-        return;
-      }
-      void hapticApi?.notificationOccurred?.(type);
+      void window.WebApp?.HapticFeedback?.notificationOccurred?.(type);
     } catch {
       // ignore
     }
