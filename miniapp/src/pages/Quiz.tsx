@@ -55,6 +55,10 @@ export default function Quiz() {
   }, []);
 
   useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
     let cancelled = false;
     const uid = userId;
 
