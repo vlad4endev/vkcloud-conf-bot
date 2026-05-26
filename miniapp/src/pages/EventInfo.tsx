@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { getConfig } from '../api/client';
 import styles from './EventInfo.module.css';
 
@@ -14,21 +14,16 @@ type LocationState = {
 };
 
 export default function EventInfo() {
-  const navigate = useNavigate();
   const location = useLocation();
   const notification = (location.state as LocationState | null)?.notification;
 
   const [eventDescription, setEventDescription] = useState('');
-  const [chatUrl, setChatUrl] = useState('');
-  const [stickerUrl, setStickerUrl] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getConfig()
       .then((config) => {
         setEventDescription(config.event_description);
-        setChatUrl(config.chat_url);
-        setStickerUrl(config.sticker_url);
       })
       .catch(() => {
         setEventDescription('');
@@ -70,39 +65,6 @@ export default function EventInfo() {
           </>
         )}
       </section>
-
-      <div className="actions">
-        {chatUrl && (
-          <a
-            className="linkBtn"
-            href={chatUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Чат участников
-          </a>
-        )}
-        {stickerUrl && (
-          <a
-            className="linkBtn"
-            href={stickerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Стикерпак
-          </a>
-        )}
-        <button type="button" className="btn" onClick={() => navigate('/quiz')}>
-          Перейти к квизу
-        </button>
-        <button
-          type="button"
-          className="btn btnSecondary"
-          onClick={() => navigate('/feedback')}
-        >
-          Отправить обратную связь
-        </button>
-      </div>
     </div>
   );
 }
