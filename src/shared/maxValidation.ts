@@ -118,3 +118,33 @@ export function validateMaxUser(data: unknown): boolean {
 
   return hashesMatch(originalHash, calculatedHash);
 }
+
+type MaxInitDataUser = {
+  id?: number;
+  user_id?: number;
+};
+
+export function parseMaxUserIdFromInitData(data: unknown): number | null {
+  const initData = normalizeInitData(data);
+  if (!initData || !validateMaxUser(initData)) {
+    return null;
+  }
+
+  const pairs = parseInitDataPairs(initData);
+  const userRaw = pairs?.find(([key]) => key === 'user')?.[1];
+  if (!userRaw) {
+    return null;
+  }
+
+  try {
+    const user = JSON.parse(userRaw) as MaxInitDataUser;
+    const id = user.id ?? user.user_id;
+    if (typeof id === 'number' && Number.isInteger(id) && id > 0) {
+      return id;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}

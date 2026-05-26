@@ -22,12 +22,14 @@ import Schedule from './pages/Schedule';
 import ScheduleHub from './pages/ScheduleHub';
 import SpeakerDetail from './pages/SpeakerDetail';
 import Speakers from './pages/Speakers';
+import RegistrationGate from './components/RegistrationGate';
 import { useWebAppReady } from './hooks/useWebAppReady';
 
 function AppRoutes() {
   useWebAppReady();
 
   return (
+    <RegistrationGate>
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
@@ -57,6 +59,7 @@ function AppRoutes() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+    </RegistrationGate>
   );
 }
 

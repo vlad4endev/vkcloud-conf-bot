@@ -86,6 +86,12 @@ export interface CreatedResource {
   id: string;
 }
 
+export interface MeResponse {
+  maxUserId: number;
+  isVerified: boolean;
+  fullName?: string;
+}
+
 export const UNAUTHORIZED_ERROR = 'Пользователь не авторизован';
 
 function requireUserId(userId: number | undefined | null): number {
@@ -106,6 +112,11 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+export async function getMe(): Promise<MeResponse> {
+  const { data } = await api.get<MeResponse>('/me');
+  return data;
+}
 
 export async function getConfig(): Promise<AppConfig> {
   const { data } = await api.get<AppConfig>('/config');

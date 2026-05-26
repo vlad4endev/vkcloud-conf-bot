@@ -9,7 +9,14 @@ import {
 } from '../admin/lib/http';
 import { env } from '../shared/env';
 import type { AdminJwtPayload } from '../shared/jwt';
-import { validateMaxUser } from '../shared/maxValidation';
+import {
+  API_REGISTRATION_REQUIRED,
+  MINIAPP_REGISTRATION_MESSAGE,
+} from '../shared/registrationMessages';
+import {
+  parseMaxUserIdFromInitData,
+  validateMaxUser,
+} from '../shared/maxValidation';
 import { quizOptionSchema } from '../shared/schemas/admin';
 
 const MAX_INIT_DATA_HEADER = 'x-max-init-data';
@@ -29,18 +36,49 @@ async function maxInitDataPreHandler(
   }
 }
 
-async function requireMaxInitData(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): Promise<void> {
+function readMaxInitData(request: FastifyRequest): string | null {
   const raw = request.headers[MAX_INIT_DATA_HEADER];
   if (!raw) {
-    return reply.status(403).send({ error: 'MAX init data required' });
+    return null;
   }
 
   const initData = Array.isArray(raw) ? raw[0] : raw;
   if (!initData || !validateMaxUser(initData)) {
+    return null;
+  }
+
+  return initData;
+}
+
+async function requireMaxInitData(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<void> {
+  if (!readMaxInitData(request)) {
+    return reply.status(403).send({ error: 'MAX init data required' });
+  }
+}
+
+async function requireRegisteredMaxUser(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<void> {
+  const initData = readMaxInitData(request);
+  if (!initData) {
+    return;
+  }
+
+  const maxUserId = parseMaxUserIdFromInitData(initData);
+  if (maxUserId === null) {
     return reply.status(403).send({ error: 'Invalid MAX init data' });
+  }
+
+  const user = await findUserByMaxUserId(maxUserId);
+  if (!user?.isVerified) {
+    return reply.status(403).send({
+      error: API_REGISTRATION_REQUIRED,
+      message: MINIAPP_REGISTRATION_MESSAGE,
+    });
   }
 }
 
@@ -108,6 +146,26 @@ function parseMaxUserId(raw: string | undefined): number | null {
 }
 
 export async function miniappRoutes(app: FastifyInstance): Promise<void> {
+  app.get('/me', { preHandler: requireMaxInitData }, async (request, reply) => {
+    const initData = readMaxInitData(request);
+    if (!initData) {
+      return reply.status(403).send({ error: 'MAX init data required' });
+    }
+
+    const maxUserId = parseMaxUserIdFromInitData(initData);
+    if (maxUserId === null) {
+      return reply.status(403).send({ error: 'Invalid MAX init data' });
+    }
+
+    const user = await findUserByMaxUserId(maxUserId);
+
+    return {
+      maxUserId,
+      isVerified: Boolean(user?.isVerified),
+      fullName: user?.isVerified ? user.fullName : undefined,
+    };
+  });
+
   app.get('/config', async () => {
     const rows = await prisma.config.findMany();
     const config = Object.fromEntries(rows.map((row) => [row.key, row.value]));
@@ -148,7 +206,7 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
 
   app.post<{ Params: { id: string } }>(
     '/speakers/:id/questions',
-    { preHandler: maxInitDataPreHandler },
+    { preHandler: [maxInitDataPreHandler, requireRegisteredMaxUser] },
     async (request, reply) => {
       const speakerId = getRouteId(request.params);
       if (!speakerId) {
@@ -192,7 +250,10 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     });
   });
 
-  app.post('/feedback', { preHandler: maxInitDataPreHandler }, async (request, reply) => {
+  app.post(
+    '/feedback',
+    { preHandler: [maxInitDataPreHandler, requireRegisteredMaxUser] },
+    async (request, reply) => {
     const parsed = parseBody(feedbackSchema, request.body);
     if (!parsed.success) {
       return validationError(reply, parsed.error);
@@ -215,7 +276,8 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     });
 
     return reply.status(201).send({ id: record.id });
-  });
+    },
+  );
 
   app.get('/quiz/questions', async () => {
     return prisma.quizQuestion.findMany({
@@ -224,7 +286,10 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     });
   });
 
-  app.post('/quiz/answer', { preHandler: maxInitDataPreHandler }, async (request, reply) => {
+  app.post(
+    '/quiz/answer',
+    { preHandler: [maxInitDataPreHandler, requireRegisteredMaxUser] },
+    async (request, reply) => {
     const parsed = parseBody(quizAnswerSchema, request.body);
     if (!parsed.success) {
       return validationError(reply, parsed.error);
@@ -268,10 +333,12 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
       isCorrect,
       correctOption: question.correctOption,
     };
-  });
+    },
+  );
 
   app.get<{ Params: { userId: string } }>(
     '/quiz/status/:userId',
+    { preHandler: requireRegisteredMaxUser },
     async (request, reply) => {
       const maxUserId = parseMaxUserId(request.params.userId);
       if (maxUserId === null) {
