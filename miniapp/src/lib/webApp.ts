@@ -8,6 +8,29 @@ export type WebAppUser = {
   userName: string;
 };
 
+const MAX_HASH_KEYS = ['WebAppData', 'WebAppPlatform', 'WebAppVersion'] as const;
+
+/**
+ * MAX кладёт init-параметры в location.hash (#WebAppData=…).
+ * HashRouter воспринимает это как путь и не находит маршрут → белый экран.
+ * SDK уже сохранил данные в sessionStorage — hash можно очистить.
+ */
+export function normalizeMaxLaunchUrl(): void {
+  const raw = window.location.hash.replace(/^#/, '');
+  if (!raw) {
+    return;
+  }
+
+  const params = new URLSearchParams(raw);
+  const hasMaxParams = MAX_HASH_KEYS.some((key) => params.has(key));
+  if (!hasMaxParams) {
+    return;
+  }
+
+  const { pathname, search } = window.location;
+  window.history.replaceState(null, '', `${pathname}${search}`);
+}
+
 export function notifyWebAppReady(): void {
   try {
     window.WebApp?.ready?.();

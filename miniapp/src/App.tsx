@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import EventInfo from './pages/EventInfo';
 import ScheduleHub from './pages/ScheduleHub';
@@ -15,7 +15,7 @@ function AppRoutes() {
   useWebAppReady();
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<EventInfo />} />
@@ -27,8 +27,9 @@ function AppRoutes() {
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/feedback" element={<Feedback />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
