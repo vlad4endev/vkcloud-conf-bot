@@ -9,11 +9,10 @@ import {
 } from '../../api/adminClient';
 
 function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('ru-RU', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
+  const date = new Date(iso);
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }
 
 type Session = {

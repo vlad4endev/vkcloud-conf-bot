@@ -19,6 +19,11 @@ import {
   speakerReorderSchema,
   speakerUpdateSchema,
 } from '../shared/schemas/admin';
+import {
+  formatScheduleTime,
+  scheduleTimeToDate,
+  scheduleTimeToMinutes,
+} from '../shared/scheduleTime';
 import { saveUploadedFile } from '../shared/upload';
 import { getRouteId, notFound, parseBody, validationError } from './lib/http';
 
@@ -113,28 +118,6 @@ function formatDateTime(date: Date): string {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-const SCHEDULE_BASE_DATE = new Date('2026-06-01T00:00:00');
-
-function scheduleTimeToDate(time: string): Date {
-  const [hours, minutes] = time.split(':').map(Number);
-  const date = new Date(SCHEDULE_BASE_DATE);
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-}
-
-function formatScheduleTime(date: Date): string {
-  return date.toLocaleTimeString('ru-RU', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-}
-
-function scheduleTimeToMinutes(time: string): number {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
 }
 
 const scheduleSessionInclude = {

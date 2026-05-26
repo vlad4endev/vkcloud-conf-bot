@@ -9,13 +9,12 @@ export function formatDateTime(value: string | Date): string {
   });
 }
 
+/** Schedule slot time as HH:mm (UTC; matches server storage). */
 export function formatScheduleTime(value: string | Date): string {
   const date = typeof value === 'string' ? new Date(value) : value;
-  return date.toLocaleTimeString('ru-RU', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }
 
 export function getErrorMessage(error: unknown): string {
