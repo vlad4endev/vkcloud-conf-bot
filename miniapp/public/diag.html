@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAX diagnostic</title>
+    <script src="https://st.max.ru/js/max-web-app.js"></script>
+    <style>
+      body {
+        margin: 16px;
+        font: 14px/1.5 system-ui, sans-serif;
+        background: #0a0f1e;
+        color: #e8edf5;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MAX miniapp diagnostic</h1>
+    <pre id="log">boot…</pre>
+    <script>
+      const logEl = document.getElementById('log');
+      const log = (m) => {
+        logEl.textContent += '\n' + m;
+      };
+
+      log('host: ' + location.host);
+      log('href: ' + location.href);
+      log('hash: ' + location.hash);
+      log('WebApp: ' + (window.WebApp ? 'yes' : 'NO'));
+      log('platform: ' + (window.WebApp?.platform ?? 'n/a'));
+      log('initData len: ' + (window.WebApp?.initData?.length ?? 0));
+
+      try {
+        const u = window.WebApp?.initDataUnsafe?.user;
+        log('user.id: ' + (u?.id ?? u?.user_id ?? 'n/a'));
+      } catch (e) {
+        log('user parse error: ' + e);
+      }
+
+      fetch('/api/config')
+        .then((r) => r.text())
+        .then((t) => log('/api/config → ' + t.slice(0, 120)))
+        .catch((e) => log('/api/config error: ' + e));
+
+      fetch(location.origin + '/', { cache: 'no-store' })
+        .then((r) => r.text())
+        .then((html) => {
+          const m = html.match(/src="(\/assets\/[^"]+\.js)"/);
+          log('bundle in index: ' + (m ? m[1] : 'not found'));
+          if (m) {
+            return fetch(m[1], { method: 'HEAD' }).then((r) =>
+              log('HEAD bundle → ' + r.status),
+            );
+          }
+        })
+        .catch((e) => log('index parse error: ' + e));
+
+      setTimeout(() => {
+        try {
+          window.WebApp?.ready?.();
+          log('WebApp.ready() OK');
+        } catch (e) {
+          log('WebApp.ready() error: ' + e);
+        }
+      }, 500);
+    </script>
+  </body>
+</html>

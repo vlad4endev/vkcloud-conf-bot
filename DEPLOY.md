@@ -204,6 +204,19 @@ curl -s http://127.0.0.1:3001/health
 
 4. Miniapp подключает `https://st.max.ru/js/max-web-app.js` (`window.WebApp`) — без этого MAX Bridge не работает.
 
+### Белый / пустой экран в MAX (сайт в браузере открывается)
+
+1. **Проверьте URL в панели MAX** — для бота `ДАЕР_тест` должен быть ровно `https://vkconf.skypath.fun/` (тот же домен, что в `.env` `MINI_APP_URL`).
+2. **Пересоберите miniapp на сервере** (не с Mac-копии `node_modules`):
+   ```bash
+   cd /opt/vkconf && git pull && ./scripts/publish-miniapp.sh
+   ```
+3. **Диагностика в MAX** — временно укажите URL `https://vkconf.skypath.fun/diag.html`.  
+   Должны появиться строки `WebApp: yes`, `user.id: …`, `/api/config →`.  
+   Если `diag.html` работает, а `/` — нет: проблема в React-бандле (нужен legacy build из последнего коммита).
+4. **Проверка с сервера:** `./scripts/verify-production.sh vkconf.skypath.fun`
+5. В `index.html` **не вызывайте** `WebApp.ready()` до загрузки React — иначе MAX показывает белый WebView.
+
 ### «Не удалось открыть мини-приложение» в MAX
 
 Чаще всего одна из причин:

@@ -1,9 +1,20 @@
 import { useLayoutEffect } from 'react';
 import { notifyWebAppReady } from '../lib/webApp';
 
-/** Сообщает клиенту MAX, что UI готов — иначе чёрный/белый экран до WebAppReady. */
+/**
+ * MAX скрывает загрузчик после WebApp.ready().
+ * Вызываем только после первого кадра React, иначе — белый экран.
+ */
 export function useWebAppReady(): void {
   useLayoutEffect(() => {
-    notifyWebAppReady();
+    const frame = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        notifyWebAppReady();
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
   }, []);
 }

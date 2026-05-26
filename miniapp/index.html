@@ -22,13 +22,6 @@
       }
     </style>
     <script src="https://st.max.ru/js/max-web-app.js"></script>
-    <script>
-      try {
-        window.WebApp && window.WebApp.ready();
-      } catch (e) {
-        console.error('[WebApp] early ready failed', e);
-      }
-    </script>
   </head>
   <body>
     <div id="root">
@@ -36,6 +29,42 @@
         Загрузка…
       </p>
     </div>
+    <script>
+      (function () {
+        var root = document.getElementById('root');
+        var reported = false;
+
+        function showError(message) {
+          if (reported) return;
+          reported = true;
+          root.innerHTML =
+            '<pre style="margin:16px;font:13px/1.5 system-ui;color:#ff8a8a;white-space:pre-wrap">' +
+            message +
+            '</pre>';
+        }
+
+        window.addEventListener('error', function (event) {
+          var src = event.filename || '';
+          if (src.indexOf('/assets/') !== -1 || src.indexOf('main') !== -1) {
+            showError('Ошибка JS: ' + (event.message || 'unknown') + '\n' + src);
+          }
+        });
+
+        window.addEventListener('unhandledrejection', function (event) {
+          showError('Promise: ' + (event.reason && event.reason.message ? event.reason.message : event.reason));
+        });
+
+        setTimeout(function () {
+          if (!window.__MINIAPP_MOUNTED__) {
+            showError(
+              'React не запустился за 10 с.\n' +
+                'Откройте /diag.html в MAX для проверки WebView.\n' +
+                'На сервере: git pull && ./scripts/publish-miniapp.sh',
+            );
+          }
+        }, 10000);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

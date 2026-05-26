@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   createDevUser,
-  notifyWebAppReady,
   readStoredUser,
   readWebAppUser,
   resolveInitialUser,
@@ -19,8 +18,6 @@ export function useMaxBridge() {
   const [isReady, setIsReady] = useState<boolean>(initialUser.userId > 0);
 
   useEffect(() => {
-    notifyWebAppReady();
-
     let cancelled = false;
     let attempts = 0;
 
