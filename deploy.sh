@@ -63,6 +63,24 @@ $COMPOSE run --rm bot sh -c "npx --yes tsx prisma/seed.ts" || echo "Seed уже 
 echo -e "${YELLOW}🤖 Запускаем сервисы...${NC}"
 $COMPOSE up -d bot admin
 
+if [ "${SKIP_STATIC:-0}" != "1" ]; then
+  echo -e "${YELLOW}🌐 Публикуем miniapp и веб-админку (nginx)...${NC}"
+  chmod +x scripts/publish-miniapp.sh scripts/publish-admin-panel.sh 2>/dev/null || true
+  if [ -x scripts/publish-miniapp.sh ]; then
+    ./scripts/publish-miniapp.sh
+  else
+    echo -e "${YELLOW}⚠️  scripts/publish-miniapp.sh не найден — пропуск${NC}"
+  fi
+  if [ -x scripts/publish-admin-panel.sh ]; then
+    ./scripts/publish-admin-panel.sh
+  else
+    echo -e "${YELLOW}⚠️  scripts/publish-admin-panel.sh не найден — пропуск${NC}"
+  fi
+  if command -v nginx >/dev/null 2>&1; then
+    sudo nginx -t && sudo systemctl reload nginx
+  fi
+fi
+
 echo -e "${YELLOW}⏳ Ждём запуска (10 сек)...${NC}"
 sleep 10
 
@@ -84,9 +102,8 @@ echo "Bot health: http://localhost:3000/health"
 echo "Webhook:    ${WEBHOOK_BASE}/webhook"
 echo "Miniapp:    ${MINI_APP_URL}"
 echo ""
-echo -e "${YELLOW}Не забудьте на сервере:${NC}"
-echo "  sudo cp nginx/vkconf.skypath.fun.conf /etc/nginx/sites-available/vkconf"
-echo "  ./scripts/publish-miniapp.sh"
+echo -e "${YELLOW}Расписание редактируется в:${NC} https://${PRODUCTION_DOMAIN}/panel/ (нужен publish-admin-panel)"
+echo -e "${YELLOW}Проверка:${NC} ./scripts/verify-production.sh ${PRODUCTION_DOMAIN}"
 echo ""
 if [ -n "$WEBHOOK_BASE" ]; then
   echo -e "${YELLOW}Webhook регистрируется автоматически при старте бота (WEBHOOK_URL в .env).${NC}"

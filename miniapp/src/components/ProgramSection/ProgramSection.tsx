@@ -1,42 +1,51 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Clock, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import {
-  filterByTrack,
-  getTagClass,
-  trackTabs,
-  type ScheduleItem,
-  type Speaker,
-  type TrackId,
-} from '../../data/scheduleData';
+import { ChevronDown, Clock } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { getSchedule, type ScheduleSession } from '../../api/client';
+import { formatScheduleTime } from '../../lib/scheduleFormat';
 
-function SessionCard({ item }: { item: ScheduleItem }) {
+type ProgramItem = {
+  id: string;
+  time: string;
+  endTime: string;
+  title: string;
+  description: string;
+  location: string | null;
+  speakers: Array<{ name: string; avatar?: string }>;
+};
+
+function mapSession(session: ScheduleSession): ProgramItem {
+  return {
+    id: session.id,
+    time: formatScheduleTime(session.startTime),
+    endTime: formatScheduleTime(session.endTime),
+    title: session.title,
+    description: session.description ?? '',
+    location: session.location,
+    speakers: session.speaker
+      ? [
+          {
+            name: session.speaker.name,
+            avatar: session.speaker.photoUrl ?? undefined,
+          },
+        ]
+      : [],
+  };
+}
+
+function SessionCard({ item }: { item: ProgramItem }) {
   const [expanded, setExpanded] = useState(false);
   const hasDescription = item.description.length > 0;
-  const isSecret = item.kind === 'secret';
 
   return (
     <article className="group rounded-2xl border border-[#1e3a5f]/80 bg-[#111827]/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#005ff9]/50 hover:shadow-[0_12px_40px_-12px_rgba(0,95,249,0.35)] sm:p-5">
-      <div className="mb-3 flex flex-wrap gap-2">
-        {item.tags.map((tag) => (
-          <span
-            key={tag}
-            className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${getTagClass(tag)}`}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-
       <h3 className="text-lg font-bold leading-snug text-white sm:text-xl">
-        {isSecret && (
-          <Sparkles
-            className="mr-1.5 inline-block size-4 text-[#00d1ff]"
-            aria-hidden
-          />
-        )}
         {item.title}
       </h3>
+
+      {item.location ? (
+        <p className="mt-2 text-sm text-[#7b9cc0]">{item.location}</p>
+      ) : null}
 
       {item.speakers.length > 0 && (
         <ul className="mt-4 flex flex-col gap-3">
@@ -86,7 +95,11 @@ function SessionCard({ item }: { item: ScheduleItem }) {
   );
 }
 
-function SpeakerRow({ speaker }: { speaker: Speaker }) {
+function SpeakerRow({
+  speaker,
+}: {
+  speaker: { name: string; avatar?: string };
+}) {
   const initials = speaker.name
     .split(' ')
     .map((part) => part[0])
@@ -111,20 +124,12 @@ function SpeakerRow({ speaker }: { speaker: Speaker }) {
           {initials}
         </span>
       )}
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-white">
-          {speaker.name}
-        </p>
-        <p className="truncate text-xs text-[#7b9cc0]">
-          {speaker.role}
-          {speaker.company ? ` · ${speaker.company}` : ''}
-        </p>
-      </div>
+      <p className="truncate text-sm font-semibold text-white">{speaker.name}</p>
     </li>
   );
 }
 
-function TimelineRow({ item }: { item: ScheduleItem }) {
+function TimelineRow({ item }: { item: ProgramItem }) {
   return (
     <li className="relative grid grid-cols-1 gap-3 pb-8 last:pb-0 md:grid-cols-[88px_1fr] md:gap-6">
       <div className="md:sticky md:top-4 md:self-start">
@@ -136,9 +141,7 @@ function TimelineRow({ item }: { item: ScheduleItem }) {
           >
             {item.time}
           </time>
-          <span className="font-mono text-xs text-[#7b9cc0]">
-            {item.endTime}
-          </span>
+          <span className="font-mono text-xs text-[#7b9cc0]">{item.endTime}</span>
         </div>
       </div>
       <SessionCard item={item} />
@@ -147,12 +150,37 @@ function TimelineRow({ item }: { item: ScheduleItem }) {
 }
 
 export default function ProgramSection() {
-  const [activeTrack, setActiveTrack] = useState<TrackId>('all');
+  const [sessions, setSessions] = useState<ScheduleSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const sessions = useMemo(
-    () => filterByTrack(activeTrack),
-    [activeTrack],
-  );
+  useEffect(() => {
+    let cancelled = false;
+
+    void getSchedule()
+      .then((data) => {
+        if (!cancelled) {
+          setSessions(data);
+          setError(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError('Не удалось загрузить программу. Попробуйте позже.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const programItems = useMemo(() => sessions.map(mapSession), [sessions]);
 
   return (
     <section className="w-full font-[Inter,system-ui,sans-serif]">
@@ -164,57 +192,27 @@ export default function ProgramSection() {
           Детальная программа
         </h2>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#7b9cc0]">
-          20+ докладов в технологическом и бизнес-треках. Выберите зал, чтобы
-          увидеть расписание.
+          Актуальное расписание конференции. Обновляется из админ-панели.
         </p>
       </header>
 
-      <div
-        className="hide-scrollbar -mx-1 mb-8 flex gap-2 overflow-x-auto px-1 pb-1"
-        role="tablist"
-        aria-label="Треки конференции"
-      >
-        {trackTabs.map((tab) => {
-          const isActive = activeTrack === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => setActiveTrack(tab.id)}
-              className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
-                isActive
-                  ? 'border-[#005ff9] bg-[#005ff9] text-white shadow-[0_4px_20px_-4px_rgba(0,95,249,0.6)]'
-                  : 'border-[#1e3a5f] bg-[#111827] text-[#7b9cc0] hover:border-[#005ff9]/60 hover:text-white'
-              }`}
-            >
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="sm:hidden">{tab.shortLabel}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.ul
-          key={activeTrack}
-          role="tabpanel"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.25 }}
-          className="relative m-0 list-none p-0"
-        >
-          {sessions.length === 0 ? (
-            <li className="rounded-2xl border border-dashed border-[#1e3a5f] bg-[#111827]/50 px-4 py-10 text-center text-sm text-[#7b9cc0]">
-              В этом треке пока нет сессий
-            </li>
-          ) : (
-            sessions.map((item) => <TimelineRow key={item.id} item={item} />)
-          )}
-        </motion.ul>
-      </AnimatePresence>
+      {loading ? (
+        <p className="py-10 text-center text-sm text-[#7b9cc0]">Загрузка программы…</p>
+      ) : error ? (
+        <p className="rounded-2xl border border-dashed border-red-900/60 bg-red-950/30 px-4 py-10 text-center text-sm text-red-300">
+          {error}
+        </p>
+      ) : programItems.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-[#1e3a5f] bg-[#111827]/50 px-4 py-10 text-center text-sm text-[#7b9cc0]">
+          Программа скоро появится
+        </p>
+      ) : (
+        <ul className="relative m-0 list-none p-0">
+          {programItems.map((item) => (
+            <TimelineRow key={item.id} item={item} />
+          ))}
+        </ul>
+      )}
 
       <style>{`
         .hide-scrollbar {

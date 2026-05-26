@@ -41,7 +41,7 @@ export interface ScheduleSession {
   order: number;
   createdAt: string;
   updatedAt: string;
-  speaker: { name: string } | null;
+  speaker: { id: string; name: string; photoUrl: string | null } | null;
 }
 
 export interface QuizQuestion {

@@ -245,8 +245,10 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/schedule', async () => {
     return prisma.scheduleSession.findMany({
-      orderBy: { order: 'asc' },
-      include: { speaker: { select: { name: true } } },
+      orderBy: [{ order: 'asc' }, { startTime: 'asc' }],
+      include: {
+        speaker: { select: { id: true, name: true, photoUrl: true } },
+      },
     });
   });
 

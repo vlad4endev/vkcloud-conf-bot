@@ -238,11 +238,24 @@ docker compose logs -f admin
 ## Обновление релиза
 
 ```bash
-git pull   # или rsync новой версии
-./scripts/predeploy.sh   # локально, если меняли miniapp
-# залить dist-miniapp на сервер
+cd /opt/vkconf
+git pull
+git log -1 --oneline   # убедитесь, что подтянулся нужный коммит
+
+# Полный деплой: Docker (bot + admin API) + miniapp + веб-админка /panel/
 ./deploy.sh
 ```
+
+**Важно:** расписание в браузере правится на **`https://vkconf.skypath.fun/panel/`** — это статика nginx, не Docker. Одного `docker compose restart` недостаточно: нужен `./scripts/publish-admin-panel.sh` (входит в `./deploy.sh` с версии после фикса расписания).
+
+Только пересборка API без статики:
+
+```bash
+docker compose build bot admin && docker compose up -d bot admin
+./scripts/publish-admin-panel.sh
+```
+
+После обновления — жёсткое обновление страницы в браузере: **Ctrl+Shift+R** (кэш JS).
 
 Только миграции без пересборки:
 
