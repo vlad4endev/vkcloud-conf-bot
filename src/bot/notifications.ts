@@ -1,8 +1,10 @@
 import cron from 'node-cron';
-import type { Bot } from '@maxhub/max-bot-api';
+import { Bot, type Bot as BotType } from '@maxhub/max-bot-api';
 import { prisma } from '../db/client';
+import { env } from '../shared/env';
 
-let botInstance: Bot | null = null;
+let botInstance: BotType | null = null;
+let standaloneBot: BotType | null = null;
 
 const BROADCAST_BATCH_SIZE = 100;
 
@@ -10,14 +12,24 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function setBotInstance(bot: Bot): void {
+export function setBotInstance(bot: BotType): void {
   botInstance = bot;
 }
 
-export async function broadcastToAll(text: string): Promise<number> {
-  if (!botInstance) {
-    throw new Error('Bot instance is not set. Call setBotInstance() first.');
+function getBroadcastBot(): BotType {
+  if (botInstance) {
+    return botInstance;
   }
+
+  if (!standaloneBot) {
+    standaloneBot = new Bot(env.BOT_TOKEN);
+  }
+
+  return standaloneBot;
+}
+
+export async function broadcastToAll(text: string): Promise<number> {
+  const bot = getBroadcastBot();
 
   let sentCount = 0;
   let offset = 0;
@@ -37,7 +49,7 @@ export async function broadcastToAll(text: string): Promise<number> {
 
     for (const user of users) {
       try {
-        await botInstance.api.sendMessageToChat(Number(user.chatId), text);
+        await bot.api.sendMessageToChat(Number(user.chatId), text);
         sentCount += 1;
       } catch (error) {
         console.error(`Failed to send message to chat ${user.chatId}:`, error);
