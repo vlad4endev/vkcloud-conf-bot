@@ -240,7 +240,7 @@ export default function ProgramSection() {
           Детальная программа
         </h2>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#7b9cc0]">
-          Актуальное расписание конференции. Обновляется из админ-панели.
+          Актуальное расписание конференции.
         </p>
       </header>
 
