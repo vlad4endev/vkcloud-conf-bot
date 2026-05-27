@@ -14,7 +14,12 @@ const REGISTRATION_MESSAGE = `Доступ к приложению конфер�
 export default function RegistrationGate({ children }: { children: ReactNode }) {
   const { status, close, isInMax } = useRegistration();
 
-  if (!isInMax || status === 'skipped' || status === 'registered') {
+  // Локально в браузере (без MAX) — не блокируем UI.
+  if (!isInMax) {
+    return children;
+  }
+
+  if (status === 'registered') {
     return children;
   }
 

@@ -21,21 +21,6 @@ import { quizOptionSchema } from '../shared/schemas/admin';
 
 const MAX_INIT_DATA_HEADER = 'x-max-init-data';
 
-async function maxInitDataPreHandler(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): Promise<void> {
-  const raw = request.headers[MAX_INIT_DATA_HEADER];
-  if (!raw) {
-    return;
-  }
-
-  const initData = Array.isArray(raw) ? raw[0] : raw;
-  if (!initData || !validateMaxUser(initData)) {
-    return reply.status(403).send({ error: 'Invalid MAX init data' });
-  }
-}
-
 function readMaxInitData(request: FastifyRequest): string | null {
   const raw = request.headers[MAX_INIT_DATA_HEADER];
   if (!raw) {
@@ -59,13 +44,14 @@ async function requireMaxInitData(
   }
 }
 
+/** Verified MAX user required (init data mandatory; same checks as middleware chain). */
 async function requireRegisteredMaxUser(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> {
   const initData = readMaxInitData(request);
   if (!initData) {
-    return;
+    return reply.status(403).send({ error: 'MAX init data required' });
   }
 
   const maxUserId = parseMaxUserIdFromInitData(initData);
@@ -179,14 +165,21 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     return config;
   });
 
-  app.get('/speakers', async () => {
-    return prisma.speaker.findMany({
-      select: speakerSelect,
-      orderBy: { order: 'asc' },
-    });
-  });
+  app.get(
+    '/speakers',
+    { preHandler: requireRegisteredMaxUser },
+    async () => {
+      return prisma.speaker.findMany({
+        select: speakerSelect,
+        orderBy: { order: 'asc' },
+      });
+    },
+  );
 
-  app.get<{ Params: { id: string } }>('/speakers/:id', async (request, reply) => {
+  app.get<{ Params: { id: string } }>(
+    '/speakers/:id',
+    { preHandler: requireRegisteredMaxUser },
+    async (request, reply) => {
     const id = getRouteId(request.params);
     if (!id) {
       return notFound(reply, 'Speaker');
@@ -202,11 +195,12 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     }
 
     return speaker;
-  });
+  },
+  );
 
   app.post<{ Params: { id: string } }>(
     '/speakers/:id/questions',
-    { preHandler: [maxInitDataPreHandler, requireRegisteredMaxUser] },
+    { preHandler: requireRegisteredMaxUser },
     async (request, reply) => {
       const speakerId = getRouteId(request.params);
       if (!speakerId) {
@@ -243,18 +237,22 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
-  app.get('/schedule', async () => {
-    return prisma.scheduleSession.findMany({
-      orderBy: [{ order: 'asc' }, { startTime: 'asc' }],
-      include: {
-        speaker: { select: { id: true, name: true, photoUrl: true } },
-      },
-    });
-  });
+  app.get(
+    '/schedule',
+    { preHandler: requireRegisteredMaxUser },
+    async () => {
+      return prisma.scheduleSession.findMany({
+        orderBy: [{ order: 'asc' }, { startTime: 'asc' }],
+        include: {
+          speaker: { select: { id: true, name: true, photoUrl: true } },
+        },
+      });
+    },
+  );
 
   app.post(
     '/feedback',
-    { preHandler: [maxInitDataPreHandler, requireRegisteredMaxUser] },
+    { preHandler: requireRegisteredMaxUser },
     async (request, reply) => {
     const parsed = parseBody(feedbackSchema, request.body);
     if (!parsed.success) {
@@ -281,16 +279,20 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
-  app.get('/quiz/questions', async () => {
-    return prisma.quizQuestion.findMany({
-      select: quizQuestionSelect,
-      orderBy: { order: 'asc' },
-    });
-  });
+  app.get(
+    '/quiz/questions',
+    { preHandler: requireRegisteredMaxUser },
+    async () => {
+      return prisma.quizQuestion.findMany({
+        select: quizQuestionSelect,
+        orderBy: { order: 'asc' },
+      });
+    },
+  );
 
   app.post(
     '/quiz/answer',
-    { preHandler: [maxInitDataPreHandler, requireRegisteredMaxUser] },
+    { preHandler: requireRegisteredMaxUser },
     async (request, reply) => {
     const parsed = parseBody(quizAnswerSchema, request.body);
     if (!parsed.success) {

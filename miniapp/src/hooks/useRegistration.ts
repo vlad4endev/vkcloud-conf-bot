@@ -28,6 +28,8 @@ export function useRegistration(): {
       return;
     }
 
+    setStatus('loading');
+
     if (!isReady) {
       return;
     }
