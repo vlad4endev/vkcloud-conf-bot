@@ -81,12 +81,6 @@ export default function EventInfo() {
           </>
         )}
       </section>
-
-      <section className={styles.section}>
-        <button type="button" className="btn btnSecondary" onClick={openUnlockModal}>
-          Вход для организаторов
-        </button>
-      </section>
     </div>
   );
 }
