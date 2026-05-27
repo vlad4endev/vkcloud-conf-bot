@@ -1,5 +1,7 @@
 .button {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   padding: var(--spacing-sm) 0;
   margin: 0 0 var(--spacing-sm);
   border: none;
@@ -7,11 +9,16 @@
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button svg {
+  flex-shrink: 0;
 }
 
 .button:hover {

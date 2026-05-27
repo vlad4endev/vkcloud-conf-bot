@@ -1,10 +1,15 @@
 .screen {
   display: flex;
   min-height: 100svh;
+  min-height: 100dvh;
   align-items: center;
   justify-content: center;
   padding: var(--spacing-lg) var(--spacing-md);
+  padding-left: max(var(--spacing-md), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--spacing-md), env(safe-area-inset-right, 0px));
   background: var(--color-bg);
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .card {

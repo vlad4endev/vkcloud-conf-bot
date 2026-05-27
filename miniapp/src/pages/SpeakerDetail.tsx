@@ -7,6 +7,7 @@ import {
   type Speaker,
 } from '../api/client';
 import { useUserContext } from '../context/UserContext';
+import UserAvatarPlaceholder from '../components/UserAvatarPlaceholder';
 import { formatSpeakerSessionLine } from '../lib/speakerSessions';
 
 export default function SpeakerDetail() {
@@ -80,9 +81,7 @@ export default function SpeakerDetail() {
       {speaker.photoUrl ? (
         <img src={speaker.photoUrl} alt="" className="detailPhoto" />
       ) : (
-        <div className="detailAvatar" aria-hidden>
-          👤
-        </div>
+        <UserAvatarPlaceholder variant="detail" />
       )}
 
       <h1 className="title">{speaker.name}</h1>

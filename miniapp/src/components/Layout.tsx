@@ -28,13 +28,12 @@ export default function Layout() {
     <div className={styles.layout}>
       <header className={styles.header}>
         <span className={styles.logo}>VK CLOUD CONF</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className={styles.headerMeta}>
           {isAdminMode ? <span className="adminBadge">Админ</span> : null}
           <button
             type="button"
             className={styles.date}
             onClick={handleDateTap}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             aria-label="Дата мероприятия"
           >
             17.06.2026

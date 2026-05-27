@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getSpeakers, type Speaker } from '../api/client';
+import UserAvatarPlaceholder from '../components/UserAvatarPlaceholder';
 import { formatSpeakerSessionLine } from '../lib/speakerSessions';
 
 type LocationState = {
@@ -55,9 +56,7 @@ export default function Speakers() {
                     className="cardPhoto"
                   />
                 ) : (
-                  <span className="avatar" aria-hidden>
-                    👤
-                  </span>
+                  <UserAvatarPlaceholder />
                 )}
                 <span className="cardBody">
                   <span className="cardName">{speaker.name}</span>

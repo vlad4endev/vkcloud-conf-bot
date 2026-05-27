@@ -2,22 +2,30 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .title {
   margin: 0;
-  font-size: 22px;
+  font-size: clamp(18px, 5.2vw, 22px);
   font-weight: 600;
+  line-height: 1.25;
   color: var(--color-text);
   letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .text {
   margin: 0;
-  font-size: 15px;
+  font-size: clamp(14px, 3.8vw, 15px);
   line-height: 1.55;
   color: var(--color-text);
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .placeholder {
@@ -141,10 +149,13 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   text-align: left;
   cursor: pointer;
   box-sizing: border-box;
   transition: border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .card:hover {
@@ -182,9 +193,11 @@
 }
 
 .cardName {
-  font-size: 16px;
+  font-size: clamp(15px, 4vw, 16px);
   font-weight: 500;
   color: var(--color-text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cardMeta {
@@ -320,14 +333,16 @@
 }
 
 .adminBadge {
-  font-size: 10px;
+  font-size: clamp(8px, 2.2vw, 10px);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #fff;
   background: var(--color-primary);
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .adminMenuGrid {
@@ -339,7 +354,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -363,13 +378,18 @@
 }
 
 .hubBtn {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2.5vw, 12px);
   width: 100%;
-  padding: var(--spacing-md);
+  min-width: 0;
+  max-width: 100%;
+  min-height: clamp(52px, 14vw, 56px);
+  padding: 10px var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  font-size: 16px;
+  font-size: clamp(15px, 4.2vw, 16px);
   font-weight: 500;
   font-family: var(--font-primary);
   text-align: left;
@@ -377,11 +397,52 @@
   cursor: pointer;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .hubBtn:hover {
   border-color: var(--color-primary);
   background: var(--color-surface-2);
+}
+
+.hubBtnIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(36px, 10vw, 40px);
+  height: clamp(36px, 10vw, 40px);
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 95, 249, 0.14);
+  color: var(--color-accent);
+  border: 1px solid rgba(0, 209, 255, 0.2);
+}
+
+.hubBtnIcon svg {
+  width: clamp(18px, 5vw, 20px);
+  height: clamp(18px, 5vw, 20px);
+}
+
+.hubBtnLabel {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.hubBtnChevron {
+  flex-shrink: 0;
+  width: clamp(16px, 4.5vw, 18px);
+  height: clamp(16px, 4.5vw, 18px);
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.hubBtn:hover .hubBtnChevron {
+  color: var(--color-accent);
+  opacity: 1;
 }
 
 .mapImage {
@@ -403,4 +464,28 @@
 .program-page {
   gap: 0;
   max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 359px) {
+  .cardPhoto,
+  .avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .btn,
+  .linkBtn,
+  .optionBtn {
+    font-size: 14px;
+    padding: 11px var(--spacing-md);
+  }
+
+  .modalOverlay {
+    padding: var(--spacing-sm);
+  }
+
+  .modalCard {
+    max-width: 100%;
+  }
 }

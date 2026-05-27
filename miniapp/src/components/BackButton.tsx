@@ -1,3 +1,4 @@
+import { ChevronLeft } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './BackButton.module.css';
 
@@ -36,7 +37,8 @@ export default function BackButton({ backTo }: BackButtonProps) {
       className={styles.button}
       onClick={() => (target ? navigate(target) : navigate(-1))}
     >
-      ← НАЗАД
+      <ChevronLeft size={16} strokeWidth={2} aria-hidden />
+      <span>Назад</span>
     </button>
   );
 }

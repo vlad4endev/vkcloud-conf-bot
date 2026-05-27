@@ -1,12 +1,20 @@
+import {
+  CalendarDays,
+  Gamepad2,
+  Home,
+  MessageCircle,
+  type LucideIcon,
+} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import styles from './BottomNav.module.css';
+import BottomNavShell from './BottomNavShell';
+import navStyles from './BottomNavShell.module.css';
 
-const tabs = [
-  { path: '/', label: 'Главная', icon: '🏠' },
-  { path: '/schedule-hub', label: 'Программа', icon: '📋' },
-  { path: '/quiz', label: 'Квиз', icon: '🎮' },
-  { path: '/feedback', label: 'Связь', icon: '💬' },
-] as const;
+const tabs: { path: string; label: string; Icon: LucideIcon }[] = [
+  { path: '/', label: 'Главная', Icon: Home },
+  { path: '/schedule-hub', label: 'Программа', Icon: CalendarDays },
+  { path: '/quiz', label: 'Квиз', Icon: Gamepad2 },
+  { path: '/feedback', label: 'Связь', Icon: MessageCircle },
+];
 
 function isTabActive(pathname: string, tabPath: string): boolean {
   switch (tabPath) {
@@ -33,23 +41,28 @@ export default function BottomNav() {
   const { pathname } = useLocation();
 
   return (
-    <nav className={styles.nav} aria-label="Основная навигация">
-      {tabs.map(({ path, label, icon }) => {
+    <BottomNavShell ariaLabel="Основная навигация">
+      {tabs.map(({ path, label, Icon }) => {
         const active = isTabActive(pathname, path);
         return (
           <Link
             key={path}
             to={path}
-            className={active ? `${styles.link} ${styles.linkActive}` : styles.link}
+            className={
+              active
+                ? `${navStyles.link} ${navStyles.linkActive}`
+                : navStyles.link
+            }
             aria-current={active ? 'page' : undefined}
+            aria-label={label}
           >
-            <span className={styles.icon} aria-hidden>
-              {icon}
+            <span className={navStyles.icon} aria-hidden>
+              <Icon strokeWidth={active ? 2.25 : 1.75} />
             </span>
-            <span className={styles.label}>{label}</span>
+            <span className={navStyles.label}>{label}</span>
           </Link>
         );
       })}
-    </nav>
+    </BottomNavShell>
   );
 }

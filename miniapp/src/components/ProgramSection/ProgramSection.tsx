@@ -41,8 +41,8 @@ function SessionCard({ item }: { item: ProgramItem }) {
   const hasDescription = item.description.length > 0;
 
   return (
-    <article className="group rounded-2xl border border-[#1e3a5f]/80 bg-[#111827]/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#005ff9]/50 hover:shadow-[0_12px_40px_-12px_rgba(0,95,249,0.35)] sm:p-5">
-      <h3 className="text-lg font-bold leading-snug text-white sm:text-xl">
+    <article className="group min-w-0 max-w-full rounded-2xl border border-[#1e3a5f]/80 bg-[#111827]/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#005ff9]/50 hover:shadow-[0_12px_40px_-12px_rgba(0,95,249,0.35)] sm:p-5">
+      <h3 className="break-words text-lg font-bold leading-snug text-white sm:text-xl">
         {item.title}
       </h3>
 
