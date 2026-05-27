@@ -10,6 +10,19 @@ const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const messageTimestamps = new Map<number, number[]>();
 const lastProcessedMessageIdByUser = new Map<number, string>();
+/** MAX часто шлёт bot_started и /start подряд — не дублируем меню/приветствие. */
+const lastStartHandledAtByUser = new Map<number, number>();
+const START_HANDLER_COOLDOWN_MS = 5_000;
+
+function shouldHandleStart(userId: number): boolean {
+  const now = Date.now();
+  const last = lastStartHandledAtByUser.get(userId) ?? 0;
+  if (now - last < START_HANDLER_COOLDOWN_MS) {
+    return false;
+  }
+  lastStartHandledAtByUser.set(userId, now);
+  return true;
+}
 
 function isRateLimited(userId: number): boolean {
   const now = Date.now();
@@ -79,11 +92,20 @@ async function sendMainMenu(ctx: Context) {
   } else {
     await ctx.reply(MESSAGES.MAIN_MENU);
   }
+
+  const userId = ctx.user?.user_id;
+  if (userId) {
+    lastStartHandledAtByUser.set(userId, Date.now());
+  }
 }
 
 export async function handleStart(ctx: Context) {
   const userId = ctx.user?.user_id;
   if (!userId) {
+    return;
+  }
+
+  if (!shouldHandleStart(userId)) {
     return;
   }
 
