@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { prisma } from '../db/client';
 
 export const scheduleSessionInclude = {
   sessionSpeakers: {
@@ -45,6 +46,15 @@ export function serializeScheduleSession(session: SessionWithSpeakers) {
 
 export function serializeScheduleSessions(sessions: SessionWithSpeakers[]) {
   return sessions.map(serializeScheduleSession);
+}
+
+/** Next display_order so new sessions appear at the end of the admin list. */
+export async function getNextScheduleSessionOrder(): Promise<number> {
+  const { _max } = await prisma.scheduleSession.aggregate({
+    _max: { order: true },
+  });
+
+  return (_max.order ?? -1) + 1;
 }
 
 export function buildSessionSpeakersCreate(speakerIds: string[] | undefined) {

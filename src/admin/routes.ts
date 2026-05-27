@@ -21,6 +21,7 @@ import {
 } from '../shared/schemas/admin';
 import {
   buildSessionSpeakersCreate,
+  getNextScheduleSessionOrder,
   resolveSessionSpeakerIds,
   scheduleSessionInclude,
   serializeScheduleSession,
@@ -1001,11 +1002,13 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       return reply.status(400).send({ error: 'Speaker not found' });
     }
 
-    const { startTime, endTime, speakerIds: _s, speakerId: _id, ...rest } = parsed.data;
+    const { startTime, endTime, speakerIds: _s, speakerId: _id, order, ...rest } =
+      parsed.data;
 
     const created = await prisma.scheduleSession.create({
       data: {
         ...rest,
+        order: order ?? (await getNextScheduleSessionOrder()),
         startTime: scheduleTimeToDate(startTime),
         endTime: scheduleTimeToDate(endTime),
         sessionSpeakers: buildSessionSpeakersCreate(speakerIds),
