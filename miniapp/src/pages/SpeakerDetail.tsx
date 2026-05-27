@@ -7,6 +7,7 @@ import {
   type Speaker,
 } from '../api/client';
 import { useUserContext } from '../context/UserContext';
+import { formatSpeakerSessionLine } from '../lib/speakerSessions';
 
 export default function SpeakerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -85,7 +86,16 @@ export default function SpeakerDetail() {
       )}
 
       <h1 className="title">{speaker.name}</h1>
-      {speaker.bio && <p className="text">{speaker.bio}</p>}
+      {speaker.profession ? (
+        <p className="text speakerProfession">{speaker.profession}</p>
+      ) : null}
+      {speaker.sessions.length > 0 ? (
+        <ul className="speakerSessions">
+          {speaker.sessions.map((session) => (
+            <li key={session.id}>{formatSpeakerSessionLine(session)}</li>
+          ))}
+        </ul>
+      ) : null}
 
       <form className="form" onSubmit={handleSubmit}>
         <h2 className="title" style={{ fontSize: '18px' }}>

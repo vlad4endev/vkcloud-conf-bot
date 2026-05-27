@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getSpeakers, type Speaker } from '../api/client';
+import { formatSpeakerSessionLine } from '../lib/speakerSessions';
 
 type LocationState = {
   notification?: string;
@@ -58,7 +59,21 @@ export default function Speakers() {
                     👤
                   </span>
                 )}
-                <span className="cardName">{speaker.name}</span>
+                <span className="cardBody">
+                  <span className="cardName">{speaker.name}</span>
+                  {speaker.profession ? (
+                    <span className="cardMeta">{speaker.profession}</span>
+                  ) : null}
+                  {speaker.sessions.length > 0 ? (
+                    <span className="cardMeta cardMetaSessions">
+                      {speaker.sessions.map((session) => (
+                        <span key={session.id}>
+                          {formatSpeakerSessionLine(session)}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
+                </span>
               </button>
             </li>
           ))}

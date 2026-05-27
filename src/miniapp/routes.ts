@@ -22,6 +22,11 @@ import {
   scheduleSessionInclude,
   serializeScheduleSessions,
 } from '../shared/scheduleSession';
+import {
+  speakerWithSessionsInclude,
+  serializeSpeaker,
+  serializeSpeakers,
+} from '../shared/speaker';
 
 const MAX_INIT_DATA_HEADER = 'x-max-init-data';
 
@@ -100,15 +105,6 @@ const quizAnswerSchema = z.object({
   answer: quizOptionSchema,
 });
 
-const speakerSelect = {
-  id: true,
-  name: true,
-  profession: true,
-  bio: true,
-  photoUrl: true,
-  order: true,
-} as const;
-
 const quizQuestionSelect = {
   id: true,
   question: true,
@@ -174,10 +170,12 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     '/speakers',
     { preHandler: requireRegisteredMaxUser },
     async () => {
-      return prisma.speaker.findMany({
-        select: speakerSelect,
+      const speakers = await prisma.speaker.findMany({
+        include: speakerWithSessionsInclude,
         orderBy: { order: 'asc' },
       });
+
+      return serializeSpeakers(speakers);
     },
   );
 
@@ -192,14 +190,14 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
 
     const speaker = await prisma.speaker.findUnique({
       where: { id },
-      select: speakerSelect,
+      include: speakerWithSessionsInclude,
     });
 
     if (!speaker) {
       return notFound(reply, 'Speaker');
     }
 
-    return speaker;
+    return serializeSpeaker(speaker);
   },
   );
 

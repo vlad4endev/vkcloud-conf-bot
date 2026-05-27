@@ -23,13 +23,20 @@ export type ConfigKey =
 
 export type AppConfig = Record<ConfigKey, string>;
 
+export interface SpeakerSession {
+  id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+}
+
 export interface Speaker {
   id: string;
   name: string;
   profession: string | null;
-  bio: string;
   photoUrl: string | null;
   order: number;
+  sessions: SpeakerSession[];
 }
 
 export type SessionTrack = 'all' | 'tech' | 'business';

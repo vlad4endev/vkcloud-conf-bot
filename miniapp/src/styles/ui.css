@@ -173,10 +173,46 @@
   flex-shrink: 0;
 }
 
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
 .cardName {
   font-size: 16px;
   font-weight: 500;
   color: var(--color-text);
+}
+
+.cardMeta {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--color-text-muted, #7b9cc0);
+}
+
+.cardMetaSessions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.speakerProfession {
+  margin-top: -4px;
+}
+
+.speakerSessions {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #7b9cc0);
 }
 
 .session {
