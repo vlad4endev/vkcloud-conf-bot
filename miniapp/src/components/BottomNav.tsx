@@ -1,20 +1,15 @@
-import {
-  CalendarDays,
-  Gamepad2,
-  Home,
-  MessageCircle,
-  type LucideIcon,
-} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { appIcons } from '../icons';
+import AppIcon from './AppIcon';
 import BottomNavShell from './BottomNavShell';
 import navStyles from './BottomNavShell.module.css';
 
-const tabs: { path: string; label: string; Icon: LucideIcon }[] = [
-  { path: '/', label: 'Главная', Icon: Home },
-  { path: '/schedule-hub', label: 'Программа', Icon: CalendarDays },
-  { path: '/quiz', label: 'Квиз', Icon: Gamepad2 },
-  { path: '/feedback', label: 'Связь', Icon: MessageCircle },
-];
+const tabs = [
+  { path: '/', label: 'Главная', icon: appIcons.home },
+  { path: '/schedule-hub', label: 'Программа', icon: appIcons.schedule },
+  { path: '/quiz', label: 'Квиз', icon: appIcons.quiz },
+  { path: '/feedback', label: 'Связь', icon: appIcons.feedback },
+] as const;
 
 function isTabActive(pathname: string, tabPath: string): boolean {
   switch (tabPath) {
@@ -42,7 +37,7 @@ export default function BottomNav() {
 
   return (
     <BottomNavShell ariaLabel="Основная навигация">
-      {tabs.map(({ path, label, Icon }) => {
+      {tabs.map(({ path, label, icon }) => {
         const active = isTabActive(pathname, path);
         return (
           <Link
@@ -57,7 +52,7 @@ export default function BottomNav() {
             aria-label={label}
           >
             <span className={navStyles.icon} aria-hidden>
-              <Icon strokeWidth={active ? 2.25 : 1.75} />
+              <AppIcon icon={icon} fill active={active} />
             </span>
             <span className={navStyles.label}>{label}</span>
           </Link>

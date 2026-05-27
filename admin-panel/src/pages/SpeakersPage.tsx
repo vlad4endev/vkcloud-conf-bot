@@ -1,5 +1,7 @@
-import { ImagePlus, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import ActionIcon from '../components/ActionIcon';
+import AppIcon from '../components/AppIcon';
+import { panelIcons } from '../icons';
 import {
   createSpeaker,
   deleteSpeaker,
@@ -201,7 +203,7 @@ export default function SpeakersPage() {
         description="Карточки спикеров для мини-приложения"
         actions={
           <Button onClick={openCreate}>
-            <Plus size={16} />
+            <ActionIcon name="add" />
             Добавить
           </Button>
         }
@@ -243,10 +245,12 @@ export default function SpeakersPage() {
               </div>
               <div className="flex shrink-0 flex-col gap-1">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
-                  <Pencil size={16} />
+                  <ActionIcon name="edit" />
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => void handleDelete(speaker)}>
-                  <Trash2 size={16} className="text-red-400" />
+                  <span className="text-red-400">
+                    <ActionIcon name="delete" />
+                  </span>
                 </Button>
               </div>
             </Card>
@@ -270,7 +274,7 @@ export default function SpeakersPage() {
                 />
               ) : (
                 <div className="flex h-28 w-28 items-center justify-center rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)] text-slate-500">
-                  <ImagePlus size={28} />
+                  <AppIcon icon={panelIcons.photo} size={28} />
                 </div>
               )}
               <div className="flex flex-col gap-2">
@@ -294,7 +298,7 @@ export default function SpeakersPage() {
                 </Button>
                 {previewUrl ? (
                   <Button variant="ghost" size="sm" onClick={clearPhoto}>
-                    <X size={16} />
+                    <ActionIcon name="close" />
                     Удалить фото
                   </Button>
                 ) : null}

@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react';
+import ActionIcon from '../components/ActionIcon';
 import { useCallback, useEffect, useState } from 'react';
 import { getQuestions } from '../api/client';
 import type { SpeakerQuestion } from '../api/types';
@@ -59,7 +59,7 @@ export default function QuestionsPage() {
               )
             }
           >
-            <Download size={16} />
+            <ActionIcon name="download" />
             Excel
           </Button>
         }

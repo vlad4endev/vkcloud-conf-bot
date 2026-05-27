@@ -1,4 +1,4 @@
-import { Download, Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '../components/ActionIcon';
 import { useCallback, useEffect, useState } from 'react';
 import { deleteUser, getUsers, updateUser } from '../api/client';
 import type { User } from '../api/types';
@@ -116,7 +116,7 @@ export default function UsersPage() {
               )
             }
           >
-            <Download size={16} />
+            <ActionIcon name="download" />
             Excel
           </Button>
         }
@@ -171,7 +171,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="sm" onClick={() => openEdit(user)}>
-                        <Pencil size={16} />
+                        <ActionIcon name="edit" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -179,7 +179,9 @@ export default function UsersPage() {
                         title="Удалить участника"
                         onClick={() => void handleDelete(user)}
                       >
-                        <Trash2 size={16} className="text-red-400" />
+                        <span className="text-red-400">
+                          <ActionIcon name="delete" />
+                        </span>
                       </Button>
                     </div>
                   </td>

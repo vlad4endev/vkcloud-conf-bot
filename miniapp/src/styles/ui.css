@@ -406,6 +406,8 @@
   background: var(--color-surface-2);
 }
 
+/* Единый контейнер иконок (хабы, действия) */
+.iconBox,
 .hubBtnIcon {
   display: flex;
   align-items: center;
@@ -419,6 +421,7 @@
   border: 1px solid rgba(0, 209, 255, 0.2);
 }
 
+.iconBox svg,
 .hubBtnIcon svg {
   width: clamp(18px, 5vw, 20px);
   height: clamp(18px, 5vw, 20px);

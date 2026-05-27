@@ -1,4 +1,5 @@
-import { User } from 'lucide-react';
+import AppIcon from './AppIcon';
+import { appIcons } from '../icons';
 import styles from './UserAvatarPlaceholder.module.css';
 
 type UserAvatarPlaceholderProps = {
@@ -8,16 +9,14 @@ type UserAvatarPlaceholderProps = {
 export default function UserAvatarPlaceholder({
   variant = 'card',
 }: UserAvatarPlaceholderProps) {
-  const iconSize = variant === 'detail' ? 40 : 24;
+  const size = variant === 'detail' ? 'xl' : 'lg';
 
   return (
     <span
-      className={
-        variant === 'detail' ? styles.detail : styles.card
-      }
+      className={variant === 'detail' ? styles.detail : styles.card}
       aria-hidden
     >
-      <User size={iconSize} strokeWidth={1.5} />
+      <AppIcon icon={appIcons.user} size={size} />
     </span>
   );
 }

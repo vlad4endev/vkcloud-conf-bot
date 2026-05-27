@@ -1,5 +1,6 @@
-import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
+import AppIcon from './AppIcon';
+import { panelIcons } from '../icons';
 
 export function PageHeader({
   title,
@@ -140,7 +141,7 @@ export function Modal({
             className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
             aria-label="Закрыть"
           >
-            <X size={20} />
+            <AppIcon icon={panelIcons.close} size="md" />
           </button>
         </div>
         <div className="space-y-4 p-5">{children}</div>

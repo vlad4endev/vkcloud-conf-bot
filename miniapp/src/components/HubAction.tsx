@@ -1,4 +1,7 @@
-import { ChevronRight, type LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { appIcons } from '../icons';
+import AppIcon from './AppIcon';
+import IconBox from './IconBox';
 
 type HubActionProps = {
   icon: LucideIcon;
@@ -6,14 +9,12 @@ type HubActionProps = {
   onClick: () => void;
 };
 
-export default function HubAction({ icon: Icon, children, onClick }: HubActionProps) {
+export default function HubAction({ icon, children, onClick }: HubActionProps) {
   return (
     <button type="button" className="hubBtn" onClick={onClick}>
-      <span className="hubBtnIcon" aria-hidden>
-        <Icon size={20} strokeWidth={1.75} />
-      </span>
+      <IconBox icon={icon} />
       <span className="hubBtnLabel">{children}</span>
-      <ChevronRight className="hubBtnChevron" size={18} strokeWidth={1.75} aria-hidden />
+      <AppIcon icon={appIcons.forward} size="md" className="hubBtnChevron" />
     </button>
   );
 }

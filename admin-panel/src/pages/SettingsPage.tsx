@@ -1,4 +1,6 @@
-import { ImagePlus, X } from 'lucide-react';
+import ActionIcon from '../components/ActionIcon';
+import AppIcon from '../components/AppIcon';
+import { panelIcons } from '../icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   deleteMapImage,
@@ -143,7 +145,7 @@ export default function SettingsPage() {
               />
             ) : (
               <div className="flex h-36 w-full min-w-[8rem] max-w-xs items-center justify-center rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)] text-slate-500 sm:w-48">
-                <ImagePlus size={32} />
+                <AppIcon icon={panelIcons.photo} size={32} />
               </div>
             )}
             <div className="flex flex-col gap-2">
@@ -173,7 +175,7 @@ export default function SettingsPage() {
                   disabled={mapBusy}
                   onClick={() => void handleMapDelete()}
                 >
-                  <X size={16} />
+                  <ActionIcon name="close" />
                   Удалить карту
                 </Button>
               ) : null}

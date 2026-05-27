@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react';
+import ActionIcon from '../components/ActionIcon';
 import { useCallback, useEffect, useState } from 'react';
 import { getFeedback } from '../api/client';
 import type { FeedbackItem } from '../api/types';
@@ -47,7 +47,7 @@ export default function FeedbackPage() {
               )
             }
           >
-            <Download size={16} />
+            <ActionIcon name="download" />
             Excel
           </Button>
         }

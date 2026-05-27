@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Clock } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { getSchedule, type ScheduleSession, type SessionTrack } from '../../api/client';
+import AppIcon from '../AppIcon';
+import { appIcons } from '../../icons';
 import { formatScheduleTime } from '../../lib/scheduleFormat';
 import TrackSwitcher from './TrackSwitcher';
 
@@ -72,7 +73,7 @@ function SessionCard({ item }: { item: ProgramItem }) {
               transition={{ duration: 0.25 }}
               className="inline-flex"
             >
-              <ChevronDown className="size-4" aria-hidden />
+              <AppIcon icon={appIcons.expand} size="sm" />
             </motion.span>
           </button>
 
@@ -142,7 +143,11 @@ function TimelineRow({ item }: { item: ProgramItem }) {
     <li className="relative grid grid-cols-1 gap-3 pb-8 last:pb-0 md:grid-cols-[88px_1fr] md:gap-6">
       <div className="md:sticky md:top-4 md:self-start">
         <div className="flex items-center gap-2 md:flex-col md:items-start md:gap-1">
-          <Clock className="size-4 shrink-0 text-[#00d1ff] md:hidden" aria-hidden />
+          <AppIcon
+            icon={appIcons.time}
+            size="sm"
+            className="shrink-0 text-[#00d1ff] md:hidden"
+          />
           <time
             dateTime={`2026-06-17T${item.time}`}
             className="font-mono text-2xl font-bold tracking-tight text-[#00d1ff] sm:text-3xl"

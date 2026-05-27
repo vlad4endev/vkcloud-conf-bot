@@ -1,5 +1,5 @@
-import { Download, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import ActionIcon from '../components/ActionIcon';
 import {
   createScheduleSession,
   deleteScheduleSession,
@@ -186,11 +186,11 @@ export default function SchedulePage() {
                 ).catch((e) => toast(getErrorMessage(e), 'error'))
               }
             >
-              <Download size={16} />
+              <ActionIcon name="download" />
               Excel
             </Button>
             <Button onClick={openCreate}>
-              <Plus size={16} />
+              <ActionIcon name="add" />
               Сессия
             </Button>
           </>
@@ -232,10 +232,15 @@ export default function SchedulePage() {
               </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(session)}>
-                  <Pencil size={16} />
+                  <ActionIcon name="edit" />
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => void handleDelete(session)}>
-                  <Trash2 size={16} className="text-red-400" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-400"
+                  onClick={() => void handleDelete(session)}
+                >
+                  <ActionIcon name="delete" />
                 </Button>
               </div>
             </Card>

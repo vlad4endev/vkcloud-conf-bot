@@ -1,4 +1,4 @@
-import { Clock, History, Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '../components/ActionIcon';
 import { useCallback, useEffect, useState } from 'react';
 import {
   deleteNotification,
@@ -207,14 +207,14 @@ export default function NotificationsPage() {
           variant={tab === 'scheduled' ? 'primary' : 'secondary'}
           onClick={() => setTab('scheduled')}
         >
-          <Clock size={16} />
+          <ActionIcon name="pending" />
           Запланированные ({pending.length})
         </Button>
         <Button
           variant={tab === 'history' ? 'primary' : 'secondary'}
           onClick={() => setTab('history')}
         >
-          <History size={16} />
+          <ActionIcon name="history" />
           История ({history.length})
         </Button>
       </div>
@@ -262,14 +262,14 @@ export default function NotificationsPage() {
                       onClick={() => openEdit(item)}
                       aria-label="Редактировать"
                     >
-                      <Pencil size={16} />
+                      <ActionIcon name="edit" />
                     </Button>
                     <Button
                       variant="secondary"
                       onClick={() => void handleDelete(item)}
                       aria-label="Удалить"
                     >
-                      <Trash2 size={16} />
+                      <ActionIcon name="delete" />
                     </Button>
                   </div>
                 ) : null}

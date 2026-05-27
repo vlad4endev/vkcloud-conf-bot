@@ -1,28 +1,26 @@
-import {
-  Calendar,
-  HelpCircle,
-  LayoutDashboard,
-  LogOut,
-  Megaphone,
-  MessageSquare,
-  Settings,
-  Trophy,
-  UserCircle,
-  Users,
-} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AppIcon from './AppIcon';
+import { panelIcons } from '../icons';
 
-const navItems = [
-  { to: '/', label: 'Обзор', icon: LayoutDashboard, end: true },
-  { to: '/users', label: 'Участники', icon: Users },
-  { to: '/speakers', label: 'Спикеры', icon: UserCircle },
-  { to: '/schedule', label: 'Расписание', icon: Calendar },
-  { to: '/quiz', label: 'Квиз', icon: Trophy },
-  { to: '/questions', label: 'Вопросы', icon: HelpCircle },
-  { to: '/feedback', label: 'Отзывы', icon: MessageSquare },
-  { to: '/notifications', label: 'Рассылки', icon: Megaphone },
-  { to: '/settings', label: 'Настройки', icon: Settings },
+type NavItem = {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  end?: boolean;
+};
+
+const navItems: NavItem[] = [
+  { to: '/', label: 'Обзор', icon: panelIcons.overview, end: true },
+  { to: '/users', label: 'Участники', icon: panelIcons.users },
+  { to: '/speakers', label: 'Спикеры', icon: panelIcons.speakers },
+  { to: '/schedule', label: 'Расписание', icon: panelIcons.schedule },
+  { to: '/quiz', label: 'Квиз', icon: panelIcons.quiz },
+  { to: '/questions', label: 'Вопросы', icon: panelIcons.questions },
+  { to: '/feedback', label: 'Отзывы', icon: panelIcons.feedback },
+  { to: '/notifications', label: 'Рассылки', icon: panelIcons.notifications },
+  { to: '/settings', label: 'Настройки', icon: panelIcons.settings },
 ];
 
 export default function AdminLayout() {
@@ -39,7 +37,7 @@ export default function AdminLayout() {
         </div>
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
-          {navItems.map(({ to, label, icon: Icon, end }) => (
+          {navItems.map(({ to, label, icon, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -52,8 +50,12 @@ export default function AdminLayout() {
                 }`
               }
             >
-              <Icon size={18} />
-              {label}
+              {({ isActive }) => (
+                <>
+                  <AppIcon icon={icon} size="nav" active={isActive} />
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -65,7 +67,7 @@ export default function AdminLayout() {
             onClick={logout}
             className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
           >
-            <LogOut size={16} />
+            <AppIcon icon={panelIcons.logout} size="sm" />
             Выйти
           </button>
         </div>

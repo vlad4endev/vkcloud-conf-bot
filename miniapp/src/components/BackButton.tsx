@@ -1,5 +1,6 @@
-import { ChevronLeft } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import AppIcon from './AppIcon';
+import { appIcons } from '../icons';
 import styles from './BackButton.module.css';
 
 const MAIN_SECTIONS = ['/', '/schedule-hub', '/quiz', '/feedback'];
@@ -37,7 +38,7 @@ export default function BackButton({ backTo }: BackButtonProps) {
       className={styles.button}
       onClick={() => (target ? navigate(target) : navigate(-1))}
     >
-      <ChevronLeft size={16} strokeWidth={2} aria-hidden />
+      <AppIcon icon={appIcons.back} size="sm" />
       <span>Назад</span>
     </button>
   );

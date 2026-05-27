@@ -1,20 +1,15 @@
-import {
-  Layers,
-  LayoutDashboard,
-  MoreHorizontal,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { appIcons } from '../icons';
+import AppIcon from './AppIcon';
 import BottomNavShell from './BottomNavShell';
 import navStyles from './BottomNavShell.module.css';
 
-const tabs: { path: string; label: string; Icon: LucideIcon }[] = [
-  { path: '/admin', label: 'Панель', Icon: LayoutDashboard },
-  { path: '/admin/users', label: 'Люди', Icon: Users },
-  { path: '/admin/content', label: 'Контент', Icon: Layers },
-  { path: '/admin/more', label: 'Ещё', Icon: MoreHorizontal },
-];
+const tabs = [
+  { path: '/admin', label: 'Панель', icon: appIcons.admin },
+  { path: '/admin/users', label: 'Люди', icon: appIcons.users },
+  { path: '/admin/content', label: 'Контент', icon: appIcons.content },
+  { path: '/admin/more', label: 'Ещё', icon: appIcons.more },
+] as const;
 
 function isActive(pathname: string, tabPath: string): boolean {
   if (tabPath === '/admin') {
@@ -45,7 +40,7 @@ export default function AdminBottomNav() {
 
   return (
     <BottomNavShell ariaLabel="Админ-навигация">
-      {tabs.map(({ path, label, Icon }) => {
+      {tabs.map(({ path, label, icon }) => {
         const active = isActive(pathname, path);
         return (
           <Link
@@ -60,7 +55,7 @@ export default function AdminBottomNav() {
             aria-label={label}
           >
             <span className={navStyles.icon} aria-hidden>
-              <Icon strokeWidth={active ? 2.25 : 1.75} />
+              <AppIcon icon={icon} fill active={active} />
             </span>
             <span className={navStyles.label}>{label}</span>
           </Link>

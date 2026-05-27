@@ -1,18 +1,9 @@
-import {
-  Calendar,
-  Gamepad2,
-  HelpCircle,
-  Megaphone,
-  MessageSquare,
-  Mic,
-  Settings,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HubAction from '../../components/HubAction';
 import { getStats } from '../../api/adminClient';
+import { appIcons } from '../../icons';
+import type { LucideIcon } from 'lucide-react';
 
 type HubItem = {
   label: string;
@@ -30,29 +21,29 @@ export default function AdminHub() {
   }, []);
 
   const items: HubItem[] = [
-    { label: 'Участники', path: '/admin/users', icon: Users, stat: stats?.usersTotal },
-    { label: 'Спикеры', path: '/admin/speakers', icon: Mic, stat: stats?.speakers },
+    { label: 'Участники', path: '/admin/users', icon: appIcons.users, stat: stats?.usersTotal },
+    { label: 'Спикеры', path: '/admin/speakers', icon: appIcons.speakers, stat: stats?.speakers },
     {
       label: 'Расписание',
       path: '/admin/schedule',
-      icon: Calendar,
+      icon: appIcons.schedule,
       stat: stats?.scheduleSessions,
     },
-    { label: 'Квиз', path: '/admin/quiz', icon: Gamepad2, stat: stats?.quizQuestions },
+    { label: 'Квиз', path: '/admin/quiz', icon: appIcons.quiz, stat: stats?.quizQuestions },
     {
       label: 'Вопросы спикерам',
       path: '/admin/questions',
-      icon: HelpCircle,
+      icon: appIcons.questions,
       stat: stats?.questions,
     },
     {
       label: 'Отзывы',
       path: '/admin/feedback',
-      icon: MessageSquare,
+      icon: appIcons.reviews,
       stat: stats?.feedback,
     },
-    { label: 'Рассылка', path: '/admin/notify', icon: Megaphone },
-    { label: 'Настройки', path: '/admin/settings', icon: Settings },
+    { label: 'Рассылка', path: '/admin/notify', icon: appIcons.notify },
+    { label: 'Настройки', path: '/admin/settings', icon: appIcons.settings },
   ];
 
   return (

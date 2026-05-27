@@ -6,8 +6,6 @@ type AppIconProps = {
   size?: IconSize | number;
   active?: boolean;
   className?: string;
-  /** Заполняет родительский контейнер (нижняя навигация) */
-  fill?: boolean;
 };
 
 export default function AppIcon({
@@ -15,16 +13,15 @@ export default function AppIcon({
   size = 'md',
   active = false,
   className,
-  fill = false,
 }: AppIconProps) {
   const pixelSize = typeof size === 'number' ? size : iconTokens.size[size];
   const strokeWidth = active ? iconTokens.strokeActive : iconTokens.stroke;
 
   return (
     <Icon
-      size={fill ? undefined : pixelSize}
+      size={pixelSize}
       strokeWidth={strokeWidth}
-      className={fill ? `block h-full w-full ${className ?? ''}`.trim() : className}
+      className={className}
       aria-hidden
     />
   );

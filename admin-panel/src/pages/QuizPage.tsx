@@ -1,4 +1,4 @@
-import { Download, Pencil, Plus, Trash2 } from 'lucide-react';
+import ActionIcon from '../components/ActionIcon';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   createQuizQuestion,
@@ -150,7 +150,7 @@ export default function QuizPage() {
         actions={
           tab === 'questions' ? (
             <Button onClick={openCreate}>
-              <Plus size={16} />
+              <ActionIcon name="add" />
               Вопрос
             </Button>
           ) : (
@@ -164,7 +164,7 @@ export default function QuizPage() {
                   ).catch((e) => toast(getErrorMessage(e), 'error'))
                 }
               >
-                <Download size={16} />
+                <ActionIcon name="download" />
                 Все результаты
               </Button>
               <Button
@@ -176,7 +176,7 @@ export default function QuizPage() {
                   ).catch((e) => toast(getErrorMessage(e), 'error'))
                 }
               >
-                <Download size={16} />
+                <ActionIcon name="download" />
                 Победители
               </Button>
             </>
@@ -225,10 +225,12 @@ export default function QuizPage() {
                   </div>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(q)}>
-                      <Pencil size={16} />
+                      <ActionIcon name="edit" />
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => void handleDelete(q)}>
-                      <Trash2 size={16} className="text-red-400" />
+                      <span className="text-red-400">
+                        <ActionIcon name="delete" />
+                      </span>
                     </Button>
                   </div>
                 </div>
@@ -298,7 +300,9 @@ export default function QuizPage() {
                           void handleDeleteParticipant(row.userId, row.fullName)
                         }
                       >
-                        <Trash2 size={16} className="text-red-400" />
+                        <span className="text-red-400">
+                        <ActionIcon name="delete" />
+                      </span>
                       </Button>
                     </td>
                   </tr>

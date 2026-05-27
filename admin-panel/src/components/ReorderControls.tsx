@@ -1,4 +1,5 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import AppIcon from './AppIcon';
+import { panelIcons } from '../icons';
 import { Button } from './ui';
 
 export function ReorderControls({
@@ -22,7 +23,7 @@ export function ReorderControls({
         className="!px-1.5 !py-1"
         aria-label="Выше"
       >
-        <ChevronUp size={16} />
+        <AppIcon icon={panelIcons.reorderUp} size="sm" />
       </Button>
       <Button
         variant="ghost"
@@ -32,7 +33,7 @@ export function ReorderControls({
         className="!px-1.5 !py-1"
         aria-label="Ниже"
       >
-        <ChevronDown size={16} />
+        <AppIcon icon={panelIcons.reorderDown} size="sm" />
       </Button>
     </div>
   );

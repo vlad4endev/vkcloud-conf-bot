@@ -1,6 +1,6 @@
-import { Calendar, Map, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import HubAction from '../components/HubAction';
+import { appIcons } from '../icons';
 
 export default function ScheduleHub() {
   const navigate = useNavigate();
@@ -10,13 +10,13 @@ export default function ScheduleHub() {
       <h1 className="title">Программа, карта, спикеры</h1>
 
       <div className="hubActions">
-        <HubAction icon={Map} onClick={() => navigate('/map')}>
+        <HubAction icon={appIcons.map} onClick={() => navigate('/map')}>
           Карта
         </HubAction>
-        <HubAction icon={Calendar} onClick={() => navigate('/schedule')}>
+        <HubAction icon={appIcons.program} onClick={() => navigate('/schedule')}>
           Программа
         </HubAction>
-        <HubAction icon={Mic} onClick={() => navigate('/speakers')}>
+        <HubAction icon={appIcons.speakers} onClick={() => navigate('/speakers')}>
           Спикеры
         </HubAction>
       </div>

@@ -1,6 +1,6 @@
-import { Calendar, Gamepad2, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import HubAction from '../../components/HubAction';
+import { appIcons } from '../../icons';
 
 export default function AdminContentHub() {
   const navigate = useNavigate();
@@ -9,13 +9,13 @@ export default function AdminContentHub() {
     <div className="page">
       <h1 className="title">Контент</h1>
       <div className="hubActions">
-        <HubAction icon={Mic} onClick={() => navigate('/admin/speakers')}>
+        <HubAction icon={appIcons.speakers} onClick={() => navigate('/admin/speakers')}>
           Спикеры
         </HubAction>
-        <HubAction icon={Calendar} onClick={() => navigate('/admin/schedule')}>
+        <HubAction icon={appIcons.schedule} onClick={() => navigate('/admin/schedule')}>
           Расписание
         </HubAction>
-        <HubAction icon={Gamepad2} onClick={() => navigate('/admin/quiz')}>
+        <HubAction icon={appIcons.quiz} onClick={() => navigate('/admin/quiz')}>
           Квиз
         </HubAction>
       </div>
