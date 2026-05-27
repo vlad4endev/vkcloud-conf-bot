@@ -120,7 +120,9 @@ export async function handleMessage(ctx: Context) {
   });
 
   if (existing?.isVerified) {
-    return sendMainMenu(ctx);
+    // Для зарегистрированного пользователя не дублируем главное приветствие
+    // на каждое текстовое сообщение: меню доступно по /start.
+    return;
   }
 
   const text = (ctx.message?.body?.text ?? '').trim();
