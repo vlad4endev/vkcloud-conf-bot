@@ -108,6 +108,15 @@ export interface FeedbackItem {
   user: { id: string; fullName: string; email: string } | null;
 }
 
+export interface Notification {
+  id: string;
+  text: string;
+  scheduledAt: string | null;
+  sentAt: string | null;
+  isSent: boolean;
+  createdAt: string;
+}
+
 export interface LinksConfig {
   chatUrl: string;
   stickerUrl: string;

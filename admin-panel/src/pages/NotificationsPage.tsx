@@ -1,14 +1,66 @@
-import { useState } from 'react';
-import { sendNotification } from '../api/client';
-import { Button, Card, PageHeader, Textarea } from '../components/ui';
+import { Clock, History, Pencil, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  deleteNotification,
+  getNotifications,
+  sendNotification,
+  updateNotification,
+} from '../api/client';
+import type { Notification } from '../api/types';
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  LoadingBlock,
+  Modal,
+  PageHeader,
+  Textarea,
+} from '../components/ui';
 import { useToast } from '../context/ToastContext';
-import { getErrorMessage } from '../lib/format';
+import {
+  formatDateTime,
+  getErrorMessage,
+  toDatetimeLocalValue,
+} from '../lib/format';
+
+type Tab = 'scheduled' | 'history';
 
 export default function NotificationsPage() {
   const { toast } = useToast();
+  const [tab, setTab] = useState<Tab>('scheduled');
+  const [pending, setPending] = useState<Notification[]>([]);
+  const [history, setHistory] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [text, setText] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [sending, setSending] = useState(false);
+
+  const [editing, setEditing] = useState<Notification | null>(null);
+  const [editText, setEditText] = useState('');
+  const [editScheduledAt, setEditScheduledAt] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [pendingList, historyList] = await Promise.all([
+        getNotifications('pending'),
+        getNotifications('sent'),
+      ]);
+      setPending(pendingList);
+      setHistory(historyList);
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   async function handleSend(immediate: boolean) {
     if (!text.trim()) {
@@ -38,12 +90,67 @@ export default function NotificationsPage() {
       }
       setText('');
       setScheduledAt('');
+      await load();
     } catch (error) {
       toast(getErrorMessage(error), 'error');
     } finally {
       setSending(false);
     }
   }
+
+  function openEdit(item: Notification) {
+    setEditing(item);
+    setEditText(item.text);
+    setEditScheduledAt(
+      item.scheduledAt ? toDatetimeLocalValue(item.scheduledAt) : '',
+    );
+  }
+
+  function closeEdit() {
+    setEditing(null);
+    setEditText('');
+    setEditScheduledAt('');
+  }
+
+  async function handleSaveEdit() {
+    if (!editing) return;
+    if (!editText.trim()) {
+      toast('Введите текст сообщения', 'error');
+      return;
+    }
+    if (!editScheduledAt) {
+      toast('Укажите время отправки', 'error');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await updateNotification(editing.id, {
+        text: editText.trim(),
+        scheduledAt: new Date(editScheduledAt).toISOString(),
+      });
+      toast('Рассылка обновлена', 'success');
+      closeEdit();
+      await load();
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(item: Notification) {
+    if (!confirm('Отменить запланированную рассылку?')) return;
+    try {
+      await deleteNotification(item.id);
+      toast('Рассылка удалена', 'success');
+      await load();
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    }
+  }
+
+  const list = tab === 'scheduled' ? pending : history;
 
   return (
     <div>
@@ -52,7 +159,7 @@ export default function NotificationsPage() {
         description="Мгновенные или отложенные сообщения в MAX"
       />
 
-      <Card className="max-w-2xl space-y-4">
+      <Card className="mb-6 max-w-2xl space-y-4">
         <Textarea
           label="Текст сообщения"
           rows={6}
@@ -94,6 +201,111 @@ export default function NotificationsPage() {
           </Button>
         </div>
       </Card>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Button
+          variant={tab === 'scheduled' ? 'primary' : 'secondary'}
+          onClick={() => setTab('scheduled')}
+        >
+          <Clock size={16} />
+          Запланированные ({pending.length})
+        </Button>
+        <Button
+          variant={tab === 'history' ? 'primary' : 'secondary'}
+          onClick={() => setTab('history')}
+        >
+          <History size={16} />
+          История ({history.length})
+        </Button>
+      </div>
+
+      {loading ? (
+        <LoadingBlock />
+      ) : list.length === 0 ? (
+        <EmptyState
+          message={
+            tab === 'scheduled'
+              ? 'Нет запланированных рассылок'
+              : 'История рассылок пуста'
+          }
+        />
+      ) : (
+        <div className="space-y-3">
+          {list.map((item) => (
+            <Card key={item.id}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="whitespace-pre-wrap text-white">{item.text}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                    {tab === 'scheduled' && item.scheduledAt ? (
+                      <span>Отправка: {formatDateTime(item.scheduledAt)}</span>
+                    ) : null}
+                    {tab === 'history' && item.sentAt ? (
+                      <span>Отправлено: {formatDateTime(item.sentAt)}</span>
+                    ) : null}
+                    {tab === 'history' && !item.scheduledAt ? (
+                      <Badge tone="success">Мгновенная</Badge>
+                    ) : null}
+                    {tab === 'history' && item.scheduledAt ? (
+                      <Badge>Была запланирована</Badge>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Создано: {formatDateTime(item.createdAt)}
+                  </p>
+                </div>
+
+                {tab === 'scheduled' ? (
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      variant="secondary"
+                      onClick={() => openEdit(item)}
+                      aria-label="Редактировать"
+                    >
+                      <Pencil size={16} />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => void handleDelete(item)}
+                      aria-label="Удалить"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {editing ? (
+        <Modal title="Редактировать рассылку" onClose={closeEdit}>
+          <Textarea
+            label="Текст сообщения"
+            rows={6}
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+          />
+          <label className="block space-y-1.5">
+            <span className="text-sm text-slate-400">Время отправки</span>
+            <input
+              type="datetime-local"
+              value={editScheduledAt}
+              onChange={(e) => setEditScheduledAt(e.target.value)}
+              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-white"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => void handleSaveEdit()} disabled={saving}>
+              {saving ? 'Сохранение…' : 'Сохранить'}
+            </Button>
+            <Button variant="secondary" onClick={closeEdit}>
+              Отмена
+            </Button>
+          </div>
+        </Modal>
+      ) : null}
     </div>
   );
 }

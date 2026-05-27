@@ -60,6 +60,19 @@ const notificationSchema = z.object({
   scheduledAt: z.coerce.date().optional(),
 });
 
+const notificationsQuerySchema = z.object({
+  status: z.enum(['pending', 'sent']).optional(),
+});
+
+const notificationUpdateSchema = z
+  .object({
+    text: z.string().trim().min(1).optional(),
+    scheduledAt: z.coerce.date().optional(),
+  })
+  .refine((data) => Object.values(data).some((v) => v !== undefined), {
+    message: 'At least one field is required',
+  });
+
 const configUpdateSchema = z.object({
   value: z.string(),
 });
@@ -399,6 +412,29 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     return createExcelResponse(reply, rows, 'users.xlsx');
   });
 
+  fastify.get('/notifications', auth, async (request, reply) => {
+    const query = notificationsQuerySchema.safeParse(request.query);
+    if (!query.success) {
+      return validationError(reply, query.error);
+    }
+
+    const { status } = query.data;
+    const where =
+      status === 'pending'
+        ? { isSent: false }
+        : status === 'sent'
+          ? { isSent: true }
+          : {};
+
+    return prisma.notification.findMany({
+      where,
+      orderBy:
+        status === 'sent'
+          ? [{ sentAt: 'desc' }, { createdAt: 'desc' }]
+          : [{ scheduledAt: 'asc' }, { createdAt: 'desc' }],
+    });
+  });
+
   fastify.post('/notifications', auth, async (request, reply) => {
     const parsed = parseBody(notificationSchema, request.body);
     if (!parsed.success) {
@@ -408,6 +444,12 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     const { text, scheduledAt } = parsed.data;
 
     if (scheduledAt) {
+      if (scheduledAt.getTime() <= Date.now()) {
+        return reply.status(400).send({
+          error: 'Scheduled time must be in the future',
+        });
+      }
+
       const notification = await prisma.notification.create({
         data: { text, scheduledAt },
       });
@@ -417,7 +459,12 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
 
     try {
       const sentCount = await broadcastToAll(text);
-      return { sent: true, sentCount };
+      const sentAt = new Date();
+      const notification = await prisma.notification.create({
+        data: { text, isSent: true, sentAt },
+      });
+
+      return { sent: true, sentCount, notification };
     } catch (error) {
       fastify.log.error(error);
       return reply.status(503).send({
@@ -425,6 +472,77 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       });
     }
   });
+
+  fastify.patch<{ Params: { id: string } }>(
+    '/notifications/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Notification');
+      }
+
+      const parsed = parseBody(notificationUpdateSchema, request.body);
+      if (!parsed.success) {
+        return validationError(reply, parsed.error);
+      }
+
+      const existing = await prisma.notification.findUnique({ where: { id } });
+      if (!existing) {
+        return notFound(reply, 'Notification');
+      }
+
+      if (existing.isSent) {
+        return reply.status(400).send({
+          error: 'Cannot edit a notification that has already been sent',
+        });
+      }
+
+      if (parsed.data.scheduledAt && parsed.data.scheduledAt.getTime() <= Date.now()) {
+        return reply.status(400).send({
+          error: 'Scheduled time must be in the future',
+        });
+      }
+
+      try {
+        return await prisma.notification.update({
+          where: { id },
+          data: parsed.data,
+        });
+      } catch {
+        return notFound(reply, 'Notification');
+      }
+    },
+  );
+
+  fastify.delete<{ Params: { id: string } }>(
+    '/notifications/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Notification');
+      }
+
+      const existing = await prisma.notification.findUnique({ where: { id } });
+      if (!existing) {
+        return notFound(reply, 'Notification');
+      }
+
+      if (existing.isSent) {
+        return reply.status(400).send({
+          error: 'Cannot delete a notification that has already been sent',
+        });
+      }
+
+      try {
+        await prisma.notification.delete({ where: { id } });
+        return reply.status(204).send();
+      } catch {
+        return notFound(reply, 'Notification');
+      }
+    },
+  );
 
   fastify.get('/speakers', auth, async () => {
     return prisma.speaker.findMany({

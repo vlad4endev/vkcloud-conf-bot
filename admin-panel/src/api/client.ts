@@ -11,6 +11,7 @@ import type {
   ScheduleSession,
   SessionTrack,
   Speaker,
+  Notification,
   SpeakerQuestion,
   TextsConfig,
   User,
@@ -233,12 +234,33 @@ export async function getFeedback(): Promise<FeedbackItem[]> {
   return data;
 }
 
+export async function getNotifications(
+  status?: 'pending' | 'sent',
+): Promise<Notification[]> {
+  const { data } = await api.get<Notification[]>('/notifications', {
+    params: status ? { status } : undefined,
+  });
+  return data;
+}
+
 export async function sendNotification(payload: {
   text: string;
   scheduledAt?: string;
 }): Promise<unknown> {
   const { data } = await api.post('/notifications', payload);
   return data;
+}
+
+export async function updateNotification(
+  id: string,
+  payload: { text?: string; scheduledAt?: string },
+): Promise<Notification> {
+  const { data } = await api.patch<Notification>(`/notifications/${id}`, payload);
+  return data;
+}
+
+export async function deleteNotification(id: string): Promise<void> {
+  await api.delete(`/notifications/${id}`);
 }
 
 export async function getLinks(): Promise<LinksConfig> {

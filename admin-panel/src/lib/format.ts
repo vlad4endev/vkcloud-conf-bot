@@ -17,6 +17,13 @@ export function formatScheduleTime(value: string | Date): string {
   return `${hours}:${minutes}`;
 }
 
+/** Value for `<input type="datetime-local" />` from ISO string. */
+export function toDatetimeLocalValue(iso: string | Date): string {
+  const date = typeof iso === 'string' ? new Date(iso) : iso;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function getErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'response' in error) {
     const response = (error as { response?: { data?: { error?: string } } })
