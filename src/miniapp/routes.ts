@@ -18,6 +18,10 @@ import {
   validateMaxUser,
 } from '../shared/maxValidation';
 import { quizOptionSchema } from '../shared/schemas/admin';
+import {
+  scheduleSessionInclude,
+  serializeScheduleSessions,
+} from '../shared/scheduleSession';
 
 const MAX_INIT_DATA_HEADER = 'x-max-init-data';
 
@@ -99,6 +103,7 @@ const quizAnswerSchema = z.object({
 const speakerSelect = {
   id: true,
   name: true,
+  profession: true,
   bio: true,
   photoUrl: true,
   order: true,
@@ -241,12 +246,12 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     '/schedule',
     { preHandler: requireRegisteredMaxUser },
     async () => {
-      return prisma.scheduleSession.findMany({
+      const sessions = await prisma.scheduleSession.findMany({
         orderBy: [{ order: 'asc' }, { startTime: 'asc' }],
-        include: {
-          speaker: { select: { id: true, name: true, photoUrl: true } },
-        },
+        include: scheduleSessionInclude,
       });
+
+      return serializeScheduleSessions(sessions);
     },
   );
 

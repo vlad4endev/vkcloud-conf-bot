@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Clock } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { getSchedule, type ScheduleSession } from '../../api/client';
+import { getSchedule, type ScheduleSession, type SessionTrack } from '../../api/client';
 import { formatScheduleTime } from '../../lib/scheduleFormat';
+import TrackSwitcher from './TrackSwitcher';
 
 type ProgramItem = {
   id: string;
@@ -11,8 +12,11 @@ type ProgramItem = {
   title: string;
   description: string;
   location: string | null;
-  speakers: Array<{ name: string; avatar?: string }>;
+  track: SessionTrack;
+  speakers: Array<{ id: string; name: string; profession?: string; avatar?: string }>;
 };
+
+type ParallelTrack = Exclude<SessionTrack, 'all'>;
 
 function mapSession(session: ScheduleSession): ProgramItem {
   return {
@@ -22,14 +26,13 @@ function mapSession(session: ScheduleSession): ProgramItem {
     title: session.title,
     description: session.description ?? '',
     location: session.location,
-    speakers: session.speaker
-      ? [
-          {
-            name: session.speaker.name,
-            avatar: session.speaker.photoUrl ?? undefined,
-          },
-        ]
-      : [],
+    track: session.track ?? 'all',
+    speakers: session.speakers.map((speaker) => ({
+      id: speaker.id,
+      name: speaker.name,
+      profession: speaker.profession ?? undefined,
+      avatar: speaker.photoUrl ?? undefined,
+    })),
   };
 }
 
@@ -50,7 +53,7 @@ function SessionCard({ item }: { item: ProgramItem }) {
       {item.speakers.length > 0 && (
         <ul className="mt-4 flex flex-col gap-3">
           {item.speakers.map((speaker) => (
-            <SpeakerRow key={speaker.name} speaker={speaker} />
+            <SpeakerRow key={speaker.id} speaker={speaker} />
           ))}
         </ul>
       )}
@@ -98,7 +101,7 @@ function SessionCard({ item }: { item: ProgramItem }) {
 function SpeakerRow({
   speaker,
 }: {
-  speaker: { name: string; avatar?: string };
+  speaker: { name: string; profession?: string; avatar?: string };
 }) {
   const initials = speaker.name
     .split(' ')
@@ -124,7 +127,12 @@ function SpeakerRow({
           {initials}
         </span>
       )}
-      <p className="truncate text-sm font-semibold text-white">{speaker.name}</p>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-white">{speaker.name}</p>
+        {speaker.profession ? (
+          <p className="truncate text-xs text-[#7b9cc0]">{speaker.profession}</p>
+        ) : null}
+      </div>
     </li>
   );
 }
@@ -149,10 +157,38 @@ function TimelineRow({ item }: { item: ProgramItem }) {
   );
 }
 
+function TimelineList({
+  items,
+  emptyMessage = 'Сессий в этом треке пока нет',
+  hideWhenEmpty = false,
+}: {
+  items: ProgramItem[];
+  emptyMessage?: string;
+  hideWhenEmpty?: boolean;
+}) {
+  if (items.length === 0) {
+    if (hideWhenEmpty) return null;
+    return (
+      <p className="rounded-2xl border border-dashed border-[#1e3a5f] bg-[#111827]/50 px-4 py-10 text-center text-sm text-[#7b9cc0]">
+        {emptyMessage}
+      </p>
+    );
+  }
+
+  return (
+    <ul className="relative m-0 mt-6 list-none p-0">
+      {items.map((item) => (
+        <TimelineRow key={item.id} item={item} />
+      ))}
+    </ul>
+  );
+}
+
 export default function ProgramSection() {
   const [sessions, setSessions] = useState<ScheduleSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTrack, setActiveTrack] = useState<ParallelTrack>('tech');
 
   useEffect(() => {
     let cancelled = false;
@@ -182,6 +218,18 @@ export default function ProgramSection() {
 
   const programItems = useMemo(() => sessions.map(mapSession), [sessions]);
 
+  const generalItems = useMemo(
+    () => programItems.filter((item) => item.track === 'all'),
+    [programItems],
+  );
+
+  const trackItems = useMemo(
+    () => programItems.filter((item) => item.track === activeTrack),
+    [programItems, activeTrack],
+  );
+
+  const isEmpty = !loading && !error && programItems.length === 0;
+
   return (
     <section className="w-full font-[Inter,system-ui,sans-serif]">
       <header className="mb-6">
@@ -202,27 +250,20 @@ export default function ProgramSection() {
         <p className="rounded-2xl border border-dashed border-red-900/60 bg-red-950/30 px-4 py-10 text-center text-sm text-red-300">
           {error}
         </p>
-      ) : programItems.length === 0 ? (
+      ) : isEmpty ? (
         <p className="rounded-2xl border border-dashed border-[#1e3a5f] bg-[#111827]/50 px-4 py-10 text-center text-sm text-[#7b9cc0]">
           Программа скоро появится
         </p>
       ) : (
-        <ul className="relative m-0 list-none p-0">
-          {programItems.map((item) => (
-            <TimelineRow key={item.id} item={item} />
-          ))}
-        </ul>
-      )}
+        <>
+          <TimelineList items={generalItems} hideWhenEmpty />
 
-      <style>{`
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
+          <div role="tabpanel">
+            <TrackSwitcher activeTrack={activeTrack} onChange={setActiveTrack} />
+            <TimelineList items={trackItems} />
+          </div>
+        </>
+      )}
     </section>
   );
 }

@@ -8,7 +8,7 @@ import {
   reorderSchedule,
   updateScheduleSession,
 } from '../api/client';
-import type { ScheduleSession, Speaker } from '../api/types';
+import type { ScheduleSession, SessionTrack, Speaker } from '../api/types';
 import { ReorderControls } from '../components/ReorderControls';
 import {
   Button,
@@ -31,8 +31,15 @@ type SessionForm = {
   title: string;
   description: string;
   location: string;
-  speakerId: string;
+  speakerIds: string[];
+  track: SessionTrack;
 };
+
+const TRACK_OPTIONS: Array<{ value: SessionTrack; label: string }> = [
+  { value: 'all', label: 'Общий трек' },
+  { value: 'tech', label: 'Технологический трек' },
+  { value: 'business', label: 'Бизнес-трек' },
+];
 
 const emptyForm: SessionForm = {
   startTime: '10:00',
@@ -40,7 +47,8 @@ const emptyForm: SessionForm = {
   title: '',
   description: '',
   location: '',
-  speakerId: '',
+  speakerIds: [],
+  track: 'all',
 };
 
 function sessionToForm(session: ScheduleSession): SessionForm {
@@ -50,8 +58,16 @@ function sessionToForm(session: ScheduleSession): SessionForm {
     title: session.title,
     description: session.description ?? '',
     location: session.location ?? '',
-    speakerId: session.speakerId ?? '',
+    speakerIds: session.speakers.map((speaker) => speaker.id),
+    track: session.track ?? 'all',
   };
+}
+
+function toggleSpeakerId(ids: string[], speakerId: string, checked: boolean): string[] {
+  if (checked) {
+    return ids.includes(speakerId) ? ids : [...ids, speakerId];
+  }
+  return ids.filter((id) => id !== speakerId);
 }
 
 export default function SchedulePage() {
@@ -104,7 +120,8 @@ export default function SchedulePage() {
       title: form.title,
       description: form.description || undefined,
       location: form.location || undefined,
-      speakerId: form.speakerId || undefined,
+      speakerIds: form.speakerIds,
+      track: form.track,
     };
     try {
       if (modal === 'create') {
@@ -115,7 +132,6 @@ export default function SchedulePage() {
           ...payload,
           description: form.description || null,
           location: form.location || null,
-          speakerId: form.speakerId || null,
         });
         toast('Сессия обновлена', 'success');
       }
@@ -201,12 +217,18 @@ export default function SchedulePage() {
                   {formatScheduleTime(session.endTime)}
                 </p>
                 <h3 className="mt-1 font-semibold text-white">{session.title}</h3>
-                {session.speaker ? (
-                  <p className="text-sm text-slate-400">{session.speaker.name}</p>
+                {session.speakers.length > 0 ? (
+                  <p className="text-sm text-slate-400">
+                    {session.speakers.map((speaker) => speaker.name).join(', ')}
+                  </p>
                 ) : null}
                 {session.location ? (
                   <p className="text-xs text-slate-500">{session.location}</p>
                 ) : null}
+                <p className="mt-1 text-xs text-slate-500">
+                  {TRACK_OPTIONS.find((t) => t.value === (session.track ?? 'all'))?.label ??
+                    'Общий трек'}
+                </p>
               </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(session)}>
@@ -257,15 +279,55 @@ export default function SchedulePage() {
             value={form.location}
             onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
           />
+
+          <div>
+            <span className="mb-2 block text-sm font-medium text-slate-300">Спикеры</span>
+            {speakers.length === 0 ? (
+              <p className="text-sm text-slate-500">Сначала добавьте спикеров в разделе «Спикеры»</p>
+            ) : (
+              <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
+                {speakers.map((speaker) => (
+                  <label
+                    key={speaker.id}
+                    className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-1.5 hover:bg-slate-800/60"
+                  >
+                    <input
+                      type="checkbox"
+                      className="mt-1"
+                      checked={form.speakerIds.includes(speaker.id)}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          speakerIds: toggleSpeakerId(
+                            f.speakerIds,
+                            speaker.id,
+                            e.target.checked,
+                          ),
+                        }))
+                      }
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-white">{speaker.name}</span>
+                      {speaker.profession ? (
+                        <span className="block text-xs text-slate-400">{speaker.profession}</span>
+                      ) : null}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
           <Select
-            label="Спикер"
-            value={form.speakerId}
-            onChange={(e) => setForm((f) => ({ ...f, speakerId: e.target.value }))}
+            label="Трек"
+            value={form.track}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, track: e.target.value as SessionTrack }))
+            }
           >
-            <option value="">— без спикера —</option>
-            {speakers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
+            {TRACK_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </Select>

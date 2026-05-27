@@ -21,7 +21,12 @@ export function registerProgramHandlers(bot: Bot): void {
 export async function sendProgram(ctx: Context): Promise<void> {
   const sessions = await prisma.scheduleSession.findMany({
     orderBy: [{ startTime: 'asc' }, { order: 'asc' }],
-    include: { speaker: { select: { name: true } } },
+    include: {
+      sessionSpeakers: {
+        orderBy: { order: 'asc' },
+        include: { speaker: { select: { name: true } } },
+      },
+    },
   });
 
   if (sessions.length === 0) {
@@ -46,7 +51,8 @@ export async function sendProgram(ctx: Context): Promise<void> {
 
     for (const session of daySessions) {
       const time = `${formatSessionTime(session.startTime)}–${formatSessionTime(session.endTime)}`;
-      const speaker = session.speaker ? ` — ${session.speaker.name}` : '';
+      const speakerNames = session.sessionSpeakers.map((link) => link.speaker.name);
+      const speaker = speakerNames.length > 0 ? ` — ${speakerNames.join(', ')}` : '';
       const location = session.location ? ` (${session.location})` : '';
       text += `\n${time}  ${session.title}${speaker}${location}`;
       if (session.description) {

@@ -20,8 +20,15 @@ type Session = {
   title: string;
   startTime: string;
   endTime: string;
-  speakerId: string | null;
+  speakers: Array<{ id: string; name: string }>;
 };
+
+function toggleSpeakerId(ids: string[], speakerId: string, checked: boolean): string[] {
+  if (checked) {
+    return ids.includes(speakerId) ? ids : [...ids, speakerId];
+  }
+  return ids.filter((id) => id !== speakerId);
+}
 
 export default function AdminSchedule() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -30,7 +37,7 @@ export default function AdminSchedule() {
     startTime: '10:00',
     endTime: '11:00',
     title: '',
-    speakerId: '',
+    speakerIds: [] as string[],
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
@@ -54,18 +61,15 @@ export default function AdminSchedule() {
       startTime: form.startTime,
       endTime: form.endTime,
       title: form.title,
-      speakerId: form.speakerId || undefined,
+      speakerIds: form.speakerIds,
     };
     try {
       if (editingId) {
-        await updateScheduleSession(editingId, {
-          ...payload,
-          speakerId: form.speakerId || null,
-        });
+        await updateScheduleSession(editingId, payload);
       } else {
         await createScheduleSession(payload);
       }
-      setForm({ startTime: '10:00', endTime: '11:00', title: '', speakerId: '' });
+      setForm({ startTime: '10:00', endTime: '11:00', title: '', speakerIds: [] });
       setEditingId(null);
       setMessage('Сохранено');
       await load();
@@ -82,18 +86,26 @@ export default function AdminSchedule() {
         <input className="input" placeholder="Начало 10:00" value={form.startTime} onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))} />
         <input className="input" placeholder="Конец 11:00" value={form.endTime} onChange={(e) => setForm((f) => ({ ...f, endTime: e.target.value }))} />
         <input className="input" placeholder="Название" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-        <select
-          className="input"
-          value={form.speakerId}
-          onChange={(e) => setForm((f) => ({ ...f, speakerId: e.target.value }))}
-        >
-          <option value="">Без спикера</option>
-          {speakers.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
+        <div style={{ marginTop: 8 }}>
+          <p className="sessionMeta" style={{ marginBottom: 8 }}>
+            Спикеры
+          </p>
+          {speakers.map((speaker) => (
+            <label key={speaker.id} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+              <input
+                type="checkbox"
+                checked={form.speakerIds.includes(speaker.id)}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    speakerIds: toggleSpeakerId(f.speakerIds, speaker.id, e.target.checked),
+                  }))
+                }
+              />
+              <span>{speaker.name}</span>
+            </label>
           ))}
-        </select>
+        </div>
         <button type="button" className="btn" onClick={() => void save()}>
           {editingId ? 'Обновить' : 'Добавить сессию'}
         </button>
@@ -105,6 +117,9 @@ export default function AdminSchedule() {
               {formatTime(s.startTime)} — {formatTime(s.endTime)}
             </p>
             <p className="sessionTitle">{s.title}</p>
+            {s.speakers.length > 0 ? (
+              <p className="sessionMeta">{s.speakers.map((speaker) => speaker.name).join(', ')}</p>
+            ) : null}
             <div className="actions" style={{ marginTop: 8, flexDirection: 'row' }}>
               <button
                 type="button"
@@ -115,7 +130,7 @@ export default function AdminSchedule() {
                     startTime: formatTime(s.startTime),
                     endTime: formatTime(s.endTime),
                     title: s.title,
-                    speakerId: s.speakerId ?? '',
+                    speakerIds: s.speakers.map((speaker) => speaker.id),
                   });
                 }}
               >

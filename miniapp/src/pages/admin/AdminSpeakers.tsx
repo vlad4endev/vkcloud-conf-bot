@@ -7,11 +7,12 @@ import {
   updateSpeaker,
 } from '../../api/adminClient';
 
-type Speaker = { id: string; name: string; bio: string };
+type Speaker = { id: string; name: string; profession: string | null; bio: string };
 
 export default function AdminSpeakers() {
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
   const [name, setName] = useState('');
+  const [profession, setProfession] = useState('');
   const [bio, setBio] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
@@ -30,12 +31,22 @@ export default function AdminSpeakers() {
 
   async function save() {
     try {
+      const payload = {
+        name,
+        bio,
+        profession: profession.trim() || undefined,
+      };
+
       if (editingId) {
-        await updateSpeaker(editingId, { name, bio });
+        await updateSpeaker(editingId, {
+          ...payload,
+          profession: profession.trim() || null,
+        });
       } else {
-        await createSpeaker({ name, bio });
+        await createSpeaker(payload);
       }
       setName('');
+      setProfession('');
       setBio('');
       setEditingId(null);
       setMessage('Сохранено');
@@ -51,6 +62,12 @@ export default function AdminSpeakers() {
       {message ? <p className={message === 'Сохранено' ? 'success' : 'error'}>{message}</p> : null}
       <div className="form">
         <input className="input" placeholder="Имя" value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          className="input"
+          placeholder="Профессия"
+          value={profession}
+          onChange={(e) => setProfession(e.target.value)}
+        />
         <textarea className="textarea" placeholder="Биография" value={bio} onChange={(e) => setBio(e.target.value)} />
         <button type="button" className="btn" onClick={() => void save()}>
           {editingId ? 'Обновить' : 'Добавить'}
@@ -68,6 +85,7 @@ export default function AdminSpeakers() {
                 onClick={() => {
                   setEditingId(s.id);
                   setName(s.name);
+                  setProfession(s.profession ?? '');
                   setBio(s.bio);
                 }}
               >

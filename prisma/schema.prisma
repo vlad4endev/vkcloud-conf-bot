@@ -25,35 +25,54 @@ model User {
 }
 
 model Speaker {
-  id        String   @id @default(cuid())
-  name      String
-  bio       String   @db.Text
-  photoUrl  String?  @map("photo_url")
+  id         String   @id @default(cuid())
+  name       String
+  profession String?
+  bio        String   @db.Text
+  photoUrl   String?  @map("photo_url")
   order     Int      @default(0) @map("display_order")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  questions QuestionToSpeaker[]
-  sessions  ScheduleSession[]
+  questions         QuestionToSpeaker[]
+  sessionSpeakers   ScheduleSessionSpeaker[]
 
   @@map("speakers")
 }
 
-model ScheduleSession {
-  id          String    @id @default(cuid())
-  startTime   DateTime  @map("start_time")
-  endTime     DateTime  @map("end_time")
-  title       String
-  description String?   @db.Text
-  location    String?
-  speakerId   String?   @map("speaker_id")
-  order       Int       @default(0) @map("display_order")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+enum SessionTrack {
+  all
+  tech
+  business
+}
 
-  speaker Speaker? @relation(fields: [speakerId], references: [id], onDelete: SetNull)
+model ScheduleSession {
+  id          String       @id @default(cuid())
+  startTime   DateTime     @map("start_time")
+  endTime     DateTime     @map("end_time")
+  title       String
+  description String?      @db.Text
+  location    String?
+  track       SessionTrack @default(all)
+  order       Int          @default(0) @map("display_order")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  sessionSpeakers ScheduleSessionSpeaker[]
 
   @@map("schedule_sessions")
+}
+
+model ScheduleSessionSpeaker {
+  sessionId String @map("session_id")
+  speakerId String @map("speaker_id")
+  order     Int    @default(0) @map("display_order")
+
+  session ScheduleSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  speaker Speaker         @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, speakerId])
+  @@map("schedule_session_speakers")
 }
 
 model Config {

@@ -72,12 +72,19 @@ export async function getSpeakers() {
   return data;
 }
 
-export async function createSpeaker(payload: { name: string; bio: string }) {
+export async function createSpeaker(payload: {
+  name: string;
+  bio: string;
+  profession?: string;
+}) {
   const { data } = await adminApi.post('/speakers', payload);
   return data;
 }
 
-export async function updateSpeaker(id: string, payload: { name?: string; bio?: string }) {
+export async function updateSpeaker(
+  id: string,
+  payload: { name?: string; bio?: string; profession?: string | null },
+) {
   const { data } = await adminApi.put(`/speakers/${id}`, payload);
   return data;
 }

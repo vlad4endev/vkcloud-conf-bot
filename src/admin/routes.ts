@@ -20,6 +20,12 @@ import {
   speakerUpdateSchema,
 } from '../shared/schemas/admin';
 import {
+  buildSessionSpeakersCreate,
+  scheduleSessionInclude,
+  serializeScheduleSession,
+  serializeScheduleSessions,
+} from '../shared/scheduleSession';
+import {
   formatScheduleTime,
   scheduleTimeToDate,
   scheduleTimeToMinutes,
@@ -96,7 +102,7 @@ const TEXT_CONFIG_KEYS = {
 const quizQuestionUpdateSchema = quizQuestionCreateSchema;
 
 const speakerWithSessionsCountInclude = {
-  _count: { select: { sessions: true } },
+  _count: { select: { sessionSpeakers: true } },
 } as const;
 
 async function requireAuth(
@@ -119,10 +125,6 @@ function formatDateTime(date: Date): string {
     minute: '2-digit',
   });
 }
-
-const scheduleSessionInclude = {
-  speaker: { select: { id: true, name: true } },
-} as const;
 
 async function getConfigMap(
   keys: readonly string[],
@@ -149,6 +151,21 @@ async function assertSpeakerExists(speakerId: string | null | undefined): Promis
 
   const speaker = await prisma.speaker.findUnique({ where: { id: speakerId } });
   return Boolean(speaker);
+}
+
+async function assertSpeakersExist(
+  speakerIds: string[] | undefined,
+): Promise<boolean> {
+  if (!speakerIds?.length) {
+    return true;
+  }
+
+  const uniqueIds = [...new Set(speakerIds)];
+  const count = await prisma.speaker.count({
+    where: { id: { in: uniqueIds } },
+  });
+
+  return count === uniqueIds.length;
 }
 
 function createExcelResponse(
@@ -944,25 +961,28 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/schedule', auth, async () => {
-    return prisma.scheduleSession.findMany({
+    const sessions = await prisma.scheduleSession.findMany({
       orderBy: { order: 'asc' },
       include: scheduleSessionInclude,
     });
+
+    return serializeScheduleSessions(sessions);
   });
 
   fastify.get('/schedule/export', auth, async (_request, reply) => {
     const sessions = await prisma.scheduleSession.findMany({
       orderBy: { order: 'asc' },
-      include: { speaker: { select: { name: true } } },
+      include: scheduleSessionInclude,
     });
 
     const rows = sessions.map((session) => ({
       Начало: formatScheduleTime(session.startTime),
       Конец: formatScheduleTime(session.endTime),
       Тема: session.title,
+      Трек: session.track,
       Описание: session.description ?? '',
       Место: session.location ?? '',
-      Спикер: session.speaker?.name ?? '',
+      Спикеры: session.sessionSpeakers.map((link) => link.speaker.name).join(', '),
     }));
 
     return createExcelResponse(reply, rows, 'schedule.xlsx');
@@ -974,22 +994,23 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       return validationError(reply, parsed.error);
     }
 
-    if (!(await assertSpeakerExists(parsed.data.speakerId))) {
+    if (!(await assertSpeakersExist(parsed.data.speakerIds))) {
       return reply.status(400).send({ error: 'Speaker not found' });
     }
 
-    const { startTime, endTime, ...rest } = parsed.data;
+    const { startTime, endTime, speakerIds, ...rest } = parsed.data;
 
-    return reply.status(201).send(
-      await prisma.scheduleSession.create({
-        data: {
-          ...rest,
-          startTime: scheduleTimeToDate(startTime),
-          endTime: scheduleTimeToDate(endTime),
-        },
-        include: scheduleSessionInclude,
-      }),
-    );
+    const created = await prisma.scheduleSession.create({
+      data: {
+        ...rest,
+        startTime: scheduleTimeToDate(startTime),
+        endTime: scheduleTimeToDate(endTime),
+        sessionSpeakers: buildSessionSpeakersCreate(speakerIds),
+      },
+      include: scheduleSessionInclude,
+    });
+
+    return reply.status(201).send(serializeScheduleSession(created));
   });
 
   fastify.put('/schedule/reorder', auth, async (request, reply) => {
@@ -1007,10 +1028,12 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       ),
     );
 
-    return prisma.scheduleSession.findMany({
+    const sessions = await prisma.scheduleSession.findMany({
       orderBy: { order: 'asc' },
       include: scheduleSessionInclude,
     });
+
+    return serializeScheduleSessions(sessions);
   });
 
   fastify.put<{ Params: { id: string } }>(
@@ -1028,9 +1051,8 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       }
 
       if (
-        parsed.data.speakerId !== undefined &&
-        parsed.data.speakerId !== null &&
-        !(await assertSpeakerExists(parsed.data.speakerId))
+        parsed.data.speakerIds !== undefined &&
+        !(await assertSpeakersExist(parsed.data.speakerIds))
       ) {
         return reply.status(400).send({ error: 'Speaker not found' });
       }
@@ -1058,18 +1080,31 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
         return reply.status(400).send({ error: 'endTime must be after startTime' });
       }
 
-      const { startTime, endTime, ...rest } = parsed.data;
+      const { startTime, endTime, speakerIds, ...rest } = parsed.data;
 
       try {
-        return await prisma.scheduleSession.update({
+        const updated = await prisma.scheduleSession.update({
           where: { id },
           data: {
             ...rest,
             ...(startTime !== undefined ? { startTime: nextStartTime } : {}),
             ...(endTime !== undefined ? { endTime: nextEndTime } : {}),
+            ...(speakerIds !== undefined
+              ? {
+                  sessionSpeakers: {
+                    deleteMany: {},
+                    create: speakerIds.map((speakerId, order) => ({
+                      speakerId,
+                      order,
+                    })),
+                  },
+                }
+              : {}),
           },
           include: scheduleSessionInclude,
         });
+
+        return serializeScheduleSession(updated);
       } catch {
         return notFound(reply, 'Session');
       }

@@ -24,14 +24,14 @@ import {
 import { useToast } from '../context/ToastContext';
 import { getErrorMessage } from '../lib/format';
 
-type SpeakerForm = { name: string; bio: string };
+type SpeakerForm = { name: string; profession: string; bio: string };
 
 type PhotoDraft =
   | { kind: 'none' }
   | { kind: 'existing'; url: string }
   | { kind: 'preview'; file: File; previewUrl: string };
 
-const emptyForm: SpeakerForm = { name: '', bio: '' };
+const emptyForm: SpeakerForm = { name: '', profession: '', bio: '' };
 const emptyPhoto: PhotoDraft = { kind: 'none' };
 
 function revokePreviewUrl(photo: PhotoDraft) {
@@ -96,7 +96,11 @@ export default function SpeakersPage() {
   }
 
   function openEdit(speaker: Speaker) {
-    setForm({ name: speaker.name, bio: speaker.bio });
+    setForm({
+      name: speaker.name,
+      profession: speaker.profession ?? '',
+      bio: speaker.bio,
+    });
     setEditing(speaker);
     setPhoto(photoFromSpeaker(speaker));
     setModal('edit');
@@ -133,14 +137,23 @@ export default function SpeakersPage() {
   async function handleSave() {
     setSaving(true);
     try {
+      const payload = {
+        name: form.name,
+        bio: form.bio,
+        profession: form.profession.trim() || undefined,
+      };
+
       if (modal === 'create') {
-        const created = await createSpeaker(form);
+        const created = await createSpeaker(payload);
         if (photo.kind === 'preview') {
           await uploadSpeakerPhoto(created.id, photo.file);
         }
         toast('Спикер добавлен', 'success');
       } else if (editing) {
-        await updateSpeaker(editing.id, form);
+        await updateSpeaker(editing.id, {
+          ...payload,
+          profession: form.profession.trim() || null,
+        });
         await applyPhotoChanges(editing.id, Boolean(editing.photoUrl));
         toast('Спикер обновлён', 'success');
       }
@@ -221,7 +234,10 @@ export default function SpeakersPage() {
               )}
               <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-white">{speaker.name}</h3>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-400">{speaker.bio}</p>
+                {speaker.profession ? (
+                  <p className="mt-0.5 text-sm text-slate-400">{speaker.profession}</p>
+                ) : null}
+                <p className="mt-1 line-clamp-2 text-sm text-slate-500">{speaker.bio}</p>
               </div>
               <div className="flex shrink-0 flex-col gap-1">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
@@ -288,6 +304,12 @@ export default function SpeakersPage() {
             label="Имя"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          />
+          <Input
+            label="Профессия"
+            value={form.profession}
+            onChange={(e) => setForm((f) => ({ ...f, profession: e.target.value }))}
+            placeholder="Например: CTO, VK Cloud"
           />
           <Textarea
             label="Биография"

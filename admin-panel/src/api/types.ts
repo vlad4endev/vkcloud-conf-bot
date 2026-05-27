@@ -34,12 +34,23 @@ export interface User {
 export interface Speaker {
   id: string;
   name: string;
+  profession: string | null;
   bio: string;
   photoUrl: string | null;
   order: number;
   createdAt: string;
   updatedAt: string;
-  _count?: { sessions: number };
+  _count?: { sessionSpeakers: number };
+}
+
+export type SessionTrack = 'all' | 'tech' | 'business';
+
+export interface ScheduleSessionSpeaker {
+  id: string;
+  name: string;
+  profession: string | null;
+  photoUrl: string | null;
+  order: number;
 }
 
 export interface ScheduleSession {
@@ -49,9 +60,9 @@ export interface ScheduleSession {
   title: string;
   description: string | null;
   location: string | null;
-  speakerId: string | null;
+  track: SessionTrack;
   order: number;
-  speaker: { id: string; name: string } | null;
+  speakers: ScheduleSessionSpeaker[];
 }
 
 export interface QuizQuestion {

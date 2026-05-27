@@ -8,6 +8,7 @@ import type {
   QuizResultsResponse,
   ReorderItem,
   ScheduleSession,
+  SessionTrack,
   Speaker,
   SpeakerQuestion,
   TextsConfig,
@@ -116,6 +117,7 @@ export async function getSpeakers(): Promise<Speaker[]> {
 
 export async function createSpeaker(payload: {
   name: string;
+  profession?: string;
   bio: string;
   order?: number;
 }): Promise<Speaker> {
@@ -125,7 +127,7 @@ export async function createSpeaker(payload: {
 
 export async function updateSpeaker(
   id: string,
-  payload: Partial<{ name: string; bio: string; order: number }>,
+  payload: Partial<{ name: string; profession: string | null; bio: string; order: number }>,
 ): Promise<Speaker> {
   const { data } = await api.put<Speaker>(`/speakers/${id}`, payload);
   return data;
@@ -162,7 +164,8 @@ export async function createScheduleSession(payload: {
   title: string;
   description?: string;
   location?: string;
-  speakerId?: string;
+  speakerIds?: string[];
+  track?: SessionTrack;
   order?: number;
 }): Promise<ScheduleSession> {
   const { data } = await api.post<ScheduleSession>('/schedule', payload);

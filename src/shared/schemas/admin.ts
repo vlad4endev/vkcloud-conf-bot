@@ -1,15 +1,21 @@
 import { z } from 'zod';
+import { SESSION_TRACKS } from '../scheduleTrack';
+
+const sessionTrackSchema = z.enum(SESSION_TRACKS);
 
 export const quizOptionSchema = z.enum(['a', 'b', 'c', 'd']);
 
 export const speakerCreateSchema = z.object({
   name: z.string().trim().min(2).max(200),
+  profession: z.string().trim().max(200).optional(),
   bio: z.string().trim().min(10),
   photoUrl: z.string().url().optional(),
   order: z.number().int().default(0),
 });
 
-export const speakerUpdateSchema = speakerCreateSchema.partial();
+export const speakerUpdateSchema = speakerCreateSchema.partial().extend({
+  profession: z.string().trim().max(200).nullable().optional(),
+});
 
 export const speakerReorderSchema = z.object({
   items: z
@@ -39,7 +45,8 @@ export const scheduleCreateSchema = z
     title: z.string().trim().min(1).max(300),
     description: z.string().trim().optional(),
     location: z.string().trim().max(200).optional(),
-    speakerId: z.string().trim().optional(),
+    speakerIds: z.array(z.string().trim().min(1)).optional(),
+    track: sessionTrackSchema.optional(),
     order: z.number().int().optional(),
   })
   .refine(
@@ -57,7 +64,8 @@ export const scheduleUpdateSchema = z
     title: z.string().trim().min(1).max(300).optional(),
     description: z.string().trim().optional().nullable(),
     location: z.string().trim().max(200).optional().nullable(),
-    speakerId: z.string().trim().optional().nullable(),
+    speakerIds: z.array(z.string().trim().min(1)).optional(),
+    track: sessionTrackSchema.optional(),
     order: z.number().int().optional(),
   })
   .refine(
