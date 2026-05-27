@@ -8,7 +8,7 @@ export const quizOptionSchema = z.enum(['a', 'b', 'c', 'd']);
 export const speakerCreateSchema = z.object({
   name: z.string().trim().min(2).max(200),
   profession: z.string().trim().max(200).optional(),
-  bio: z.string().trim().min(10),
+  bio: z.string().trim().max(10000).optional().default(''),
   photoUrl: z.string().url().optional(),
   order: z.number().int().default(0),
 });

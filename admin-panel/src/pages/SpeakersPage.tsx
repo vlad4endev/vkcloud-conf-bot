@@ -139,7 +139,7 @@ export default function SpeakersPage() {
     try {
       const payload = {
         name: form.name,
-        bio: form.bio,
+        bio: form.bio.trim(),
         profession: form.profession.trim() || undefined,
       };
 
@@ -237,7 +237,9 @@ export default function SpeakersPage() {
                 {speaker.profession ? (
                   <p className="mt-0.5 text-sm text-slate-400">{speaker.profession}</p>
                 ) : null}
-                <p className="mt-1 line-clamp-2 text-sm text-slate-500">{speaker.bio}</p>
+                {speaker.bio ? (
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">{speaker.bio}</p>
+                ) : null}
               </div>
               <div className="flex shrink-0 flex-col gap-1">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
@@ -312,7 +314,7 @@ export default function SpeakersPage() {
             placeholder="Например: CTO, VK Cloud"
           />
           <Textarea
-            label="Биография"
+            label="Биография (необязательно)"
             rows={5}
             value={form.bio}
             onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}

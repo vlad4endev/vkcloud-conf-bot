@@ -33,7 +33,7 @@ export default function AdminSpeakers() {
     try {
       const payload = {
         name,
-        bio,
+        bio: bio.trim(),
         profession: profession.trim() || undefined,
       };
 
@@ -77,7 +77,7 @@ export default function AdminSpeakers() {
         {speakers.map((s) => (
           <li key={s.id} className="session">
             <p className="sessionTitle">{s.name}</p>
-            <p className="sessionMeta">{s.bio.slice(0, 120)}…</p>
+            {s.bio ? <p className="sessionMeta">{s.bio.slice(0, 120)}…</p> : null}
             <div className="actions" style={{ marginTop: 8, flexDirection: 'row', gap: 8 }}>
               <button
                 type="button"
