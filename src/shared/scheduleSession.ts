@@ -56,3 +56,58 @@ export function buildSessionSpeakersCreate(speakerIds: string[] | undefined) {
     create: speakerIds.map((speakerId, order) => ({ speakerId, order })),
   };
 }
+
+/** Supports legacy `speaker` / `speakerId` from older API responses. */
+export function resolveSessionSpeakerIds(input: {
+  speakerIds?: string[];
+  speakerId?: string | null;
+}): string[] | undefined {
+  if (input.speakerIds !== undefined) {
+    return input.speakerIds;
+  }
+  if (input.speakerId) {
+    return [input.speakerId];
+  }
+  if (input.speakerId === null) {
+    return [];
+  }
+  return undefined;
+}
+
+type LegacySpeaker = {
+  id: string;
+  name: string;
+  profession?: string | null;
+  photoUrl?: string | null;
+};
+
+export type SerializedScheduleSession = ReturnType<typeof serializeScheduleSession>;
+
+type NormalizableSession = SerializedScheduleSession & {
+  speaker?: LegacySpeaker | null;
+  speakerId?: string | null;
+};
+
+export function normalizeScheduleSession(session: NormalizableSession): SerializedScheduleSession {
+  const speakers = session.speakers?.length
+    ? session.speakers
+    : session.speaker
+      ? [
+          {
+            id: session.speaker.id,
+            name: session.speaker.name,
+            profession: session.speaker.profession ?? null,
+            photoUrl: session.speaker.photoUrl ?? null,
+            order: 0,
+          },
+        ]
+      : [];
+
+  const { speaker: _speaker, speakerId: _speakerId, ...rest } = session;
+
+  return {
+    ...rest,
+    track: rest.track ?? 'all',
+    speakers,
+  };
+}

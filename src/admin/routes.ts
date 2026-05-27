@@ -21,6 +21,7 @@ import {
 } from '../shared/schemas/admin';
 import {
   buildSessionSpeakersCreate,
+  resolveSessionSpeakerIds,
   scheduleSessionInclude,
   serializeScheduleSession,
   serializeScheduleSessions,
@@ -994,11 +995,13 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       return validationError(reply, parsed.error);
     }
 
-    if (!(await assertSpeakersExist(parsed.data.speakerIds))) {
+    const speakerIds = resolveSessionSpeakerIds(parsed.data);
+
+    if (!(await assertSpeakersExist(speakerIds))) {
       return reply.status(400).send({ error: 'Speaker not found' });
     }
 
-    const { startTime, endTime, speakerIds, ...rest } = parsed.data;
+    const { startTime, endTime, speakerIds: _s, speakerId: _id, ...rest } = parsed.data;
 
     const created = await prisma.scheduleSession.create({
       data: {
@@ -1050,10 +1053,9 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
         return validationError(reply, parsed.error);
       }
 
-      if (
-        parsed.data.speakerIds !== undefined &&
-        !(await assertSpeakersExist(parsed.data.speakerIds))
-      ) {
+      const speakerIds = resolveSessionSpeakerIds(parsed.data);
+
+      if (speakerIds !== undefined && !(await assertSpeakersExist(speakerIds))) {
         return reply.status(400).send({ error: 'Speaker not found' });
       }
 
@@ -1080,7 +1082,13 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
         return reply.status(400).send({ error: 'endTime must be after startTime' });
       }
 
-      const { startTime, endTime, speakerIds, ...rest } = parsed.data;
+      const {
+        startTime,
+        endTime,
+        speakerIds: _speakerIds,
+        speakerId: _speakerId,
+        ...rest
+      } = parsed.data;
 
       try {
         const updated = await prisma.scheduleSession.update({

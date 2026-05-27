@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { normalizeScheduleSession } from '../lib/normalizeSchedule';
 
 declare global {
   interface Window {
@@ -146,7 +147,7 @@ export async function getSpeakerById(id: string): Promise<Speaker> {
 
 export async function getSchedule(): Promise<ScheduleSession[]> {
   const { data } = await api.get<ScheduleSession[]>('/schedule');
-  return data;
+  return data.map((session) => normalizeScheduleSession(session));
 }
 
 export async function postFeedback(

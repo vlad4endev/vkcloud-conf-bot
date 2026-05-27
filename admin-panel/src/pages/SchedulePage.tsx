@@ -58,7 +58,7 @@ function sessionToForm(session: ScheduleSession): SessionForm {
     title: session.title,
     description: session.description ?? '',
     location: session.location ?? '',
-    speakerIds: session.speakers.map((speaker) => speaker.id),
+    speakerIds: (session.speakers ?? []).map((speaker) => speaker.id),
     track: session.track ?? 'all',
   };
 }

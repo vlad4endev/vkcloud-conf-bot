@@ -46,6 +46,7 @@ export const scheduleCreateSchema = z
     description: z.string().trim().optional(),
     location: z.string().trim().max(200).optional(),
     speakerIds: z.array(z.string().trim().min(1)).optional(),
+    speakerId: z.string().trim().min(1).optional(),
     track: sessionTrackSchema.optional(),
     order: z.number().int().optional(),
   })
@@ -65,6 +66,7 @@ export const scheduleUpdateSchema = z
     description: z.string().trim().optional().nullable(),
     location: z.string().trim().max(200).optional().nullable(),
     speakerIds: z.array(z.string().trim().min(1)).optional(),
+    speakerId: z.string().trim().min(1).optional().nullable(),
     track: sessionTrackSchema.optional(),
     order: z.number().int().optional(),
   })

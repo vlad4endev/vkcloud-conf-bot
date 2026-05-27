@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { normalizeScheduleSession } from '../lib/normalizeSchedule';
 import type {
   DashboardStats,
   FeedbackItem,
@@ -155,7 +156,7 @@ export async function deleteSpeakerPhoto(id: string): Promise<void> {
 
 export async function getSchedule(): Promise<ScheduleSession[]> {
   const { data } = await api.get<ScheduleSession[]>('/schedule');
-  return data;
+  return data.map((session) => normalizeScheduleSession(session));
 }
 
 export async function createScheduleSession(payload: {

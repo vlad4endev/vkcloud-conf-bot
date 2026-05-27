@@ -27,7 +27,7 @@ function mapSession(session: ScheduleSession): ProgramItem {
     description: session.description ?? '',
     location: session.location,
     track: session.track ?? 'all',
-    speakers: session.speakers.map((speaker) => ({
+    speakers: (session.speakers ?? []).map((speaker) => ({
       id: speaker.id,
       name: speaker.name,
       profession: speaker.profession ?? undefined,

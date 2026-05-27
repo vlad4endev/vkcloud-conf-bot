@@ -257,6 +257,28 @@ docker compose build bot admin && docker compose up -d bot admin
 
 После обновления — жёсткое обновление страницы в браузере: **Ctrl+Shift+R** (кэш JS).
 
+Быстрое обновление (миграции + статика):
+
+```bash
+cd /opt/vkconf
+chmod +x scripts/update-production.sh
+./scripts/update-production.sh
+```
+
+### Нет переключателя треков / спикеров / чекбоксов в расписании
+
+1. **Миграции не применены** — на хосте `npm run db:migrate` не сработает (нет `prisma` в PATH). Нужно:
+   ```bash
+   docker compose run --rm bot npx prisma migrate deploy
+   ```
+2. **Старая статика** — miniapp и `/panel/` лежат в nginx, не в Docker:
+   ```bash
+   ./scripts/publish-miniapp.sh
+   ./scripts/publish-admin-panel.sh
+   ```
+3. В **Расписании** (`/panel/`) при редактировании сессии должны быть **чекбоксы спикеров**, поле **Трек**, в miniapp — блок «Выберите трек».
+4. Сессии с треком «Технологический» / «Бизнес» нужно явно назначить в админке — иначе всё остаётся в «Общем треке».
+
 Только миграции без пересборки:
 
 ```bash
