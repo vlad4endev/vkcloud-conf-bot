@@ -9,6 +9,7 @@ const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const messageTimestamps = new Map<number, number[]>();
+const lastProcessedMessageIdByUser = new Map<number, string>();
 
 function isRateLimited(userId: number): boolean {
   const now = Date.now();
@@ -109,6 +110,16 @@ export async function handleMessage(ctx: Context) {
   const chatId = ctx.message?.recipient?.chat_id ?? ctx.chatId;
   if (!userId || chatId === undefined) {
     return;
+  }
+
+  // Webhook delivery may be retried; dedupe by messageId per user.
+  const messageId = ctx.messageId;
+  if (messageId) {
+    const last = lastProcessedMessageIdByUser.get(userId);
+    if (last === messageId) {
+      return;
+    }
+    lastProcessedMessageIdByUser.set(userId, messageId);
   }
 
   if (isRateLimited(userId)) {
