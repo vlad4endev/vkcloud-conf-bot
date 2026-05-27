@@ -24,14 +24,14 @@ export function getMainMenuKeyboard(
   const rows: (OpenAppInlineButton | ReturnType<typeof Keyboard.button.link>)[][] =
     [];
 
+  if (miniAppBotUsername) {
+    rows.push([openAppButton(BUTTONS.OPEN_APP, miniAppBotUsername)]);
+  }
   if (chatUrl && chatUrl.startsWith('https://')) {
     rows.push([Keyboard.button.link(BUTTONS.CHAT, chatUrl)]);
   }
   if (stickerUrl && stickerUrl.startsWith('https://')) {
     rows.push([Keyboard.button.link(BUTTONS.STICKER_PACK, stickerUrl)]);
-  }
-  if (miniAppBotUsername) {
-    rows.push([openAppButton(BUTTONS.OPEN_APP, miniAppBotUsername)]);
   }
 
   if (rows.length === 0) return null;
