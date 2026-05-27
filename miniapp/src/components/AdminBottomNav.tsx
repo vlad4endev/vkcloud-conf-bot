@@ -49,7 +49,7 @@ export default function AdminBottomNav() {
             <span className={styles.icon} aria-hidden>
               {icon}
             </span>
-            <span>{label}</span>
+            <span className={styles.label}>{label}</span>
           </Link>
         );
       })}
