@@ -13,13 +13,13 @@ build_miniapp() {
       -v "${ROOT}:/workspace" \
       -w /workspace/miniapp \
       node:20-bookworm-slim \
-      bash -c "rm -rf node_modules && npm ci && npm run build"
+      bash -c "rm -rf node_modules && npm ci --no-audit --no-fund || npm install --no-audit --no-fund && npm run build"
     return
   fi
 
   echo "📦 Сборка miniapp локально (переустановка зависимостей)..."
   rm -rf miniapp/node_modules
-  (cd miniapp && npm ci)
+  (cd miniapp && npm ci --no-audit --no-fund || npm install --no-audit --no-fund)
   npm run build:miniapp
 }
 
