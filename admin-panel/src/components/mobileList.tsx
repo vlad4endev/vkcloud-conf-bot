@@ -3,7 +3,7 @@ import ActionIcon from './ActionIcon';
 import { Button } from './ui';
 
 export function ListCardActions({ children }: { children: ReactNode }) {
-  return <div className="flex shrink-0 gap-1">{children}</div>;
+  return <div className="flex shrink-0 items-center gap-1">{children}</div>;
 }
 
 export function MoveToPositionButton({
@@ -18,8 +18,7 @@ export function MoveToPositionButton({
   onMoveToPosition: (nextPosition: number) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState(String(currentPosition));
-  const [error, setError] = useState('');
+  const [position, setPosition] = useState(currentPosition);
 
   useEffect(() => {
     if (!open) {
@@ -33,8 +32,7 @@ export function MoveToPositionButton({
   }, [open]);
 
   function openSheet() {
-    setPosition(String(currentPosition));
-    setError('');
+    setPosition(currentPosition);
     setOpen(true);
   }
 
@@ -43,11 +41,7 @@ export function MoveToPositionButton({
   }
 
   function submitMove() {
-    const nextPosition = Number.parseInt(position, 10);
-    if (Number.isNaN(nextPosition) || nextPosition < 1 || nextPosition > totalItems) {
-      setError(`Введите число от 1 до ${totalItems}.`);
-      return;
-    }
+    const nextPosition = position;
     if (nextPosition === currentPosition) {
       closeSheet();
       return;
@@ -58,7 +52,13 @@ export function MoveToPositionButton({
 
   return (
     <>
-      <Button variant="ghost" size="sm" title="Переместить" onClick={openSheet}>
+      <Button
+        variant="ghost"
+        size="sm"
+        title="Переместить"
+        aria-label="Переместить"
+        onClick={openSheet}
+      >
         <ActionIcon name="move" />
       </Button>
 
@@ -76,26 +76,30 @@ export function MoveToPositionButton({
                 <ActionIcon name="close" />
               </button>
             </div>
-            <p className="mb-3 text-xs text-slate-400">
+            <p className="mb-3 line-clamp-2 text-xs text-slate-400">
               {itemLabel}
               <br />
               Текущая позиция: {currentPosition} из {totalItems}
             </p>
             <label className="block space-y-1.5">
               <span className="text-sm text-slate-300">Новая позиция</span>
-              <input
-                type="number"
-                min={1}
-                max={totalItems}
+              <select
                 value={position}
                 onChange={(e) => {
-                  setPosition(e.target.value);
-                  setError('');
+                  setPosition(Number.parseInt(e.target.value, 10));
                 }}
                 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-white"
-              />
+              >
+                {Array.from({ length: totalItems }, (_, idx) => {
+                  const value = idx + 1;
+                  return (
+                    <option key={value} value={value}>
+                      Позиция {value}
+                    </option>
+                  );
+                })}
+              </select>
             </label>
-            {error ? <p className="mt-2 text-xs text-red-400">{error}</p> : null}
             <div className="mt-4 flex justify-end gap-2">
               <Button variant="secondary" size="sm" onClick={closeSheet}>
                 Отмена

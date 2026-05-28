@@ -240,21 +240,18 @@ export default function SpeakersPage() {
                   <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
                     <ActionIcon name="edit" />
                   </Button>
+                  <MoveToPositionButton
+                    itemLabel={speaker.name}
+                    currentPosition={index + 1}
+                    totalItems={speakers.length}
+                    onMoveToPosition={(position) => void moveSpeakerTo(index, position - 1)}
+                  />
                   <Button variant="ghost" size="sm" onClick={() => void handleDelete(speaker)}>
                     <span className="text-red-400">
                       <ActionIcon name="delete" />
                     </span>
                   </Button>
                 </ListCardActions>
-              </div>
-
-              <div className="border-t border-[var(--color-border)] pt-2">
-                <MoveToPositionButton
-                  itemLabel={speaker.name}
-                  currentPosition={index + 1}
-                  totalItems={speakers.length}
-                  onMoveToPosition={(position) => void moveSpeakerTo(index, position - 1)}
-                />
               </div>
             </Card>
           ))}

@@ -234,6 +234,12 @@ export default function SchedulePage() {
                   <Button variant="ghost" size="sm" onClick={() => openEdit(session)}>
                     <ActionIcon name="edit" />
                   </Button>
+                  <MoveToPositionButton
+                    itemLabel={session.title}
+                    currentPosition={index + 1}
+                    totalItems={sessions.length}
+                    onMoveToPosition={(position) => void moveSessionTo(index, position - 1)}
+                  />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -243,14 +249,6 @@ export default function SchedulePage() {
                     <ActionIcon name="delete" />
                   </Button>
                 </ListCardActions>
-              </div>
-              <div className="border-t border-[var(--color-border)] pt-2">
-                <MoveToPositionButton
-                  itemLabel={session.title}
-                  currentPosition={index + 1}
-                  totalItems={sessions.length}
-                  onMoveToPosition={(position) => void moveSessionTo(index, position - 1)}
-                />
               </div>
             </Card>
           ))}
