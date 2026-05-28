@@ -233,9 +233,13 @@ export default function SpeakersPage() {
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold text-white">{speaker.name}</h3>
                   {speaker.profession ? (
-                    <p className="mt-0.5 text-sm text-slate-400">{speaker.profession}</p>
+                    <p className="mt-0.5 text-sm leading-snug text-slate-400">
+                      {speaker.profession}
+                    </p>
                   ) : null}
                 </div>
+              </div>
+              <div className="flex justify-end">
                 <ListCardActions>
                   <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
                     <ActionIcon name="edit" />
