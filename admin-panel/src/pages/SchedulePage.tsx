@@ -230,6 +230,8 @@ export default function SchedulePage() {
                     </span>
                   </div>
                 </div>
+              </div>
+              <div className="flex justify-end">
                 <ListCardActions>
                   <Button variant="ghost" size="sm" onClick={() => openEdit(session)}>
                     <ActionIcon name="edit" />
