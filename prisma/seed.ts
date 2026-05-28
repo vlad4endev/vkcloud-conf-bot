@@ -45,23 +45,57 @@ const QUIZ_QUESTIONS = [
   },
 ] as const;
 
+const ADMIN_ACCOUNTS = [
+  {
+    email: 'admin@vkcloud.ru',
+    name: 'Администратор',
+    password: 'VkC0nf!Admin#2026',
+  },
+  {
+    email: 'polina.shchegoleva@vkteam.ru',
+    name: 'Polina Shchegoleva',
+    password: 'Polina#VKC!26$A9',
+  },
+  {
+    email: 'p.zavarzina@vk.team',
+    name: 'P. Zavarzina',
+    password: 'PZav!VKconf@26%R4',
+  },
+  {
+    email: 'olga.nikolaeva@vkteam.ru',
+    name: 'Olga Nikolaeva',
+    password: 'OlgaN!Cloud#26&K7',
+  },
+  {
+    email: 'alexandra.manager7@gmail.com',
+    name: 'Alexandra Manager',
+    password: 'AlexM7!VK#2026^Q',
+  },
+  {
+    email: 'kashirskayalina@gmail.com',
+    name: 'Lina Kashirskaya',
+    password: 'LinaK!Conf@26*Z8',
+  },
+] as const;
+
 async function main(): Promise<void> {
-  const passwordHash = await bcrypt.hash('Admin123!', 10);
+  for (const adminAccount of ADMIN_ACCOUNTS) {
+    const passwordHash = await bcrypt.hash(adminAccount.password, 10);
+    const admin = await prisma.admin.upsert({
+      where: { email: adminAccount.email },
+      create: {
+        email: adminAccount.email,
+        password: passwordHash,
+        name: adminAccount.name,
+      },
+      update: {
+        password: passwordHash,
+        name: adminAccount.name,
+      },
+    });
 
-  const admin = await prisma.admin.upsert({
-    where: { email: 'admin@vkcloud.ru' },
-    create: {
-      email: 'admin@vkcloud.ru',
-      password: passwordHash,
-      name: 'Администратор',
-    },
-    update: {
-      password: passwordHash,
-      name: 'Администратор',
-    },
-  });
-
-  console.log('Admin upserted:', admin.email);
+    console.log('Admin upserted:', admin.email);
+  }
 
   for (const [key, defaultValue] of Object.entries(configDefaults)) {
     const existing = await prisma.config.findUnique({ where: { key } });
