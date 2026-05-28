@@ -9,6 +9,7 @@
     "dev:admin": "tsx watch src/admin/server.ts",
     "dev:miniapp": "cd miniapp && npm run dev",
     "dev:admin-panel": "cd admin-panel && npm run dev",
+    "dev:webapp": "cd webapp && npm run dev",
     "build": "tsc --project tsconfig.json",
     "build:miniapp": "cd miniapp && npm run build",
     "build:admin-panel": "cd admin-panel && npm run build",
