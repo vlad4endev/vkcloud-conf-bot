@@ -1,4 +1,5 @@
 import ActionIcon from '../components/ActionIcon';
+import { ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
 import { getQuestions } from '../api/client';
 import type { SpeakerQuestion } from '../api/types';
@@ -80,15 +81,14 @@ export default function QuestionsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => (
-            <Card key={item.id}>
-              <p className="text-xs text-blue-400">{item.speaker.name}</p>
-              <p className="mt-2 text-white">{item.question}</p>
-              <p className="mt-2 text-sm text-slate-400">
-                {item.user.fullName} · {item.user.email}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                {formatDateTime(item.createdAt)}
-              </p>
+            <Card key={item.id} className="space-y-0">
+              <p className="text-xs font-medium text-blue-400">{item.speaker.name}</p>
+              <p className="mt-2 whitespace-pre-wrap text-white">{item.question}</p>
+              <ListCardMeta>
+                <span className="text-slate-400">{item.user.fullName}</span>
+                <span className="break-all text-slate-500">{item.user.email}</span>
+                <span>{formatDateTime(item.createdAt)}</span>
+              </ListCardMeta>
             </Card>
           ))}
         </div>

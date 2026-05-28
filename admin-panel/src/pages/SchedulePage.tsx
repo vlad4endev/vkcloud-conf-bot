@@ -9,7 +9,7 @@ import {
   updateScheduleSession,
 } from '../api/client';
 import type { ScheduleSession, SessionTrack, Speaker } from '../api/types';
-import { ReorderControls } from '../components/ReorderControls';
+import { ListCardActions, ListCardReorderFooter } from '../components/mobileList';
 import {
   Button,
   Card,
@@ -204,45 +204,51 @@ export default function SchedulePage() {
       ) : (
         <div className="space-y-3">
           {sessions.map((session, index) => (
-            <Card key={session.id} className="flex flex-col gap-4 sm:flex-row">
-              <ReorderControls
+            <Card key={session.id} className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-blue-400">
+                    {formatScheduleTime(session.startTime)} —{' '}
+                    {formatScheduleTime(session.endTime)}
+                  </p>
+                  <h3 className="mt-1 font-semibold text-white">{session.title}</h3>
+                  {session.speakers.length > 0 ? (
+                    <p className="mt-1 line-clamp-2 text-sm text-slate-400">
+                      {session.speakers.map((speaker) => speaker.name).join(', ')}
+                    </p>
+                  ) : null}
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {session.location ? (
+                      <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-300">
+                        {session.location}
+                      </span>
+                    ) : null}
+                    <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-300">
+                      {TRACK_OPTIONS.find((t) => t.value === (session.track ?? 'all'))?.label ??
+                        'Общий трек'}
+                    </span>
+                  </div>
+                </div>
+                <ListCardActions>
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(session)}>
+                    <ActionIcon name="edit" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400"
+                    onClick={() => void handleDelete(session)}
+                  >
+                    <ActionIcon name="delete" />
+                  </Button>
+                </ListCardActions>
+              </div>
+              <ListCardReorderFooter
                 onUp={() => void moveSession(index, -1)}
                 onDown={() => void moveSession(index, 1)}
                 disableUp={index === 0}
                 disableDown={index === sessions.length - 1}
               />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-blue-400">
-                  {formatScheduleTime(session.startTime)} —{' '}
-                  {formatScheduleTime(session.endTime)}
-                </p>
-                <h3 className="mt-1 font-semibold text-white">{session.title}</h3>
-                {session.speakers.length > 0 ? (
-                  <p className="text-sm text-slate-400">
-                    {session.speakers.map((speaker) => speaker.name).join(', ')}
-                  </p>
-                ) : null}
-                {session.location ? (
-                  <p className="text-xs text-slate-500">{session.location}</p>
-                ) : null}
-                <p className="mt-1 text-xs text-slate-500">
-                  {TRACK_OPTIONS.find((t) => t.value === (session.track ?? 'all'))?.label ??
-                    'Общий трек'}
-                </p>
-              </div>
-              <div className="flex gap-1 self-end sm:self-auto">
-                <Button variant="ghost" size="sm" onClick={() => openEdit(session)}>
-                  <ActionIcon name="edit" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-400"
-                  onClick={() => void handleDelete(session)}
-                >
-                  <ActionIcon name="delete" />
-                </Button>
-              </div>
             </Card>
           ))}
         </div>

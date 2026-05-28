@@ -106,7 +106,7 @@ export default function SettingsPage() {
         description="Тексты мини-приложения, ссылки и карта площадки"
       />
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 xl:grid-cols-2">
         <Card className="space-y-4">
           <h2 className="font-semibold text-white">Ссылки</h2>
           <Input

@@ -12,7 +12,7 @@ import {
   uploadSpeakerPhoto,
 } from '../api/client';
 import type { Speaker } from '../api/types';
-import { ReorderControls } from '../components/ReorderControls';
+import { ListCardActions, ListCardReorderFooter } from '../components/mobileList';
 import {
   Button,
   Card,
@@ -216,43 +216,43 @@ export default function SpeakersPage() {
       ) : (
         <div className="space-y-3">
           {speakers.map((speaker, index) => (
-            <Card key={speaker.id} className="flex flex-col gap-4 sm:flex-row">
-              <ReorderControls
+            <Card key={speaker.id} className="space-y-3">
+              <div className="flex items-start gap-3">
+                {speaker.photoUrl ? (
+                  <img
+                    src={speaker.photoUrl}
+                    alt=""
+                    className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-slate-500 sm:h-20 sm:w-20">
+                    ?
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-white">{speaker.name}</h3>
+                  {speaker.profession ? (
+                    <p className="mt-0.5 text-sm text-slate-400">{speaker.profession}</p>
+                  ) : null}
+                </div>
+                <ListCardActions>
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
+                    <ActionIcon name="edit" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => void handleDelete(speaker)}>
+                    <span className="text-red-400">
+                      <ActionIcon name="delete" />
+                    </span>
+                  </Button>
+                </ListCardActions>
+              </div>
+
+              <ListCardReorderFooter
                 onUp={() => void moveSpeaker(index, -1)}
                 onDown={() => void moveSpeaker(index, 1)}
                 disableUp={index === 0}
                 disableDown={index === speakers.length - 1}
               />
-              {speaker.photoUrl ? (
-                <img
-                  src={speaker.photoUrl}
-                  alt=""
-                  className="h-20 w-20 shrink-0 rounded-xl object-cover"
-                />
-              ) : (
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-slate-500">
-                  ?
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-white">{speaker.name}</h3>
-                {speaker.profession ? (
-                  <p className="mt-0.5 text-sm text-slate-400">{speaker.profession}</p>
-                ) : null}
-                {speaker.bio ? (
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">{speaker.bio}</p>
-                ) : null}
-              </div>
-              <div className="flex shrink-0 gap-1 self-end sm:flex-col sm:self-auto">
-                <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
-                  <ActionIcon name="edit" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => void handleDelete(speaker)}>
-                  <span className="text-red-400">
-                    <ActionIcon name="delete" />
-                  </span>
-                </Button>
-              </div>
             </Card>
           ))}
         </div>

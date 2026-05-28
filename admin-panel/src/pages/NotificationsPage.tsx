@@ -1,4 +1,5 @@
 import ActionIcon from '../components/ActionIcon';
+import { ListCardActions, ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
 import {
   deleteNotification,
@@ -159,7 +160,7 @@ export default function NotificationsPage() {
         description="Мгновенные или отложенные сообщения в MAX"
       />
 
-      <Card className="mb-6 max-w-2xl space-y-4">
+      <Card className="mb-6 w-full max-w-2xl space-y-4">
         <Textarea
           label="Текст сообщения"
           rows={6}
@@ -202,9 +203,10 @@ export default function NotificationsPage() {
         </div>
       </Card>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Button
           variant={tab === 'scheduled' ? 'primary' : 'secondary'}
+          className="w-full"
           onClick={() => setTab('scheduled')}
         >
           <ActionIcon name="pending" />
@@ -212,6 +214,7 @@ export default function NotificationsPage() {
         </Button>
         <Button
           variant={tab === 'history' ? 'primary' : 'secondary'}
+          className="w-full"
           onClick={() => setTab('history')}
         >
           <ActionIcon name="history" />
@@ -232,33 +235,14 @@ export default function NotificationsPage() {
       ) : (
         <div className="space-y-3">
           {list.map((item) => (
-            <Card key={item.id}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="whitespace-pre-wrap text-white">{item.text}</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-400">
-                    {tab === 'scheduled' && item.scheduledAt ? (
-                      <span>Отправка: {formatDateTime(item.scheduledAt)}</span>
-                    ) : null}
-                    {tab === 'history' && item.sentAt ? (
-                      <span>Отправлено: {formatDateTime(item.sentAt)}</span>
-                    ) : null}
-                    {tab === 'history' && !item.scheduledAt ? (
-                      <Badge tone="success">Мгновенная</Badge>
-                    ) : null}
-                    {tab === 'history' && item.scheduledAt ? (
-                      <Badge>Была запланирована</Badge>
-                    ) : null}
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Создано: {formatDateTime(item.createdAt)}
-                  </p>
-                </div>
-
+            <Card key={item.id} className="space-y-0">
+              <div className="flex items-start gap-3">
+                <p className="min-w-0 flex-1 whitespace-pre-wrap text-white">{item.text}</p>
                 {tab === 'scheduled' ? (
-                  <div className="flex shrink-0 gap-1">
+                  <ListCardActions>
                     <Button
                       variant="secondary"
+                      size="sm"
                       onClick={() => openEdit(item)}
                       aria-label="Редактировать"
                     >
@@ -266,14 +250,28 @@ export default function NotificationsPage() {
                     </Button>
                     <Button
                       variant="secondary"
+                      size="sm"
                       onClick={() => void handleDelete(item)}
                       aria-label="Удалить"
                     >
                       <ActionIcon name="delete" />
                     </Button>
-                  </div>
+                  </ListCardActions>
                 ) : null}
               </div>
+              <ListCardMeta>
+                {tab === 'scheduled' && item.scheduledAt ? (
+                  <span>Отправка: {formatDateTime(item.scheduledAt)}</span>
+                ) : null}
+                {tab === 'history' && item.sentAt ? (
+                  <span>Отправлено: {formatDateTime(item.sentAt)}</span>
+                ) : null}
+                {tab === 'history' && !item.scheduledAt ? (
+                  <Badge tone="success">Мгновенная</Badge>
+                ) : null}
+                {tab === 'history' && item.scheduledAt ? <Badge>Была запланирована</Badge> : null}
+                <span>Создано: {formatDateTime(item.createdAt)}</span>
+              </ListCardMeta>
             </Card>
           ))}
         </div>

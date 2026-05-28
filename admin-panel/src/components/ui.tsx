@@ -129,12 +129,12 @@ export function Modal({
   wide?: boolean;
 }) {
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4">
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4">
       <div
-        className={`max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl ${wide ? 'max-w-3xl' : 'max-w-lg'}`}
+        className={`max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl sm:max-h-[90vh] sm:rounded-2xl ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'}`}
       >
-        <div className="sticky top-0 flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <div className="sticky top-0 flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 sm:px-5 sm:py-4">
+          <h2 className="text-base font-semibold text-white sm:text-lg">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -144,7 +144,7 @@ export function Modal({
             <AppIcon icon={panelIcons.close} size="md" />
           </button>
         </div>
-        <div className="space-y-4 p-5">{children}</div>
+        <div className="space-y-4 p-4 sm:p-5">{children}</div>
       </div>
     </div>
   );

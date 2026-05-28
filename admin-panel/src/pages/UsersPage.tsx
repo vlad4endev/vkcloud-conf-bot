@@ -1,4 +1,5 @@
 import ActionIcon from '../components/ActionIcon';
+import { ListCardActions, ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
 import { deleteUser, getUsers, updateUser } from '../api/client';
 import type { User } from '../api/types';
@@ -135,7 +136,45 @@ export default function UsersPage() {
       ) : users.length === 0 ? (
         <EmptyState message="Участники не найдены" />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]">
+        <>
+        <div className="space-y-3 md:hidden">
+          {users.map((user) => (
+            <Card key={user.id} className="space-y-0">
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-white">{user.fullName}</h3>
+                  <p className="mt-0.5 break-all text-sm text-slate-400">{user.email}</p>
+                  <p className="mt-1 font-mono text-xs text-slate-500">MAX: {user.maxUserId}</p>
+                </div>
+                <ListCardActions>
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(user)}>
+                    <ActionIcon name="edit" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    title="Удалить участника"
+                    onClick={() => void handleDelete(user)}
+                  >
+                    <span className="text-red-400">
+                      <ActionIcon name="delete" />
+                    </span>
+                  </Button>
+                </ListCardActions>
+              </div>
+              <ListCardMeta>
+                <button type="button" onClick={() => void toggleVerified(user)}>
+                  <Badge tone={user.isVerified ? 'success' : 'warning'}>
+                    {user.isVerified ? 'Подтверждён' : 'Не подтверждён'}
+                  </Badge>
+                </button>
+                <span>{formatDateTime(user.createdAt)}</span>
+              </ListCardMeta>
+            </Card>
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-2xl border border-[var(--color-border)] md:block">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-[var(--color-surface-2)] text-slate-400">
               <tr>
@@ -190,6 +229,7 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {editing ? (

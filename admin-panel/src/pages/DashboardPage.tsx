@@ -55,12 +55,12 @@ export default function DashboardPage() {
         description="Сводка по конференции и быстрые переходы"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {statLinks.map(({ key, label, to }) => (
           <Link key={key} to={to}>
             <Card className="transition hover:border-blue-500/50 hover:bg-slate-900/80">
               <p className="text-sm text-slate-400">{label}</p>
-              <p className="mt-2 text-3xl font-bold text-white">{stats[key]}</p>
+              <p className="mt-2 text-2xl font-bold text-white sm:text-3xl">{stats[key]}</p>
             </Card>
           </Link>
         ))}

@@ -1,4 +1,5 @@
 import ActionIcon from '../components/ActionIcon';
+import { ListCardActions, ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   createQuizQuestion,
@@ -184,15 +185,17 @@ export default function QuizPage() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         <Button
           variant={tab === 'questions' ? 'primary' : 'secondary'}
+          className="w-full"
           onClick={() => setTab('questions')}
         >
           Вопросы ({questions.length})
         </Button>
         <Button
           variant={tab === 'results' ? 'primary' : 'secondary'}
+          className="w-full"
           onClick={() => setTab('results')}
         >
           Результаты
@@ -208,22 +211,18 @@ export default function QuizPage() {
         ) : (
           <div className="space-y-3">
             {questions.map((q, index) => (
-              <Card key={q.id}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-xs text-slate-500">#{index + 1}</p>
+              <Card key={q.id} className="space-y-0">
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-slate-500">Вопрос #{index + 1}</p>
                     <p className="mt-1 font-medium text-white">{q.question}</p>
-                    <p className="mt-2 text-sm text-slate-400">
-                      A: {q.optionA} · B: {q.optionB} · C: {q.optionC} · D:{' '}
-                      {q.optionD}
-                    </p>
-                    <div className="mt-2">
-                      <Badge tone="success">
-                        Верный: {optionLabels[q.correctOption]}
-                      </Badge>
+                    <div className="mt-2 hidden sm:block">
+                      <p className="text-sm text-slate-400">
+                        A: {q.optionA} · B: {q.optionB} · C: {q.optionC} · D: {q.optionD}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex gap-1 self-end sm:self-auto">
+                  <ListCardActions>
                     <Button variant="ghost" size="sm" onClick={() => openEdit(q)}>
                       <ActionIcon name="edit" />
                     </Button>
@@ -232,14 +231,70 @@ export default function QuizPage() {
                         <ActionIcon name="delete" />
                       </span>
                     </Button>
-                  </div>
+                  </ListCardActions>
                 </div>
+                <ListCardMeta>
+                  <Badge tone="success">Верный: {optionLabels[q.correctOption]}</Badge>
+                </ListCardMeta>
               </Card>
             ))}
           </div>
         )
       ) : results && results.results.length > 0 ? (
-        <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]">
+        <>
+        <div className="space-y-3 md:hidden">
+          {rankedResults.map((row) => {
+            const rowHighlight = QUIZ_RANK_ROW_CLASS[row.rank] ?? '';
+            return (
+              <Card key={row.userId} className={rowHighlight}>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 shrink-0 text-center">
+                    {row.medal ? (
+                      <span className="text-2xl leading-none" aria-label={`${row.rank} место`}>
+                        {row.medal}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-slate-500">{row.rank}.</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-white">{row.fullName}</h3>
+                    <p className="mt-0.5 break-all text-sm text-slate-400">{row.email}</p>
+                  </div>
+                  <ListCardActions>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      title="Удалить из результатов"
+                      onClick={() => void handleDeleteParticipant(row.userId, row.fullName)}
+                    >
+                      <span className="text-red-400">
+                        <ActionIcon name="delete" />
+                      </span>
+                    </Button>
+                  </ListCardActions>
+                </div>
+                <ListCardMeta>
+                  <span>
+                    {row.correctAnswers} / {row.totalQuestions} правильно
+                  </span>
+                  {row.medal ? (
+                    <Badge tone="success">
+                      {row.rank} место
+                      {row.isPerfect ? ' · 100%' : ''}
+                    </Badge>
+                  ) : row.isPerfect ? (
+                    <Badge tone="success">100%</Badge>
+                  ) : (
+                    <Badge>Участник</Badge>
+                  )}
+                </ListCardMeta>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-2xl border border-[var(--color-border)] md:block">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-[var(--color-surface-2)] text-slate-400">
               <tr>
@@ -311,6 +366,7 @@ export default function QuizPage() {
             </tbody>
           </table>
         </div>
+        </>
       ) : (
         <EmptyState message="Пока никто не проходил квиз" />
       )}

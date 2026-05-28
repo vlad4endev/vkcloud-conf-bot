@@ -1,4 +1,5 @@
 import ActionIcon from '../components/ActionIcon';
+import { ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
 import { getFeedback } from '../api/client';
 import type { FeedbackItem } from '../api/types';
@@ -60,16 +61,19 @@ export default function FeedbackPage() {
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <Card key={item.id}>
+            <Card key={item.id} className="space-y-0">
               <p className="whitespace-pre-wrap text-white">{item.text}</p>
-              <p className="mt-2 text-sm text-slate-400">
-                {item.user
-                  ? `${item.user.fullName} · ${item.user.email}`
-                  : 'Анонимно'}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                {formatDateTime(item.createdAt)}
-              </p>
+              <ListCardMeta>
+                {item.user ? (
+                  <>
+                    <span className="text-slate-400">{item.user.fullName}</span>
+                    <span className="break-all text-slate-500">{item.user.email}</span>
+                  </>
+                ) : (
+                  <span className="text-slate-400">Анонимно</span>
+                )}
+                <span>{formatDateTime(item.createdAt)}</span>
+              </ListCardMeta>
             </Card>
           ))}
         </div>
