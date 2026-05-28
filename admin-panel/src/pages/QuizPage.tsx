@@ -184,7 +184,7 @@ export default function QuizPage() {
         }
       />
 
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <Button
           variant={tab === 'questions' ? 'primary' : 'secondary'}
           onClick={() => setTab('questions')}
@@ -209,7 +209,7 @@ export default function QuizPage() {
           <div className="space-y-3">
             {questions.map((q, index) => (
               <Card key={q.id}>
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-xs text-slate-500">#{index + 1}</p>
                     <p className="mt-1 font-medium text-white">{q.question}</p>
@@ -223,7 +223,7 @@ export default function QuizPage() {
                       </Badge>
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 self-end sm:self-auto">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(q)}>
                       <ActionIcon name="edit" />
                     </Button>
@@ -240,7 +240,7 @@ export default function QuizPage() {
         )
       ) : results && results.results.length > 0 ? (
         <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]">
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-[var(--color-surface-2)] text-slate-400">
               <tr>
                 <th className="px-4 py-3 w-16">Место</th>
@@ -362,7 +362,7 @@ export default function QuizPage() {
             <option value="c">C</option>
             <option value="d">D</option>
           </Select>
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button variant="secondary" onClick={() => setModal(null)}>
               Отмена
             </Button>

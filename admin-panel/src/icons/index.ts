@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   CalendarDays,
   Clock,
+  Menu,
   Download,
   HelpCircle,
   History,
@@ -44,6 +45,7 @@ export const panelIcons = {
   photo: ImagePlus,
   history: History,
   pending: Clock,
+  menu: Menu,
   reorderUp: ChevronUp,
   reorderDown: ChevronDown,
   user: User,

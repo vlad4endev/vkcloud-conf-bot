@@ -204,7 +204,7 @@ export default function SchedulePage() {
       ) : (
         <div className="space-y-3">
           {sessions.map((session, index) => (
-            <Card key={session.id} className="flex gap-4">
+            <Card key={session.id} className="flex flex-col gap-4 sm:flex-row">
               <ReorderControls
                 onUp={() => void moveSession(index, -1)}
                 onDown={() => void moveSession(index, 1)}
@@ -230,7 +230,7 @@ export default function SchedulePage() {
                     'Общий трек'}
                 </p>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 self-end sm:self-auto">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(session)}>
                   <ActionIcon name="edit" />
                 </Button>
@@ -336,7 +336,7 @@ export default function SchedulePage() {
               </option>
             ))}
           </Select>
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button variant="secondary" onClick={() => setModal(null)}>
               Отмена
             </Button>

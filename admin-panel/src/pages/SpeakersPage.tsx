@@ -216,7 +216,7 @@ export default function SpeakersPage() {
       ) : (
         <div className="space-y-3">
           {speakers.map((speaker, index) => (
-            <Card key={speaker.id} className="flex gap-4">
+            <Card key={speaker.id} className="flex flex-col gap-4 sm:flex-row">
               <ReorderControls
                 onUp={() => void moveSpeaker(index, -1)}
                 onDown={() => void moveSpeaker(index, 1)}
@@ -243,7 +243,7 @@ export default function SpeakersPage() {
                   <p className="mt-1 line-clamp-2 text-sm text-slate-500">{speaker.bio}</p>
                 ) : null}
               </div>
-              <div className="flex shrink-0 flex-col gap-1">
+              <div className="flex shrink-0 gap-1 self-end sm:flex-col sm:self-auto">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(speaker)}>
                   <ActionIcon name="edit" />
                 </Button>
@@ -323,7 +323,7 @@ export default function SpeakersPage() {
             value={form.bio}
             onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button variant="secondary" onClick={closeModal}>
               Отмена
             </Button>
