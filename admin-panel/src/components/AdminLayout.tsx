@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AppIcon from './AppIcon';
 import { panelIcons } from '../icons';
@@ -25,11 +25,17 @@ const navItems: NavItem[] = [
 ];
 
 export default function AdminLayout() {
+  const location = useLocation();
   const { admin, logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const mobilePrimaryItems = navItems.slice(0, 4);
+  const mobileMoreItems = navItems.slice(4);
+  const isMoreActive = mobileMoreItems.some((item) =>
+    item.end ? location.pathname === item.to : location.pathname.startsWith(item.to),
+  );
 
   useEffect(() => {
-    if (!menuOpen) {
+    if (!moreOpen) {
       return;
     }
     const prevOverflow = document.body.style.overflow;
@@ -37,9 +43,9 @@ export default function AdminLayout() {
     return () => {
       document.body.style.overflow = prevOverflow;
     };
-  }, [menuOpen]);
+  }, [moreOpen]);
 
-  const closeMenu = () => setMenuOpen(false);
+  const closeMore = () => setMoreOpen(false);
 
   return (
     <div className="flex min-h-screen bg-[#0a0f1e]">
@@ -89,54 +95,47 @@ export default function AdminLayout() {
       </aside>
 
       <div className="fixed inset-x-0 top-0 z-30 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur lg:hidden">
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">
-              VK Cloud Conf
-            </p>
-            <p className="truncate text-base font-semibold text-white">Админ-панель</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((prev) => !prev)}
-            className="rounded-lg p-2 text-slate-300 hover:bg-slate-800 hover:text-white"
-            aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
-            aria-expanded={menuOpen}
-          >
-            <AppIcon icon={menuOpen ? panelIcons.close : panelIcons.menu} size="md" />
-          </button>
-        </div>
-      </div>
-
-      {menuOpen ? (
-        <div className="fixed inset-0 z-20 bg-black/60 lg:hidden" onClick={closeMenu} />
-      ) : null}
-
-      <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-72 max-w-[90vw] flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] transition-transform duration-200 lg:hidden ${
-          menuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        aria-hidden={!menuOpen}
-      >
-        <div className="border-b border-[var(--color-border)] px-4 py-5">
+        <div className="px-4 py-3">
           <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">
             VK Cloud Conf
           </p>
-          <p className="mt-1 text-lg font-bold text-white">Админ-панель</p>
+          <p className="truncate text-base font-semibold text-white">Админ-панель</p>
         </div>
+      </div>
 
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
-          {navItems.map(({ to, label, icon, end }) => (
+      {moreOpen ? (
+        <div className="fixed inset-0 z-20 bg-black/60 lg:hidden" onClick={closeMore} />
+      ) : null}
+
+      <div
+        className={`fixed inset-x-0 bottom-0 z-30 rounded-t-2xl border-t border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-transform duration-200 lg:hidden ${
+          moreOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}
+        aria-hidden={!moreOpen}
+      >
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-sm font-semibold text-white">Еще разделы</p>
+          <button
+            type="button"
+            onClick={closeMore}
+            className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+            aria-label="Закрыть"
+          >
+            <AppIcon icon={panelIcons.close} size="md" />
+          </button>
+        </div>
+        <nav className="space-y-1.5">
+          {mobileMoreItems.map(({ to, label, icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
-              onClick={closeMenu}
+              onClick={closeMore}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   isActive
                     ? 'bg-[var(--color-accent)] text-white'
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
+                    : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
                 }`
               }
             >
@@ -149,8 +148,7 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-
-        <div className="border-t border-[var(--color-border)] p-3">
+        <div className="mt-3 border-t border-[var(--color-border)] pt-3">
           <p className="truncate px-3 text-xs text-slate-500">{admin?.email}</p>
           <button
             type="button"
@@ -161,9 +159,52 @@ export default function AdminLayout() {
             Выйти
           </button>
         </div>
-      </aside>
+      </div>
 
-      <main className="min-w-0 flex-1 overflow-y-auto px-4 pb-6 pt-20 sm:px-6 sm:pb-8 sm:pt-24 lg:p-8">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 lg:hidden">
+        <ul className="grid grid-cols-5 gap-1">
+          {mobilePrimaryItems.map(({ to, label, icon, end }) => (
+            <li key={to}>
+              <NavLink
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1 text-[10px] font-medium transition ${
+                    isActive
+                      ? 'bg-[var(--color-accent)] text-white'
+                      : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <AppIcon icon={icon} size="sm" active={isActive} />
+                    <span className="truncate">{label}</span>
+                  </>
+                )}
+              </NavLink>
+            </li>
+          ))}
+          <li>
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              className={`flex min-h-14 w-full flex-col items-center justify-center gap-1 rounded-lg px-1 py-1 text-[10px] font-medium transition ${
+                isMoreActive || moreOpen
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
+              }`}
+              aria-label="Еще разделы"
+              aria-expanded={moreOpen}
+            >
+              <AppIcon icon={panelIcons.menu} size="sm" active={isMoreActive || moreOpen} />
+              <span>Еще</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 pb-24 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:p-8">
         <Outlet />
       </main>
     </div>
