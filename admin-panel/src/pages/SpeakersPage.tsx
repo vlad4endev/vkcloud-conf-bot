@@ -12,7 +12,7 @@ import {
   uploadSpeakerPhoto,
 } from '../api/client';
 import type { Speaker } from '../api/types';
-import { ListCardActions, ListCardReorderFooter } from '../components/mobileList';
+import { ListCardActions, MoveToPositionButton } from '../components/mobileList';
 import {
   Button,
   Card,
@@ -179,13 +179,14 @@ export default function SpeakersPage() {
     }
   }
 
-  async function moveSpeaker(index: number, direction: -1 | 1) {
-    const next = index + direction;
-    if (next < 0 || next >= speakers.length) return;
-    const items = speakers.map((s, i) => ({
-      id: s.id,
-      order: i === index ? next : i === next ? index : i,
-    }));
+  async function moveSpeakerTo(index: number, targetIndex: number) {
+    if (targetIndex < 0 || targetIndex >= speakers.length || targetIndex === index) {
+      return;
+    }
+    const reordered = speakers.map((speaker) => ({ id: speaker.id }));
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, moved);
+    const items = reordered.map((speaker, order) => ({ ...speaker, order }));
     try {
       setSpeakers(await reorderSpeakers(items));
       toast('Порядок сохранён', 'success');
@@ -247,12 +248,14 @@ export default function SpeakersPage() {
                 </ListCardActions>
               </div>
 
-              <ListCardReorderFooter
-                onUp={() => void moveSpeaker(index, -1)}
-                onDown={() => void moveSpeaker(index, 1)}
-                disableUp={index === 0}
-                disableDown={index === speakers.length - 1}
-              />
+              <div className="border-t border-[var(--color-border)] pt-2">
+                <MoveToPositionButton
+                  itemLabel={speaker.name}
+                  currentPosition={index + 1}
+                  totalItems={speakers.length}
+                  onMoveToPosition={(position) => void moveSpeakerTo(index, position - 1)}
+                />
+              </div>
             </Card>
           ))}
         </div>

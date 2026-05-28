@@ -9,7 +9,7 @@ import {
   updateScheduleSession,
 } from '../api/client';
 import type { ScheduleSession, SessionTrack, Speaker } from '../api/types';
-import { ListCardActions, ListCardReorderFooter } from '../components/mobileList';
+import { ListCardActions, MoveToPositionButton } from '../components/mobileList';
 import {
   Button,
   Card,
@@ -155,13 +155,14 @@ export default function SchedulePage() {
     }
   }
 
-  async function moveSession(index: number, direction: -1 | 1) {
-    const next = index + direction;
-    if (next < 0 || next >= sessions.length) return;
-    const items = sessions.map((s, i) => ({
-      id: s.id,
-      order: i === index ? next : i === next ? index : i,
-    }));
+  async function moveSessionTo(index: number, targetIndex: number) {
+    if (targetIndex < 0 || targetIndex >= sessions.length || targetIndex === index) {
+      return;
+    }
+    const reordered = sessions.map((session) => ({ id: session.id }));
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, moved);
+    const items = reordered.map((session, order) => ({ ...session, order }));
     try {
       setSessions(await reorderSchedule(items));
       toast('Порядок сохранён', 'success');
@@ -243,12 +244,14 @@ export default function SchedulePage() {
                   </Button>
                 </ListCardActions>
               </div>
-              <ListCardReorderFooter
-                onUp={() => void moveSession(index, -1)}
-                onDown={() => void moveSession(index, 1)}
-                disableUp={index === 0}
-                disableDown={index === sessions.length - 1}
-              />
+              <div className="border-t border-[var(--color-border)] pt-2">
+                <MoveToPositionButton
+                  itemLabel={session.title}
+                  currentPosition={index + 1}
+                  totalItems={sessions.length}
+                  onMoveToPosition={(position) => void moveSessionTo(index, position - 1)}
+                />
+              </div>
             </Card>
           ))}
         </div>
