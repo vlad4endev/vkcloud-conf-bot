@@ -5,19 +5,9 @@
   min-width: 0;
 }
 
-.iconWrap {
-  flex-shrink: 0;
-  width: var(--vk-logo-icon-size);
-  height: var(--vk-logo-icon-size);
-  overflow: hidden;
-  border-radius: 22%;
-}
-
-.icon {
+.iconSvg {
   display: block;
-  height: var(--vk-logo-icon-size);
-  width: auto;
-  max-width: none;
+  flex-shrink: 0;
 }
 
 .tech {
@@ -31,17 +21,14 @@
 }
 
 .sm {
-  --vk-logo-icon-size: 22px;
   --vk-logo-tech-size: 12px;
 }
 
 .md {
-  --vk-logo-icon-size: 28px;
   --vk-logo-tech-size: 14px;
 }
 
 .lg {
-  --vk-logo-icon-size: 44px;
   --vk-logo-tech-size: 18px;
   gap: 8px;
 }

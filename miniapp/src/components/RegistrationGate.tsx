@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import ConfDecor from './ConfDecor';
 import { useRegistration } from '../hooks/useRegistration';
 import VkTechLogo from './VkTechLogo';
 import styles from './RegistrationGate.module.css';
@@ -27,8 +28,10 @@ export default function RegistrationGate({ children }: { children: ReactNode }) 
   if (status === 'loading') {
     return (
       <div className={styles.screen}>
+        <ConfDecor />
         <div className={styles.loadingWrap}>
           <VkTechLogo size="lg" />
+          <p className={styles.eventName}>VK Cloud Conf&apos;26</p>
           <p className={styles.loading}>Загрузка…</p>
         </div>
       </div>
@@ -37,9 +40,14 @@ export default function RegistrationGate({ children }: { children: ReactNode }) 
 
   return (
     <div className={styles.screen}>
+      <ConfDecor />
       <div className={styles.card}>
-        <VkTechLogo size="md" className={styles.brandLogo} />
-        <h1 className={styles.title}>{REGISTRATION_TITLE}</h1>
+        <header className={styles.hero}>
+          <VkTechLogo size="lg" className={styles.brandLogo} />
+          <p className={styles.eventDate}>17 июня 2026</p>
+          <h1 className={styles.eventName}>VK Cloud Conf&apos;26</h1>
+        </header>
+        <h2 className={styles.title}>{REGISTRATION_TITLE}</h2>
         <p className={styles.message}>{REGISTRATION_MESSAGE}</p>
         <button type="button" className={styles.btn} onClick={close}>
           Закрыть
