@@ -108,7 +108,8 @@ const CONFIG_KEYS = [
 ] as const;
 
 const questionToSpeakerSchema = z.object({
-  question: z.string().trim().min(1),
+  userId: z.coerce.number().int().positive().optional(),
+  question: z.coerce.string().trim().min(1, 'Укажите текст вопроса'),
 });
 
 const feedbackSchema = z.object({
@@ -227,7 +228,18 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
         return notFound(reply, 'Speaker');
       }
 
-      const parsed = parseBody(questionToSpeakerSchema, request.body);
+      const body =
+        typeof request.body === 'string'
+          ? (() => {
+              try {
+                return JSON.parse(request.body) as unknown;
+              } catch {
+                return request.body;
+              }
+            })()
+          : request.body;
+
+      const parsed = parseBody(questionToSpeakerSchema, body);
       if (!parsed.success) {
         return validationError(reply, parsed.error);
       }

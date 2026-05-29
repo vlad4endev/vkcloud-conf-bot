@@ -14,7 +14,7 @@ import { formatSpeakerSessionLine } from '../lib/speakerSessions';
 export default function SpeakerDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { haptic } = useUserContext();
+  const { userId, haptic } = useUserContext();
 
   const [speaker, setSpeaker] = useState<Speaker | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,7 @@ export default function SpeakerDetail() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!id || !question.trim()) {
+    if (!id || !userId || !question.trim()) {
       return;
     }
 
@@ -47,7 +47,7 @@ export default function SpeakerDetail() {
     setSubmitError(null);
 
     try {
-      await postQuestion(id, { question: question.trim() });
+      await postQuestion(id, { userId, question: question.trim() });
       setQuestion('');
       haptic('success');
       navigate('/speakers', {

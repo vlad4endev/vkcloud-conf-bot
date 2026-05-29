@@ -79,6 +79,7 @@ export interface FeedbackPayload {
 }
 
 export interface QuestionPayload {
+  userId: number;
   question: string;
 }
 
@@ -112,15 +113,51 @@ export interface MeResponse {
 
 export const UNAUTHORIZED_ERROR = 'Пользователь не авторизован';
 
+function formatValidationDetails(details: unknown): string | null {
+  if (!details || typeof details !== 'object') {
+    return null;
+  }
+
+  const fieldErrors = (details as { fieldErrors?: Record<string, string[]> }).fieldErrors;
+  if (!fieldErrors) {
+    return null;
+  }
+
+  const labels: Record<string, string> = {
+    question: 'Вопрос',
+    userId: 'Пользователь',
+  };
+
+  const messages = Object.entries(fieldErrors).flatMap(([field, errors]) => {
+    const label = labels[field] ?? field;
+    return errors.map((message) => {
+      if (field === 'question' && message.includes('expected string')) {
+        return 'Укажите текст вопроса';
+      }
+      return `${label}: ${message}`;
+    });
+  });
+
+  return messages.length > 0 ? messages.join('\n') : null;
+}
+
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const payload = error.response?.data;
     if (payload && typeof payload === 'object') {
+      const validationMessage = formatValidationDetails(
+        'details' in payload ? payload.details : null,
+      );
+      if (validationMessage) {
+        return validationMessage;
+      }
       if ('message' in payload && typeof payload.message === 'string') {
         return payload.message;
       }
       if ('error' in payload && typeof payload.error === 'string') {
-        return payload.error;
+        return payload.error === 'Validation failed'
+          ? 'Проверьте текст вопроса и попробуйте снова'
+          : payload.error;
       }
     }
   }
@@ -187,9 +224,10 @@ export async function postQuestion(
   speakerId: string,
   payload: QuestionPayload,
 ): Promise<CreatedResource> {
+  const userId = requireUserId(payload.userId);
   const { data } = await api.post<CreatedResource>(
     `/speakers/${speakerId}/questions`,
-    { question: payload.question },
+    { userId, question: payload.question },
   );
   return data;
 }
