@@ -2,7 +2,7 @@
 
 :root {
   --app-max-width: 480px;
-  --header-height: 56px;
+  --header-height: 64px;
 
   /* Нижняя панель: фиксированная высота ряда + safe-area отдельно */
   --nav-bar-height: 54px;
@@ -16,7 +16,7 @@
 /* Узкие телефоны (iPhone SE, малые Android) */
 @media (max-width: 359px) {
   :root {
-    --header-height: 52px;
+    --header-height: 60px;
     --nav-bar-height: 50px;
     --nav-icon-size: 20px;
     --nav-label-size: 9px;

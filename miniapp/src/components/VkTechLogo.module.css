@@ -33,6 +33,11 @@
   gap: 8px;
 }
 
+.header {
+  --vk-logo-tech-size: 24px;
+  gap: 10px;
+}
+
 .iconOnly .tech {
   display: none;
 }

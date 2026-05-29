@@ -25,7 +25,7 @@
 
 .chevrons {
   position: absolute;
-  top: 56px;
+  top: calc(var(--header-height, 64px) + 4px);
   right: 8px;
   width: min(100px, 28vw);
   height: auto;

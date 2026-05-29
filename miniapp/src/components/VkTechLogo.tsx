@@ -2,14 +2,14 @@ import type { CSSProperties } from 'react';
 import styles from './VkTechLogo.module.css';
 
 type VkTechLogoProps = {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'header';
   showTech?: boolean;
   muted?: boolean;
   className?: string;
   style?: CSSProperties;
 };
 
-const ICON_SIZES = { sm: 22, md: 28, lg: 44 } as const;
+const ICON_SIZES = { sm: 22, md: 28, lg: 44, header: 44 } as const;
 
 function VkIcon({ size }: { size: number }) {
   return (

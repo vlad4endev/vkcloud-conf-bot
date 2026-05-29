@@ -1,0 +1,43 @@
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.line1,
+.line2 {
+  fill: #ffffff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.line1 {
+  font-size: 46px;
+}
+
+.line2 {
+  font-size: 50px;
+}
+
+@media (max-width: 359px) {
+  .line1 {
+    font-size: 40px;
+  }
+
+  .line2 {
+    font-size: 44px;
+  }
+}
+
+@media (min-width: 400px) {
+  .line1 {
+    font-size: 50px;
+  }
+
+  .line2 {
+    font-size: 54px;
+  }
+}

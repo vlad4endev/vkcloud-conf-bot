@@ -30,12 +30,7 @@ export default function Layout() {
     <div className={styles.layout}>
       <ConfDecor />
       <header className={styles.header}>
-        <div className={styles.headerBrand}>
-          <VkTechLogo size="sm" />
-          <span className={styles.eventTitle}>
-            VK Cloud Conf<span className={styles.eventMark}>&apos;26</span>
-          </span>
-        </div>
+        <VkTechLogo size="header" />
         <div className={styles.headerMeta}>
           {isAdminMode ? <span className="adminBadge">Админ</span> : null}
           <button

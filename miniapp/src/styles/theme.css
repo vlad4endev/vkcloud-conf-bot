@@ -34,6 +34,7 @@
     'Segoe UI',
     system-ui,
     sans-serif;
+  --font-display: 'Unbounded', var(--font-primary);
   --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Courier New', monospace;
 
   --radius-sm: 4px;

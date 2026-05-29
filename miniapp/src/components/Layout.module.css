@@ -23,35 +23,12 @@
   justify-content: space-between;
   gap: 8px;
   min-height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
-  padding: env(safe-area-inset-top, 0px) var(--spacing-md) 0;
+  padding: env(safe-area-inset-top, 0px) var(--spacing-md) 6px;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--color-divider);
   flex-shrink: 0;
   min-width: 0;
-}
-
-.headerBrand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-}
-
-.eventTitle {
-  min-width: 0;
-  font-size: clamp(12px, 3.2vw, 14px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--color-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.eventMark {
-  font-weight: 700;
 }
 
 .headerMeta {
