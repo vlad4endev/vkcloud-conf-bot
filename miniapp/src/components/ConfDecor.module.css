@@ -8,65 +8,69 @@
   margin: 0 auto;
   left: 0;
   right: 0;
+  background: var(--color-bg, #000);
 }
 
-/* Перспективная сетка как на промо-слайдах */
-.gridOverlay {
+/* Оригинальная перспективная сетка с формулами */
+.bgImage {
   position: absolute;
-  inset: -12% -6%;
-  background-image:
-    linear-gradient(var(--color-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: 0.85;
-  transform: perspective(720px) rotateX(11deg) scale(1.08);
-  transform-origin: center 22%;
-  mask-image: radial-gradient(ellipse 120% 95% at 50% 28%, black 25%, transparent 88%);
+  inset: -2% 0 0;
+  background: url('/vk-conf-bg.png') center top / cover no-repeat;
+  opacity: 0.94;
+  filter: contrast(1.12) brightness(0.92);
+  transform: scale(1.02);
+  transform-origin: center top;
 }
 
-/* Концентрические дуги справа */
-.geoArcs {
+/* Затемнение под шапкой — контент читается лучше */
+.scrimTop {
   position: absolute;
   top: 0;
-  right: -28%;
-  width: 72%;
-  height: 100%;
-  color: rgba(255, 255, 255, 0.09);
-  opacity: 1;
-  mask-image: linear-gradient(to left, black 8%, transparent 72%);
+  left: 0;
+  right: 0;
+  height: 38%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.72) 0%,
+    rgba(0, 0, 0, 0.28) 45%,
+    transparent 100%
+  );
 }
 
-/* Лёгкие диагонали в верхней зоне */
-.geoRays {
+/* Затемнение над нижней навигацией */
+.scrimBottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.35) 50%,
+    transparent 100%
+  );
+}
+
+/* Фирменный синий акцент в верхней зоне */
+.glowAccent {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(
-      128deg,
-      transparent 46%,
-      rgba(255, 255, 255, 0.04) 46.2%,
-      rgba(255, 255, 255, 0.04) 46.35%,
-      transparent 46.55%
-    ),
-    linear-gradient(
-      152deg,
-      transparent 38%,
-      rgba(0, 119, 255, 0.06) 38.15%,
-      rgba(0, 119, 255, 0.06) 38.3%,
-      transparent 38.5%
-    );
-  mask-image: linear-gradient(to bottom, black 0%, black 22%, transparent 48%);
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(0, 119, 255, 0.1) 0%, transparent 58%),
+    radial-gradient(ellipse 60% 40% at 85% 75%, rgba(0, 119, 255, 0.04) 0%, transparent 70%);
+  mix-blend-mode: screen;
 }
 
-.chevrons {
+/* Мягкая виньетка по краям */
+.vignette {
   position: absolute;
-  right: -4px;
-  bottom: calc(var(--nav-total-height, 54px) + 12px);
-  width: min(56px, 16vw);
-  height: auto;
-  color: var(--color-primary);
-  opacity: 0.14;
-  mask-image: linear-gradient(135deg, black 15%, transparent 88%);
+  inset: 0;
+  background: radial-gradient(
+    ellipse 95% 88% at 50% 42%,
+    transparent 42%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
 }
 
 .frameLeft,
@@ -82,7 +86,7 @@
     var(--color-divider) 88%,
     transparent 100%
   );
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 .frameLeft {
@@ -106,28 +110,13 @@
     var(--color-divider) 92%,
     transparent 100%
   );
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 @media (max-width: 359px) {
-  .gridOverlay {
-    background-size: 36px 36px;
-    opacity: 0.62;
+  .bgImage {
+    opacity: 0.88;
+    filter: contrast(1.08) brightness(0.9);
   }
 
-  .geoArcs {
-    right: -34%;
-    width: 78%;
-  }
-
-  .chevrons {
-    width: min(48px, 14vw);
-    opacity: 0.1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gridOverlay {
-    transform: none;
-  }
 }
