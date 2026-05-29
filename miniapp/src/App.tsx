@@ -21,7 +21,6 @@ import Feedback from './pages/Feedback';
 import Map from './pages/Map';
 import Quiz from './pages/Quiz';
 import Schedule from './pages/Schedule';
-import ScheduleHub from './pages/ScheduleHub';
 import SpeakerDetail from './pages/SpeakerDetail';
 import Speakers from './pages/Speakers';
 import RegistrationGate from './components/RegistrationGate';
@@ -37,7 +36,7 @@ function AppRoutes() {
         <Route element={<Layout />}>
           <Route path="/" element={<EventInfo />} />
           <Route path="/partners" element={<Partners />} />
-          <Route path="/schedule-hub" element={<ScheduleHub />} />
+          <Route path="/schedule-hub" element={<Navigate to="/schedule" replace />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/map" element={<Map />} />
           <Route path="/speakers" element={<Speakers />} />

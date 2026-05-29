@@ -5,7 +5,8 @@ import { resolveBotUsername } from '../shared/maxMiniAppLink';
 import { getMainMenuKeyboard } from './keyboards';
 import { MESSAGES } from './messages';
 
-const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const EMAIL_IN_TEXT_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i;
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const messageTimestamps = new Map<number, number[]>();
@@ -39,35 +40,27 @@ function isRateLimited(userId: number): boolean {
   return false;
 }
 
-function parseUserData(text: string): { fullName: string; email: string } | null {
-  const trimmed = text.trim();
-  const emailMatches = [...trimmed.matchAll(EMAIL_REGEX)];
+function validateFullName(text: string): string | null {
+  const trimmed = text.trim().replace(/\s+/g, ' ');
 
-  if (emailMatches.length === 0) {
+  if (EMAIL_IN_TEXT_REGEX.test(trimmed)) {
     return null;
   }
 
-  const lastMatch = emailMatches[emailMatches.length - 1];
-  const email = lastMatch[0];
-  const emailIndex = lastMatch.index;
-
-  if (emailIndex === undefined) {
-    return null;
-  }
-
-  const afterEmail = trimmed.slice(emailIndex + email.length).trim();
-  if (afterEmail.length > 0) {
-    return null;
-  }
-
-  const fullName = trimmed.slice(0, emailIndex).trim().replace(/\s+/g, ' ');
-  const words = fullName.split(/\s+/).filter(Boolean);
-
+  const words = trimmed.split(/\s+/).filter(Boolean);
   if (words.length < 2) {
     return null;
   }
 
-  return { fullName, email };
+  return trimmed;
+}
+
+function validateEmail(text: string): string | null {
+  const trimmed = text.trim();
+  if (!EMAIL_REGEX.test(trimmed)) {
+    return null;
+  }
+  return trimmed;
 }
 
 async function getConfig(key: string): Promise<string | null> {
@@ -99,6 +92,39 @@ async function sendMainMenu(ctx: Context) {
   }
 }
 
+async function completeRegistration(
+  ctx: Context,
+  userId: number,
+  chatId: number,
+  fullName: string,
+  email: string,
+) {
+  await prisma.user.upsert({
+    where: { maxUserId: BigInt(userId) },
+    update: {
+      fullName,
+      email,
+      chatId: BigInt(chatId),
+      isVerified: true,
+    },
+    create: {
+      maxUserId: BigInt(userId),
+      chatId: BigInt(chatId),
+      fullName,
+      email,
+      isVerified: true,
+    },
+  });
+
+  sessions.set(userId, { state: 'registered', createdAt: Date.now() });
+
+  await ctx.reply(`✅ Спасибо, *${fullName}*! Вы зарегистрированы.`, {
+    format: 'markdown',
+  });
+
+  await sendMainMenu(ctx);
+}
+
 export async function handleStart(ctx: Context) {
   const userId = ctx.user?.user_id;
   if (!userId) {
@@ -118,11 +144,11 @@ export async function handleStart(ctx: Context) {
       return sendMainMenu(ctx);
     }
 
-    sessions.set(userId, { state: 'waiting_data', createdAt: Date.now() });
+    sessions.set(userId, { state: 'waiting_name', createdAt: Date.now() });
     await ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
   } catch (error) {
     console.error('handleStart error:', error);
-    sessions.set(userId, { state: 'waiting_data', createdAt: Date.now() });
+    sessions.set(userId, { state: 'waiting_name', createdAt: Date.now() });
     await ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
   }
 }
@@ -134,7 +160,6 @@ export async function handleMessage(ctx: Context) {
     return;
   }
 
-  // Webhook delivery may be retried; dedupe by messageId per user.
   const messageId = ctx.messageId;
   if (messageId) {
     const last = lastProcessedMessageIdByUser.get(userId);
@@ -153,52 +178,46 @@ export async function handleMessage(ctx: Context) {
   });
 
   if (existing?.isVerified) {
-    // Для зарегистрированного пользователя не дублируем главное приветствие
-    // на каждое текстовое сообщение: меню доступно по /start.
     return;
   }
 
   const text = (ctx.message?.body?.text ?? '').trim();
 
-  // Пустые сообщения и команды (/start) не парсим — приветствие уже в handleStart
   if (!text || text.startsWith('/')) {
     return;
   }
 
-  const parsed = parseUserData(text);
-
-  if (!parsed) {
-    return ctx.reply(MESSAGES.REGISTRATION_ERROR, { format: 'markdown' });
+  let session = sessions.get(userId);
+  if (!session || session.state === 'registered') {
+    session = { state: 'waiting_name', createdAt: Date.now() };
+    sessions.set(userId, session);
   }
 
-  try {
-    await prisma.user.upsert({
-      where: { maxUserId: BigInt(userId) },
-      update: {
-        fullName: parsed.fullName,
-        email: parsed.email,
-        chatId: BigInt(chatId),
-        isVerified: true,
-      },
-      create: {
-        maxUserId: BigInt(userId),
-        chatId: BigInt(chatId),
-        fullName: parsed.fullName,
-        email: parsed.email,
-        isVerified: true,
-      },
+  if (session.state === 'waiting_name') {
+    const fullName = validateFullName(text);
+    if (!fullName) {
+      return ctx.reply(MESSAGES.NAME_ERROR, { format: 'markdown' });
+    }
+
+    sessions.set(userId, {
+      state: 'waiting_email',
+      fullName,
+      createdAt: Date.now(),
     });
+    return ctx.reply(MESSAGES.ASK_EMAIL, { format: 'markdown' });
+  }
 
-    sessions.set(userId, { state: 'registered', createdAt: Date.now() });
+  if (session.state === 'waiting_email') {
+    const email = validateEmail(text);
+    if (!email || !session.fullName) {
+      return ctx.reply(MESSAGES.EMAIL_ERROR, { format: 'markdown' });
+    }
 
-    await ctx.reply(
-      `✅ Спасибо, *${parsed.fullName}*! Вы зарегистрированы.`,
-      { format: 'markdown' },
-    );
-
-    await sendMainMenu(ctx);
-  } catch (e) {
-    console.error('Ошибка сохранения пользователя:', e);
-    await ctx.reply('Произошла ошибка. Попробуйте ещё раз.');
+    try {
+      await completeRegistration(ctx, userId, chatId, session.fullName, email);
+    } catch (e) {
+      console.error('Ошибка сохранения пользователя:', e);
+      await ctx.reply('Произошла ошибка. Попробуйте ещё раз.');
+    }
   }
 }

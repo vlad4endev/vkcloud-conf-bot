@@ -5,28 +5,27 @@ import BottomNavShell from './BottomNavShell';
 import navStyles from './BottomNavShell.module.css';
 
 const tabs = [
-  { path: '/', label: 'Главная', icon: appIcons.home },
-  { path: '/schedule-hub', label: 'Программа', icon: appIcons.schedule },
+  { path: '/', label: 'О конференции', icon: appIcons.home },
+  { path: '/schedule', label: 'Программа', icon: appIcons.schedule },
   { path: '/quiz', label: 'Квиз', icon: appIcons.quiz },
-  { path: '/feedback', label: 'Связь', icon: appIcons.feedback },
+  { path: '/speakers', label: 'Вопросы спикеру', icon: appIcons.speakers },
 ] as const;
 
 function isTabActive(pathname: string, tabPath: string): boolean {
   switch (tabPath) {
     case '/':
-      return pathname === '/';
-    case '/schedule-hub':
       return (
-        pathname === '/schedule-hub' ||
+        pathname === '/' ||
         pathname === '/map' ||
-        pathname === '/schedule' ||
-        pathname === '/speakers' ||
-        pathname.startsWith('/speakers/')
+        pathname === '/feedback' ||
+        pathname === '/partners'
       );
+    case '/schedule':
+      return pathname === '/schedule';
     case '/quiz':
       return pathname === '/quiz';
-    case '/feedback':
-      return pathname === '/feedback';
+    case '/speakers':
+      return pathname === '/speakers' || pathname.startsWith('/speakers/');
     default:
       return false;
   }

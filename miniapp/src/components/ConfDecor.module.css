@@ -18,7 +18,7 @@
     linear-gradient(var(--color-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
   background-size: 40px 40px;
-  opacity: 0.72;
+  opacity: 0.85;
   transform: perspective(720px) rotateX(11deg) scale(1.08);
   transform-origin: center 22%;
   mask-image: radial-gradient(ellipse 120% 95% at 50% 28%, black 25%, transparent 88%);

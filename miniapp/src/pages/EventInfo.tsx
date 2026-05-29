@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getConfig } from '../api/client';
 import { useAdmin } from '../context/AdminContext';
+import HubAction from '../components/HubAction';
 import PartnersEntryButton from '../components/PartnersSection/PartnersEntryButton';
+import AppIcon from '../components/AppIcon';
+import { appIcons } from '../icons';
 import styles from './EventInfo.module.css';
 
-const CONF_HERO_SRC = `${import.meta.env.BASE_URL}conf-hero.png`;
+const CONF_HERO_GIF = `${import.meta.env.BASE_URL}conf-hero.gif`;
+const CONF_HERO_FALLBACK = `${import.meta.env.BASE_URL}conf-hero.png`;
 
 const EVENT_ABOUT_LEAD =
   'Облачная конференция VK Tech для бизнеса и разработчиков';
@@ -26,6 +30,8 @@ export default function EventInfo() {
 
   const [eventDescription, setEventDescription] = useState('');
   const [loading, setLoading] = useState(true);
+  const [aboutExpanded, setAboutExpanded] = useState(false);
+  const [heroSrc, setHeroSrc] = useState(CONF_HERO_GIF);
 
   useEffect(() => {
     getConfig()
@@ -50,18 +56,25 @@ export default function EventInfo() {
     }
   }, [isAdminMode, navigate]);
 
+  const aboutBody = eventDescription || EVENT_ABOUT_BODY;
+
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="event-hero-title">
         <h1 id="event-hero-title" className={styles.heroTitle}>
           <span className="sr-only">VK cloud Conf&apos;26</span>
           <img
-            src={CONF_HERO_SRC}
+            src={heroSrc}
             alt="VK cloud Conf'26"
             className={styles.heroArt}
             width={1024}
             height={576}
             decoding="async"
+            onError={() => {
+              if (heroSrc !== CONF_HERO_FALLBACK) {
+                setHeroSrc(CONF_HERO_FALLBACK);
+              }
+            }}
           />
         </h1>
         <p className={styles.heroTagline}>Конструкторское бюро будущего</p>
@@ -82,12 +95,39 @@ export default function EventInfo() {
         ) : (
           <>
             <p className={styles.aboutLead}>{EVENT_ABOUT_LEAD}</p>
-            <p className={styles.description}>
-              {eventDescription || EVENT_ABOUT_BODY}
-            </p>
+            <button
+              type="button"
+              className={styles.aboutToggle}
+              onClick={() => setAboutExpanded((v) => !v)}
+              aria-expanded={aboutExpanded}
+              aria-controls="about-body"
+            >
+              {aboutExpanded ? 'Свернуть' : 'Подробнее'}
+              <AppIcon
+                icon={appIcons.expand}
+                size="sm"
+                className={
+                  aboutExpanded ? styles.aboutChevronExpanded : styles.aboutChevron
+                }
+              />
+            </button>
+            {aboutExpanded && (
+              <p id="about-body" className={styles.description}>
+                {aboutBody}
+              </p>
+            )}
           </>
         )}
       </section>
+
+      <div className="hubActions">
+        <HubAction icon={appIcons.map} onClick={() => navigate('/map')}>
+          Карта
+        </HubAction>
+        <HubAction icon={appIcons.feedback} onClick={() => navigate('/feedback')}>
+          Связь
+        </HubAction>
+      </div>
 
       <PartnersEntryButton />
     </div>

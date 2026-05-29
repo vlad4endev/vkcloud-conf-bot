@@ -3,21 +3,22 @@ import AppIcon from './AppIcon';
 import { appIcons } from '../icons';
 import styles from './BackButton.module.css';
 
-const MAIN_SECTIONS = ['/', '/schedule-hub', '/quiz', '/feedback'];
+const MAIN_SECTIONS = ['/', '/schedule', '/quiz', '/speakers'];
 
 type BackButtonProps = {
   backTo?: string;
 };
 
-function resolveBackTo(pathname: string): string | undefined {
-  if (pathname === '/map') {
-    return '/schedule-hub';
+type LocationState = {
+  from?: 'schedule';
+};
+
+function resolveBackTo(pathname: string, state: LocationState | null): string | undefined {
+  if (pathname === '/map' || pathname === '/feedback') {
+    return '/';
   }
   if (/^\/speakers\/[^/]+$/.test(pathname)) {
-    return '/speakers';
-  }
-  if (pathname === '/schedule' || pathname === '/speakers') {
-    return '/schedule-hub';
+    return state?.from === 'schedule' ? '/schedule' : '/speakers';
   }
   if (pathname === '/partners') {
     return '/';
@@ -26,14 +27,14 @@ function resolveBackTo(pathname: string): string | undefined {
 }
 
 export default function BackButton({ backTo }: BackButtonProps) {
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
   const navigate = useNavigate();
 
   if (MAIN_SECTIONS.includes(pathname)) {
     return null;
   }
 
-  const target = backTo ?? resolveBackTo(pathname);
+  const target = backTo ?? resolveBackTo(pathname, state as LocationState | null);
 
   return (
     <button

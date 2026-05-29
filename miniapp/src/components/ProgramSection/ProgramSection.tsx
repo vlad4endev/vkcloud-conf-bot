@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getSchedule, type ScheduleSession, type SessionTrack } from '../../api/client';
 import AppIcon from '../AppIcon';
 import { appIcons } from '../../icons';
@@ -102,7 +103,7 @@ function SessionCard({ item }: { item: ProgramItem }) {
 function SpeakerRow({
   speaker,
 }: {
-  speaker: { name: string; profession?: string; avatar?: string };
+  speaker: { id: string; name: string; profession?: string; avatar?: string };
 }) {
   const initials = speaker.name
     .split(' ')
@@ -129,7 +130,13 @@ function SpeakerRow({
         </span>
       )}
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-white">{speaker.name}</p>
+        <Link
+          to={`/speakers/${speaker.id}`}
+          state={{ from: 'schedule' }}
+          className="truncate text-sm font-semibold text-[#0077ff] hover:underline"
+        >
+          {speaker.name}
+        </Link>
         {speaker.profession ? (
           <p className="truncate text-xs text-white/55">{speaker.profession}</p>
         ) : null}

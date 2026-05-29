@@ -28,7 +28,7 @@ export default function Feedback() {
         userId,
       });
       navigate('/', {
-        state: { notification: 'Спасибо! Обратная связь отправлена.' },
+        state: { notification: 'Спасибо! Сообщение отправлено.' },
       });
     } catch {
       setError('Не удалось отправить обратную связь');
@@ -38,7 +38,7 @@ export default function Feedback() {
 
   return (
     <div className="page">
-      <h1 className="title">Обратная связь</h1>
+      <h1 className="title">Связь</h1>
 
       <form className="form" onSubmit={handleSubmit}>
         {error && <p className="error">{error}</p>}

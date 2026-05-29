@@ -1,7 +1,8 @@
-export type UserState = 'waiting_data' | 'registered';
+export type UserState = 'waiting_name' | 'waiting_email' | 'registered';
 
 export type UserSession = {
   state: UserState;
+  fullName?: string;
   createdAt: number;
 };
 

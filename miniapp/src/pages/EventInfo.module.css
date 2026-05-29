@@ -58,6 +58,30 @@
   overflow-wrap: anywhere;
 }
 
+.aboutToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--spacing-sm);
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: clamp(14px, 3.8vw, 15px);
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.aboutChevron {
+  transition: transform 0.25s ease;
+}
+
+.aboutChevronExpanded {
+  transform: rotate(180deg);
+  transition: transform 0.25s ease;
+}
+
 .description {
   margin: 0;
   font-size: clamp(14px, 3.8vw, 15px);
