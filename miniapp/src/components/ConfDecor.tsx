@@ -5,7 +5,7 @@ export default function ConfDecor() {
   return (
     <div className={styles.root} aria-hidden>
       <div className={styles.gridOverlay} />
-      <svg className={styles.chevrons} viewBox="0 0 120 80" preserveAspectRatio="xMaxYMin meet">
+      <svg className={styles.chevrons} viewBox="0 0 120 80" preserveAspectRatio="xMaxYMax meet">
         {Array.from({ length: 5 }, (_, row) =>
           Array.from({ length: 6 - row }, (_, col) => (
             <path

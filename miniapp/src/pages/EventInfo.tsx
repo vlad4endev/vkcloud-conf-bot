@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getConfig } from '../api/client';
 import { useAdmin } from '../context/AdminContext';
-import VkTechLogo from '../components/VkTechLogo';
 import styles from './EventInfo.module.css';
 
 const CONF_HERO_SRC = `${import.meta.env.BASE_URL}conf-hero.png`;
@@ -88,10 +87,6 @@ export default function EventInfo() {
           </>
         )}
       </section>
-
-      <footer className={styles.brandFooter}>
-        <VkTechLogo size="md" muted />
-      </footer>
     </div>
   );
 }

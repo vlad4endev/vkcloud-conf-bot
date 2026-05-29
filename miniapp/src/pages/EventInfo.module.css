@@ -67,8 +67,3 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-
-.brandFooter {
-  padding: var(--spacing-md) 0 var(--spacing-sm);
-  border-top: 1px solid var(--color-divider);
-}
