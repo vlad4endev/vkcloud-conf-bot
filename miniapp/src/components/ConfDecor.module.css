@@ -10,70 +10,124 @@
   right: 0;
 }
 
+/* Перспективная сетка как на промо-слайдах */
 .gridOverlay {
   position: absolute;
-  inset: -15% -8%;
+  inset: -12% -6%;
   background-image:
     linear-gradient(var(--color-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: 0.35;
-  transform: perspective(600px) rotateX(10deg) scale(1.1);
-  transform-origin: center top;
-  mask-image:
-    radial-gradient(ellipse 95% 55% at 50% 38%, transparent 42%, black 78%),
-    linear-gradient(to bottom, black 0%, black 18%, transparent 42%);
+  background-size: 40px 40px;
+  opacity: 0.72;
+  transform: perspective(720px) rotateX(11deg) scale(1.08);
+  transform-origin: center 22%;
+  mask-image: radial-gradient(ellipse 120% 95% at 50% 28%, black 25%, transparent 88%);
+}
+
+/* Концентрические дуги справа */
+.geoArcs {
+  position: absolute;
+  top: 0;
+  right: -28%;
+  width: 72%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.09);
+  opacity: 1;
+  mask-image: linear-gradient(to left, black 8%, transparent 72%);
+}
+
+/* Лёгкие диагонали в верхней зоне */
+.geoRays {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      128deg,
+      transparent 46%,
+      rgba(255, 255, 255, 0.04) 46.2%,
+      rgba(255, 255, 255, 0.04) 46.35%,
+      transparent 46.55%
+    ),
+    linear-gradient(
+      152deg,
+      transparent 38%,
+      rgba(0, 119, 255, 0.06) 38.15%,
+      rgba(0, 119, 255, 0.06) 38.3%,
+      transparent 38.5%
+    );
+  mask-image: linear-gradient(to bottom, black 0%, black 22%, transparent 48%);
 }
 
 .chevrons {
   position: absolute;
-  right: -6px;
-  bottom: calc(var(--nav-total-height, 54px) + 10px);
-  width: min(64px, 18vw);
+  right: -4px;
+  bottom: calc(var(--nav-total-height, 54px) + 12px);
+  width: min(56px, 16vw);
   height: auto;
   color: var(--color-primary);
-  opacity: 0.16;
-  mask-image: linear-gradient(135deg, black 20%, transparent 85%);
-}
-
-.arcs {
-  position: absolute;
-  top: auto;
-  bottom: calc(var(--nav-total-height, 54px) + 48px);
-  right: -72px;
-  width: min(96px, 26vw);
-  height: 36%;
-  transform: none;
-  color: var(--color-surface-elevated);
-  opacity: 0.55;
-  mask-image: linear-gradient(to left, black 10%, transparent 90%);
+  opacity: 0.14;
+  mask-image: linear-gradient(135deg, black 15%, transparent 88%);
 }
 
 .frameLeft,
 .frameRight {
   position: absolute;
-  top: calc(var(--header-height, 64px) + 8px);
-  bottom: calc(var(--nav-total-height, 54px) + 24px);
+  top: calc(var(--header-height, 64px) + env(safe-area-inset-top, 0px));
+  bottom: calc(var(--nav-total-height, 54px) + 20px);
   width: 1px;
-  background: var(--color-divider);
-  opacity: 0.35;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--color-divider) 12%,
+    var(--color-divider) 88%,
+    transparent 100%
+  );
+  opacity: 0.5;
 }
 
 .frameLeft {
-  left: 8px;
+  left: 10px;
 }
 
 .frameRight {
-  right: 8px;
+  right: 10px;
+}
+
+.frameTop {
+  position: absolute;
+  top: calc(var(--header-height, 64px) + env(safe-area-inset-top, 0px) + 6px);
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--color-divider) 8%,
+    var(--color-divider) 92%,
+    transparent 100%
+  );
+  opacity: 0.45;
 }
 
 @media (max-width: 359px) {
-  .chevrons {
-    width: min(56px, 16vw);
-    opacity: 0.12;
+  .gridOverlay {
+    background-size: 36px 36px;
+    opacity: 0.62;
   }
 
-  .arcs {
-    display: none;
+  .geoArcs {
+    right: -34%;
+    width: 78%;
+  }
+
+  .chevrons {
+    width: min(48px, 14vw);
+    opacity: 0.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gridOverlay {
+    transform: none;
   }
 }
