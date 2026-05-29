@@ -114,7 +114,7 @@ export default function SpeakerDetail() {
         <button
           type="submit"
           className="btn"
-          disabled={submitting || question.trim().length < 10}
+          disabled={submitting || !question.trim()}
         >
           Подтвердить отправку
         </button>

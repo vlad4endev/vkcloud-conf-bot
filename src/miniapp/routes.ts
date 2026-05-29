@@ -91,7 +91,7 @@ const CONFIG_KEYS = [
 
 const questionToSpeakerSchema = z.object({
   userId: z.number().int().positive(),
-  question: z.string().trim().min(10),
+  question: z.string().trim().min(1),
 });
 
 const feedbackSchema = z.object({
