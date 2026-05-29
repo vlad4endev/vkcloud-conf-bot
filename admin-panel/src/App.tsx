@@ -10,6 +10,7 @@ import QuestionsPage from './pages/QuestionsPage';
 import QuizPage from './pages/QuizPage';
 import SchedulePage from './pages/SchedulePage';
 import SettingsPage from './pages/SettingsPage';
+import PartnersPage from './pages/PartnersPage';
 import SpeakersPage from './pages/SpeakersPage';
 import UsersPage from './pages/UsersPage';
 
@@ -38,6 +39,7 @@ export default function App() {
               <Route index element={<DashboardPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="speakers" element={<SpeakersPage />} />
+              <Route path="partners" element={<PartnersPage />} />
               <Route path="schedule" element={<SchedulePage />} />
               <Route path="quiz" element={<QuizPage />} />
               <Route path="questions" element={<QuestionsPage />} />

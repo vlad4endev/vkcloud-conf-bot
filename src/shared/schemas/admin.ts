@@ -104,3 +104,24 @@ export const quizQuestionCreateSchema = z.object({
 });
 
 export const quizQuestionUpdateSchema = quizQuestionCreateSchema.partial();
+
+export const partnerCreateSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(2000).optional().default(''),
+  url: z.string().trim().url(),
+  logoUrl: z.string().url().optional(),
+  order: z.number().int().default(0),
+});
+
+export const partnerUpdateSchema = partnerCreateSchema.partial();
+
+export const partnerReorderSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string().trim().min(1),
+        order: z.number().int(),
+      }),
+    )
+    .min(1),
+});

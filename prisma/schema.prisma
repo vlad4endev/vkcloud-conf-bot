@@ -158,6 +158,19 @@ model Notification {
   @@map("notifications")
 }
 
+model Partner {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("") @db.Text
+  url         String
+  logoUrl     String?  @map("logo_url")
+  order       Int      @default(0) @map("display_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("partners")
+}
+
 model Admin {
   id        String   @id @default(cuid())
   email     String   @unique

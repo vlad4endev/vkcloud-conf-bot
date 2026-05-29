@@ -15,6 +15,9 @@ import {
   scheduleCreateSchema,
   scheduleReorderSchema,
   scheduleUpdateSchema,
+  partnerCreateSchema,
+  partnerReorderSchema,
+  partnerUpdateSchema,
   speakerCreateSchema,
   speakerReorderSchema,
   speakerUpdateSchema,
@@ -113,6 +116,18 @@ const TEXT_CONFIG_KEYS = {
   eventDescription: 'event_description',
   botWelcome: 'bot_welcome',
 } as const;
+
+const PARTNERS_VISIBLE_CONFIG_KEY = 'partners_visible';
+
+const partnersVisibilitySchema = z.object({
+  visible: z.boolean(),
+});
+
+async function isPartnersSectionVisible(): Promise<boolean> {
+  const config = await getConfigMap([PARTNERS_VISIBLE_CONFIG_KEY]);
+  const value = config.get(PARTNERS_VISIBLE_CONFIG_KEY);
+  return value !== 'false';
+}
 
 const quizQuestionUpdateSchema = quizQuestionCreateSchema;
 
@@ -657,6 +672,105 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     },
   );
 
+  fastify.get('/partners', auth, async () => {
+    const [partners, sectionVisible] = await Promise.all([
+      prisma.partner.findMany({
+        orderBy: [{ order: 'asc' }, { name: 'asc' }],
+      }),
+      isPartnersSectionVisible(),
+    ]);
+
+    return { sectionVisible, partners };
+  });
+
+  fastify.put('/partners/visibility', auth, async (request, reply) => {
+    const parsed = parseBody(partnersVisibilitySchema, request.body);
+    if (!parsed.success) {
+      return validationError(reply, parsed.error);
+    }
+
+    await upsertConfig(
+      PARTNERS_VISIBLE_CONFIG_KEY,
+      parsed.data.visible ? 'true' : 'false',
+    );
+
+    return { sectionVisible: parsed.data.visible };
+  });
+
+  fastify.post('/partners', auth, async (request, reply) => {
+    const parsed = parseBody(partnerCreateSchema, request.body);
+    if (!parsed.success) {
+      return validationError(reply, parsed.error);
+    }
+
+    return reply.status(201).send(
+      await prisma.partner.create({ data: parsed.data }),
+    );
+  });
+
+  fastify.put('/partners/reorder', auth, async (request, reply) => {
+    const parsed = parseBody(partnerReorderSchema, request.body);
+    if (!parsed.success) {
+      return validationError(reply, parsed.error);
+    }
+
+    await Promise.all(
+      parsed.data.items.map((item) =>
+        prisma.partner.update({
+          where: { id: item.id },
+          data: { order: item.order },
+        }),
+      ),
+    );
+
+    return prisma.partner.findMany({
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+    });
+  });
+
+  fastify.put<{ Params: { id: string } }>(
+    '/partners/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Partner');
+      }
+
+      const parsed = parseBody(partnerUpdateSchema, request.body);
+      if (!parsed.success) {
+        return validationError(reply, parsed.error);
+      }
+
+      try {
+        return await prisma.partner.update({
+          where: { id },
+          data: parsed.data,
+        });
+      } catch {
+        return notFound(reply, 'Partner');
+      }
+    },
+  );
+
+  fastify.delete<{ Params: { id: string } }>(
+    '/partners/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Partner');
+      }
+
+      try {
+        await prisma.partner.delete({ where: { id } });
+        return reply.status(204).send();
+      } catch {
+        return notFound(reply, 'Partner');
+      }
+    },
+  );
+
   fastify.get('/quiz/questions', auth, async () => {
     return prisma.quizQuestion.findMany({
       orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
@@ -1055,6 +1169,58 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
         });
       } catch {
         return notFound(reply, 'Speaker');
+      }
+
+      return reply.status(204).send();
+    },
+  );
+
+  fastify.post<{ Params: { id: string } }>(
+    '/partners/:id/logo',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Partner');
+      }
+
+      const file = await request.file();
+
+      if (!file || file.fieldname !== 'logo') {
+        return reply.status(400).send({ error: 'Logo file is required' });
+      }
+
+      const url = await saveUploadedFile(file, 'partners');
+
+      try {
+        await prisma.partner.update({
+          where: { id },
+          data: { logoUrl: url },
+        });
+      } catch {
+        return notFound(reply, 'Partner');
+      }
+
+      return { url };
+    },
+  );
+
+  fastify.delete<{ Params: { id: string } }>(
+    '/partners/:id/logo',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Partner');
+      }
+
+      try {
+        await prisma.partner.update({
+          where: { id },
+          data: { logoUrl: null },
+        });
+      } catch {
+        return notFound(reply, 'Partner');
       }
 
       return reply.status(204).send();

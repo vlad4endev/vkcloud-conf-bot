@@ -23,6 +23,7 @@ import {
   scheduleSessionInclude,
   serializeScheduleSessions,
 } from '../shared/scheduleSession';
+import { serializePartners } from '../shared/partner';
 import {
   speakerWithSessionsInclude,
   serializeSpeaker,
@@ -182,6 +183,26 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     }
 
     return config;
+  });
+
+  app.get('/partners', async () => {
+    const partners = await prisma.partner.findMany({
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+    });
+
+    if (partners.length === 0) {
+      return [];
+    }
+
+    const visibilityRow = await prisma.config.findUnique({
+      where: { key: 'partners_visible' },
+    });
+
+    if (visibilityRow?.value === 'false') {
+      return [];
+    }
+
+    return serializePartners(partners);
   });
 
   app.get(

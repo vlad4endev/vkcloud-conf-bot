@@ -93,6 +93,73 @@ export async function deleteSpeaker(id: string) {
   await adminApi.delete(`/speakers/${id}`);
 }
 
+export type AdminPartner = {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  logoUrl: string | null;
+  order: number;
+};
+
+export type AdminPartnersResponse = {
+  sectionVisible: boolean;
+  partners: AdminPartner[];
+};
+
+export async function getPartners() {
+  const { data } = await adminApi.get<AdminPartnersResponse>('/partners');
+  return data;
+}
+
+export async function setPartnersSectionVisible(visible: boolean) {
+  const { data } = await adminApi.put<{ sectionVisible: boolean }>(
+    '/partners/visibility',
+    { visible },
+  );
+  return data.sectionVisible;
+}
+
+export async function createPartner(payload: {
+  name: string;
+  description?: string;
+  url: string;
+  order?: number;
+}) {
+  const { data } = await adminApi.post<AdminPartner>('/partners', payload);
+  return data;
+}
+
+export async function updatePartner(
+  id: string,
+  payload: Partial<{
+    name: string;
+    description: string;
+    url: string;
+    order: number;
+  }>,
+) {
+  const { data } = await adminApi.put<AdminPartner>(`/partners/${id}`, payload);
+  return data;
+}
+
+export async function deletePartner(id: string) {
+  await adminApi.delete(`/partners/${id}`);
+}
+
+export async function uploadPartnerLogo(id: string, file: File) {
+  const form = new FormData();
+  form.append('logo', file);
+  const { data } = await adminApi.post<{ url: string }>(`/partners/${id}/logo`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.url;
+}
+
+export async function deletePartnerLogo(id: string) {
+  await adminApi.delete(`/partners/${id}/logo`);
+}
+
 export async function getSchedule() {
   const { data } = await adminApi.get('/schedule');
   return data;

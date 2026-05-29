@@ -18,6 +18,9 @@ export default function AdminContentHub() {
         <HubAction icon={appIcons.quiz} onClick={() => navigate('/admin/quiz')}>
           Квиз
         </HubAction>
+        <HubAction icon={appIcons.content} onClick={() => navigate('/admin/partners')}>
+          Партнёры
+        </HubAction>
       </div>
     </div>
   );

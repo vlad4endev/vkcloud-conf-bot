@@ -43,6 +43,17 @@ export interface Speaker {
   _count?: { sessionSpeakers: number };
 }
 
+export interface Partner {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  logoUrl: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type SessionTrack = 'all' | 'tech' | 'business';
 
 export interface ScheduleSessionSpeaker {

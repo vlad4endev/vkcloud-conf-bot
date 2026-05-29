@@ -12,6 +12,7 @@ import type {
   SessionTrack,
   Speaker,
   Notification,
+  Partner,
   SpeakerQuestion,
   TextsConfig,
   User,
@@ -153,6 +154,61 @@ export async function uploadSpeakerPhoto(id: string, file: File): Promise<string
 
 export async function deleteSpeakerPhoto(id: string): Promise<void> {
   await api.delete(`/speakers/${id}/photo`);
+}
+
+export type AdminPartnersResponse = {
+  sectionVisible: boolean;
+  partners: Partner[];
+};
+
+export async function getPartners(): Promise<AdminPartnersResponse> {
+  const { data } = await api.get<AdminPartnersResponse>('/partners');
+  return data;
+}
+
+export async function setPartnersSectionVisible(visible: boolean): Promise<boolean> {
+  const { data } = await api.put<{ sectionVisible: boolean }>('/partners/visibility', {
+    visible,
+  });
+  return data.sectionVisible;
+}
+
+export async function createPartner(payload: {
+  name: string;
+  description?: string;
+  url: string;
+  order?: number;
+}): Promise<Partner> {
+  const { data } = await api.post<Partner>('/partners', payload);
+  return data;
+}
+
+export async function updatePartner(
+  id: string,
+  payload: Partial<{ name: string; description: string; url: string; order: number }>,
+): Promise<Partner> {
+  const { data } = await api.put<Partner>(`/partners/${id}`, payload);
+  return data;
+}
+
+export async function deletePartner(id: string): Promise<void> {
+  await api.delete(`/partners/${id}`);
+}
+
+export async function reorderPartners(items: ReorderItem[]): Promise<Partner[]> {
+  const { data } = await api.put<Partner[]>('/partners/reorder', { items });
+  return data;
+}
+
+export async function uploadPartnerLogo(id: string, file: File): Promise<string> {
+  const form = new FormData();
+  form.append('logo', file);
+  const { data } = await api.post<{ url: string }>(`/partners/${id}/logo`, form);
+  return data.url;
+}
+
+export async function deletePartnerLogo(id: string): Promise<void> {
+  await api.delete(`/partners/${id}/logo`);
 }
 
 export async function getSchedule(): Promise<ScheduleSession[]> {

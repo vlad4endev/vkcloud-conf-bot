@@ -39,6 +39,15 @@ export interface Speaker {
   sessions: SpeakerSession[];
 }
 
+export interface Partner {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  logoUrl: string | null;
+  order: number;
+}
+
 export type SessionTrack = 'all' | 'tech' | 'business';
 
 export interface ScheduleSessionSpeaker {
@@ -195,6 +204,11 @@ export async function getMe(): Promise<MeResponse> {
 
 export async function getConfig(): Promise<AppConfig> {
   const { data } = await api.get<AppConfig>('/config');
+  return data;
+}
+
+export async function getPartners(): Promise<Partner[]> {
+  const { data } = await api.get<Partner[]>('/partners');
   return data;
 }
 

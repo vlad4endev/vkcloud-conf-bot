@@ -16,6 +16,7 @@ const navItems: NavItem[] = [
   { to: '/', label: 'Обзор', icon: panelIcons.overview, end: true },
   { to: '/users', label: 'Участники', icon: panelIcons.users },
   { to: '/speakers', label: 'Спикеры', icon: panelIcons.speakers },
+  { to: '/partners', label: 'Партнёры', icon: panelIcons.partners },
   { to: '/schedule', label: 'Расписание', icon: panelIcons.schedule },
   { to: '/quiz', label: 'Квиз', icon: panelIcons.quiz },
   { to: '/questions', label: 'Вопросы', icon: panelIcons.questions },
