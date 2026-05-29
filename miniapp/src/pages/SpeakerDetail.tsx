@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
+  getApiErrorMessage,
   getSpeakerById,
   postQuestion,
   type Speaker,
@@ -13,7 +14,7 @@ import { formatSpeakerSessionLine } from '../lib/speakerSessions';
 export default function SpeakerDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userId, haptic } = useUserContext();
+  const { haptic } = useUserContext();
 
   const [speaker, setSpeaker] = useState<Speaker | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,7 @@ export default function SpeakerDetail() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!id || !userId || !question.trim()) {
+    if (!id || !question.trim()) {
       return;
     }
 
@@ -46,14 +47,14 @@ export default function SpeakerDetail() {
     setSubmitError(null);
 
     try {
-      await postQuestion(id, { userId, question: question.trim() });
+      await postQuestion(id, { question: question.trim() });
       setQuestion('');
       haptic('success');
       navigate('/speakers', {
         state: { notification: 'Вопрос отправлен спикеру!' },
       });
-    } catch {
-      setSubmitError('Не удалось отправить вопрос');
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error));
       haptic('error');
     } finally {
       setSubmitting(false);

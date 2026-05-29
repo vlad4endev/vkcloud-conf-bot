@@ -1,3 +1,4 @@
+import type { User } from '@prisma/client';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../db/client';
@@ -30,6 +31,10 @@ import {
 
 const MAX_INIT_DATA_HEADER = 'x-max-init-data';
 
+type AuthenticatedRequest = FastifyRequest & {
+  verifiedUser?: User;
+};
+
 function readMaxInitData(request: FastifyRequest): string | null {
   const raw = request.headers[MAX_INIT_DATA_HEADER];
   if (!raw) {
@@ -53,28 +58,41 @@ async function requireMaxInitData(
   }
 }
 
+async function attachVerifiedMaxUser(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<User | undefined> {
+  const initData = readMaxInitData(request);
+  if (!initData) {
+    reply.status(403).send({ error: 'MAX init data required' });
+    return undefined;
+  }
+
+  const maxUserId = parseMaxUserIdFromInitData(initData);
+  if (maxUserId === null) {
+    reply.status(403).send({ error: 'Invalid MAX init data' });
+    return undefined;
+  }
+
+  const user = await findUserByMaxUserId(maxUserId);
+  if (!user?.isVerified) {
+    reply.status(403).send({
+      error: API_REGISTRATION_REQUIRED,
+      message: MINIAPP_REGISTRATION_MESSAGE,
+    });
+    return undefined;
+  }
+
+  (request as AuthenticatedRequest).verifiedUser = user;
+  return user;
+}
+
 /** Verified MAX user required (init data mandatory; same checks as middleware chain). */
 async function requireRegisteredMaxUser(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> {
-  const initData = readMaxInitData(request);
-  if (!initData) {
-    return reply.status(403).send({ error: 'MAX init data required' });
-  }
-
-  const maxUserId = parseMaxUserIdFromInitData(initData);
-  if (maxUserId === null) {
-    return reply.status(403).send({ error: 'Invalid MAX init data' });
-  }
-
-  const user = await findUserByMaxUserId(maxUserId);
-  if (!user?.isVerified) {
-    return reply.status(403).send({
-      error: API_REGISTRATION_REQUIRED,
-      message: MINIAPP_REGISTRATION_MESSAGE,
-    });
-  }
+  await attachVerifiedMaxUser(request, reply);
 }
 
 const adminUnlockSchema = z.object({
@@ -90,7 +108,6 @@ const CONFIG_KEYS = [
 ] as const;
 
 const questionToSpeakerSchema = z.object({
-  userId: z.number().int().positive(),
   question: z.string().trim().min(1),
 });
 
@@ -215,17 +232,18 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
         return validationError(reply, parsed.error);
       }
 
-      const [speaker, user] = await Promise.all([
-        prisma.speaker.findUnique({ where: { id: speakerId }, select: { id: true } }),
-        findUserByMaxUserId(parsed.data.userId),
-      ]);
+      const user = (request as AuthenticatedRequest).verifiedUser;
+      if (!user) {
+        return reply.status(403).send({ error: 'MAX init data required' });
+      }
+
+      const speaker = await prisma.speaker.findUnique({
+        where: { id: speakerId },
+        select: { id: true },
+      });
 
       if (!speaker) {
         return notFound(reply, 'Speaker');
-      }
-
-      if (!user) {
-        return notFound(reply, 'User');
       }
 
       const record = await prisma.questionToSpeaker.create({

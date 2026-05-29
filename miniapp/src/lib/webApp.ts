@@ -55,18 +55,33 @@ export function safeStorageSet(key: string, value: string): void {
   }
 }
 
+function parseMaxUserId(rawId: unknown): number | null {
+  if (typeof rawId === 'number' && Number.isInteger(rawId) && rawId > 0) {
+    return rawId;
+  }
+
+  if (typeof rawId === 'string' && /^\d+$/.test(rawId)) {
+    const parsed = Number.parseInt(rawId, 10);
+    if (Number.isInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
 export function readWebAppUser(): WebAppUser | null {
   const user = window.WebApp?.initDataUnsafe?.user;
-  const rawId = user?.id ?? user?.user_id;
-  if (rawId == null || !Number.isInteger(rawId) || rawId <= 0) {
+  const userId = parseMaxUserId(user?.id ?? user?.user_id);
+  if (userId === null) {
     return null;
   }
 
   const userName = user?.first_name ?? user?.name ?? '';
-  safeStorageSet(STORAGE_ID_KEY, String(rawId));
+  safeStorageSet(STORAGE_ID_KEY, String(userId));
   safeStorageSet(STORAGE_NAME_KEY, userName);
 
-  return { userId: rawId, userName };
+  return { userId, userName };
 }
 
 export function readStoredUser(): WebAppUser | null {

@@ -120,9 +120,24 @@ export function validateMaxUser(data: unknown): boolean {
 }
 
 type MaxInitDataUser = {
-  id?: number;
-  user_id?: number;
+  id?: number | string;
+  user_id?: number | string;
 };
+
+function parsePositiveMaxUserId(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === 'string' && /^\d+$/.test(value)) {
+    const parsed = Number(value);
+    if (Number.isSafeInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
 
 export function parseMaxUserIdFromInitData(data: unknown): number | null {
   const initData = normalizeInitData(data);
@@ -138,8 +153,8 @@ export function parseMaxUserIdFromInitData(data: unknown): number | null {
 
   try {
     const user = JSON.parse(userRaw) as MaxInitDataUser;
-    const id = user.id ?? user.user_id;
-    if (typeof id === 'number' && Number.isInteger(id) && id > 0) {
+    const id = parsePositiveMaxUserId(user.id ?? user.user_id);
+    if (id !== null) {
       return id;
     }
   } catch {

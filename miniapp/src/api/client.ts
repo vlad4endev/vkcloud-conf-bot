@@ -79,7 +79,6 @@ export interface FeedbackPayload {
 }
 
 export interface QuestionPayload {
-  userId: number;
   question: string;
 }
 
@@ -112,6 +111,26 @@ export interface MeResponse {
 }
 
 export const UNAUTHORIZED_ERROR = 'Пользователь не авторизован';
+
+export function getApiErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const payload = error.response?.data;
+    if (payload && typeof payload === 'object') {
+      if ('message' in payload && typeof payload.message === 'string') {
+        return payload.message;
+      }
+      if ('error' in payload && typeof payload.error === 'string') {
+        return payload.error;
+      }
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Ошибка запроса';
+}
 
 function requireUserId(userId: number | undefined | null): number {
   if (userId == null || !Number.isInteger(userId) || userId <= 0) {
@@ -168,10 +187,9 @@ export async function postQuestion(
   speakerId: string,
   payload: QuestionPayload,
 ): Promise<CreatedResource> {
-  requireUserId(payload.userId);
   const { data } = await api.post<CreatedResource>(
     `/speakers/${speakerId}/questions`,
-    payload,
+    { question: payload.question },
   );
   return data;
 }
