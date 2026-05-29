@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getConfig } from '../api/client';
 import { useAdmin } from '../context/AdminContext';
-import PartnersSection from '../components/PartnersSection/PartnersSection';
+import PartnersEntryButton from '../components/PartnersSection/PartnersEntryButton';
 import styles from './EventInfo.module.css';
 
 const CONF_HERO_SRC = `${import.meta.env.BASE_URL}conf-hero.png`;
@@ -89,7 +89,7 @@ export default function EventInfo() {
         )}
       </section>
 
-      <PartnersSection />
+      <PartnersEntryButton />
     </div>
   );
 }

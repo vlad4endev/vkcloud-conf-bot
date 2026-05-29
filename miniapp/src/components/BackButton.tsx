@@ -19,6 +19,9 @@ function resolveBackTo(pathname: string): string | undefined {
   if (pathname === '/schedule' || pathname === '/speakers') {
     return '/schedule-hub';
   }
+  if (pathname === '/partners') {
+    return '/';
+  }
   return undefined;
 }
 

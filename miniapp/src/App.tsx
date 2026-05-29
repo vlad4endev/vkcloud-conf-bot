@@ -16,6 +16,7 @@ import AdminPartners from './pages/admin/AdminPartners';
 import AdminSpeakers from './pages/admin/AdminSpeakers';
 import AdminUsers from './pages/admin/AdminUsers';
 import EventInfo from './pages/EventInfo';
+import Partners from './pages/Partners';
 import Feedback from './pages/Feedback';
 import Map from './pages/Map';
 import Quiz from './pages/Quiz';
@@ -35,6 +36,7 @@ function AppRoutes() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<EventInfo />} />
+          <Route path="/partners" element={<Partners />} />
           <Route path="/schedule-hub" element={<ScheduleHub />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/map" element={<Map />} />
