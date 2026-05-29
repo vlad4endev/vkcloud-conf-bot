@@ -3,8 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getConfig } from '../api/client';
 import { useAdmin } from '../context/AdminContext';
 import VkTechLogo from '../components/VkTechLogo';
-import ConfHeroTitle from '../components/ConfHeroTitle';
 import styles from './EventInfo.module.css';
+
+const CONF_HERO_SRC = `${import.meta.env.BASE_URL}conf-hero.png`;
 
 const EVENT_ABOUT_LEAD =
   'Облачная конференция VK Tech для бизнеса и разработчиков';
@@ -52,14 +53,16 @@ export default function EventInfo() {
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="event-hero-title">
-        <div className={styles.heroDateWrap}>
-          <span className={styles.heroDateLine} aria-hidden />
-          <p className={styles.heroDate}>17 ИЮНЯ</p>
-          <span className={styles.heroDateLine} aria-hidden />
-        </div>
         <h1 id="event-hero-title" className={styles.heroTitle}>
           <span className="sr-only">VK cloud Conf&apos;26</span>
-          <ConfHeroTitle />
+          <img
+            src={CONF_HERO_SRC}
+            alt="VK cloud Conf'26"
+            className={styles.heroArt}
+            width={1024}
+            height={576}
+            decoding="async"
+          />
         </h1>
         <p className={styles.heroTagline}>Конструкторское бюро будущего</p>
       </section>

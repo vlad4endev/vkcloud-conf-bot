@@ -13,6 +13,7 @@ export default function Layout() {
   const { isAdminMode, openUnlockModal } = useAdmin();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isHomeRoute = location.pathname === '/';
   const [dateTaps, setDateTaps] = useState(0);
 
   function handleDateTap() {
@@ -28,7 +29,7 @@ export default function Layout() {
 
   return (
     <div className={styles.layout}>
-      <ConfDecor />
+      {!isHomeRoute ? <ConfDecor /> : null}
       <header className={styles.header}>
         <VkTechLogo size="header" />
         <div className={styles.headerMeta}>
