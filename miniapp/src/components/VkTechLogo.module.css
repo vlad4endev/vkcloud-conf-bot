@@ -1,47 +1,33 @@
 .root {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   min-width: 0;
+  line-height: 0;
 }
 
-.iconSvg {
+.img {
   display: block;
-  flex-shrink: 0;
-}
-
-.tech {
-  font-size: var(--vk-logo-tech-size);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  color: var(--color-text);
-  text-transform: lowercase;
-  white-space: nowrap;
+  height: var(--vk-logo-height);
+  width: auto;
+  max-width: none;
 }
 
 .sm {
-  --vk-logo-tech-size: 12px;
+  --vk-logo-height: 22px;
 }
 
 .md {
-  --vk-logo-tech-size: 14px;
+  --vk-logo-height: 28px;
 }
 
 .lg {
-  --vk-logo-tech-size: 18px;
-  gap: 8px;
+  --vk-logo-height: 44px;
 }
 
 .header {
-  --vk-logo-tech-size: 24px;
-  gap: 10px;
+  --vk-logo-height: 44px;
 }
 
-.iconOnly .tech {
-  display: none;
-}
-
-.muted .tech {
-  color: var(--color-text-muted);
+.muted .img {
+  opacity: 0.55;
 }

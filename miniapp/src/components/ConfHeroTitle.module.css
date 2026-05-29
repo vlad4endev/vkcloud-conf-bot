@@ -1,43 +1,79 @@
-.svg {
-  display: block;
+.root {
   width: 100%;
-  max-width: 100%;
-  height: auto;
   overflow: visible;
 }
 
-.line1,
-.line2 {
-  fill: #ffffff;
+.stage {
+  perspective: 680px;
+  perspective-origin: 50% 46%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  overflow: visible;
+}
+
+.lineTop,
+.lineBottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
+  width: 100%;
+  overflow: visible;
+}
+
+.lineTop {
+  margin-bottom: -0.06em;
+}
+
+.lineBottom {
+  margin-top: -0.14em;
+}
+
+.char {
+  display: inline-block;
   font-family: var(--font-display);
   font-weight: 900;
-  letter-spacing: -0.04em;
+  color: #ffffff;
+  letter-spacing: -0.05em;
+  transform-origin: center 88%;
+  transform:
+    translateX(var(--tx, 0))
+    translateY(var(--ty, 0))
+    rotateY(var(--ry, 0deg))
+    skewX(var(--skew, 0deg))
+    scale(var(--s, 1))
+    scaleX(var(--sx, 1));
+  will-change: transform;
 }
 
-.line1 {
-  font-size: 46px;
+.lineTop .char {
+  font-size: clamp(36px, 11vw, 50px);
+  line-height: 0.9;
 }
 
-.line2 {
-  font-size: 50px;
+.lineBottom .char {
+  font-size: clamp(40px, 12vw, 54px);
+  line-height: 0.88;
 }
 
 @media (max-width: 359px) {
-  .line1 {
-    font-size: 40px;
+  .stage {
+    perspective: 520px;
   }
 
-  .line2 {
-    font-size: 44px;
+  .lineTop .char {
+    font-size: clamp(32px, 10.5vw, 40px);
+  }
+
+  .lineBottom .char {
+    font-size: clamp(36px, 11.5vw, 44px);
   }
 }
 
 @media (min-width: 400px) {
-  .line1 {
-    font-size: 50px;
-  }
-
-  .line2 {
-    font-size: 54px;
+  .stage {
+    perspective: 760px;
   }
 }
