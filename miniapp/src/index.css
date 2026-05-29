@@ -30,7 +30,19 @@ body {
   max-width: 100%;
   overflow-x: hidden;
   overscroll-behavior-x: none;
-  background: var(--color-bg);
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(
+      ellipse 120% 80% at -20% 20%,
+      rgba(0, 119, 255, 0.14) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 90% 60% at 110% 80%,
+      rgba(0, 60, 180, 0.1) 0%,
+      transparent 50%
+    );
+  background-attachment: fixed;
   color: var(--color-text);
   font-family: var(--font-primary);
   margin: 0;

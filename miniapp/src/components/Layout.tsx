@@ -5,6 +5,8 @@ import AdminBottomNav from './AdminBottomNav';
 import AdminUnlockModal from './AdminUnlockModal';
 import BackButton from './BackButton';
 import BottomNav from './BottomNav';
+import ConfDecor from './ConfDecor';
+import VkTechLogo from './VkTechLogo';
 import styles from './Layout.module.css';
 
 export default function Layout() {
@@ -26,8 +28,14 @@ export default function Layout() {
 
   return (
     <div className={styles.layout}>
+      <ConfDecor />
       <header className={styles.header}>
-        <span className={styles.logo}>VK CLOUD CONF</span>
+        <div className={styles.headerBrand}>
+          <VkTechLogo size="sm" />
+          <span className={styles.eventTitle}>
+            VK Cloud Conf<span className={styles.eventMark}>&apos;26</span>
+          </span>
+        </div>
         <div className={styles.headerMeta}>
           {isAdminMode ? <span className="adminBadge">Админ</span> : null}
           <button

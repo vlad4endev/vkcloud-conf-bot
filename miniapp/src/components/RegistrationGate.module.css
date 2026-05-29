@@ -24,11 +24,8 @@
   background: var(--color-surface);
 }
 
-.logo {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--color-accent);
+.brandLogo {
+  align-self: flex-start;
 }
 
 .title {
@@ -44,6 +41,17 @@
   line-height: 1.55;
   color: var(--color-text-secondary);
   white-space: pre-wrap;
+}
+
+.brandLogo {
+  align-self: flex-start;
+}
+
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .loading {

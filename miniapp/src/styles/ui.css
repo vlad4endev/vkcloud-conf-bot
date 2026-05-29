@@ -9,10 +9,10 @@
 
 .title {
   margin: 0;
-  font-size: clamp(18px, 5.2vw, 22px);
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--color-text);
+  font-size: clamp(20px, 5.5vw, 24px);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-primary);
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -34,7 +34,7 @@
   color: var(--color-text-secondary);
   font-size: 15px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
 }
 
@@ -86,12 +86,13 @@
   text-decoration: none;
   box-sizing: border-box;
   background: var(--color-primary);
-  color: var(--color-text);
-  transition: background 0.15s ease;
+  color: #ffffff;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn:hover:not(:disabled) {
   background: var(--color-primary-dark);
+  box-shadow: 0 8px 24px var(--color-glow);
 }
 
 .btn:disabled {
@@ -101,13 +102,13 @@
 
 .btnSecondary {
   background: transparent;
-  color: var(--color-accent);
-  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border-strong);
 }
 
 .btnSecondary:hover:not(:disabled) {
   background: var(--color-surface-2);
-  border-color: var(--color-accent);
+  border-color: var(--color-primary);
 }
 
 .linkBtn {
@@ -121,14 +122,14 @@
   text-align: center;
   text-decoration: none;
   box-sizing: border-box;
-  background: var(--color-surface-2);
-  color: var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-primary);
   border: 1px solid var(--color-border);
   transition: border-color 0.15s ease;
 }
 
 .linkBtn:hover {
-  border-color: var(--color-accent);
+  border-color: var(--color-primary);
 }
 
 .list {
@@ -160,6 +161,7 @@
 
 .card:hover {
   border-color: var(--color-primary);
+  box-shadow: 0 8px 28px -8px var(--color-glow);
 }
 
 .cardPhoto {
@@ -203,7 +205,7 @@
 .cardMeta {
   font-size: 13px;
   line-height: 1.35;
-  color: var(--color-text-muted, #7b9cc0);
+  color: var(--color-text-muted);
 }
 
 .cardMetaSessions {
@@ -225,7 +227,7 @@
   gap: 6px;
   font-size: 14px;
   line-height: 1.4;
-  color: var(--color-text-muted, #7b9cc0);
+  color: var(--color-text-muted);
 }
 
 .session {
@@ -239,7 +241,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-primary);
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
@@ -403,7 +405,7 @@
 
 .hubBtn:hover {
   border-color: var(--color-primary);
-  background: var(--color-surface-2);
+  background: var(--color-surface-elevated);
 }
 
 /* Единый контейнер иконок (хабы, действия) */
@@ -416,9 +418,9 @@
   height: clamp(36px, 10vw, 40px);
   flex-shrink: 0;
   border-radius: var(--radius-sm);
-  background: rgba(0, 95, 249, 0.14);
-  color: var(--color-accent);
-  border: 1px solid rgba(0, 209, 255, 0.2);
+  background: rgba(0, 119, 255, 0.12);
+  color: var(--color-primary);
+  border: 1px solid rgba(0, 119, 255, 0.28);
 }
 
 .iconBox svg,
@@ -444,7 +446,7 @@
 }
 
 .hubBtn:hover .hubBtnChevron {
-  color: var(--color-accent);
+  color: var(--color-primary);
   opacity: 1;
 }
 

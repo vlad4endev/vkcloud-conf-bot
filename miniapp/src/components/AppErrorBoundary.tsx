@@ -26,7 +26,7 @@ export default class AppErrorBoundary extends Component<Props, State> {
           style={{
             minHeight: '100svh',
             padding: 24,
-            background: '#0a0f1e',
+            background: '#000000',
             color: '#e8edf5',
             fontFamily: 'system-ui, sans-serif',
           }}

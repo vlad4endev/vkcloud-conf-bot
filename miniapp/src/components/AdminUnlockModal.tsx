@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getApiErrorMessage } from '../api/adminClient';
 import { useAdmin } from '../context/AdminContext';
+import VkTechLogo from './VkTechLogo';
 
 export default function AdminUnlockModal() {
   const { showUnlockModal, closeUnlockModal, unlock } = useAdmin();
@@ -36,6 +37,7 @@ export default function AdminUnlockModal() {
   return (
     <div className="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="admin-unlock-title">
       <div className="modalCard">
+        <VkTechLogo size="sm" muted style={{ marginBottom: 'var(--spacing-sm)' }} />
         <h2 id="admin-unlock-title" className="title">
           Режим организатора
         </h2>

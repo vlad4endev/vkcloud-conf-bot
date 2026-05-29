@@ -1,0 +1,61 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  max-width: var(--app-max-width, 480px);
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+}
+
+.gridOverlay {
+  position: absolute;
+  inset: -20% -10%;
+  background-image:
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 0%, transparent 72%);
+  opacity: 0.9;
+  transform: perspective(600px) rotateX(12deg) scale(1.15);
+  transform-origin: center top;
+}
+
+.chevrons {
+  position: absolute;
+  top: 56px;
+  right: 8px;
+  width: min(100px, 28vw);
+  height: auto;
+  color: var(--color-primary);
+  opacity: 0.55;
+}
+
+.arcs {
+  position: absolute;
+  top: 50%;
+  right: -40px;
+  width: min(140px, 38vw);
+  height: 70%;
+  transform: translateY(-50%);
+  color: var(--color-surface-elevated);
+}
+
+.frameLeft,
+.frameRight {
+  position: absolute;
+  top: 12%;
+  bottom: 18%;
+  width: 1px;
+  background: var(--color-divider);
+}
+
+.frameLeft {
+  left: 10px;
+}
+
+.frameRight {
+  right: 10px;
+}

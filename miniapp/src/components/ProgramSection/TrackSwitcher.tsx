@@ -14,7 +14,7 @@ export default function TrackSwitcher({ activeTrack, onChange }: TrackSwitcherPr
       <h3 className="text-xl font-bold text-white sm:text-2xl">Выберите трек</h3>
 
       <div
-        className="mt-6 border-b border-[#2a3548]"
+        className="mt-6 border-b border-white/12"
         role="tablist"
         aria-label="Треки конференции"
       >
@@ -30,14 +30,14 @@ export default function TrackSwitcher({ activeTrack, onChange }: TrackSwitcherPr
                 aria-selected={isActive}
                 onClick={() => onChange(tab.id)}
                 className={`relative flex-1 px-2 pb-3 text-sm font-medium transition-colors sm:text-base ${
-                  isActive ? 'text-white' : 'text-[#6b7a94] hover:text-[#9aa8bc]'
+                  isActive ? 'text-white' : 'text-white/45 hover:text-white/70'
                 }`}
               >
                 {tab.label}
                 <span
                   className={`absolute bottom-0 left-0 right-0 rounded-full transition-all ${
                     isActive
-                      ? 'h-[3px] bg-[#007bff]'
+                      ? 'h-[3px] bg-[#0077ff]'
                       : 'h-px bg-transparent'
                   }`}
                   aria-hidden

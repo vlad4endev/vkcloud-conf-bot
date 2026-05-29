@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useRegistration } from '../hooks/useRegistration';
+import VkTechLogo from './VkTechLogo';
 import styles from './RegistrationGate.module.css';
 
 const REGISTRATION_TITLE = 'Нужна регистрация';
@@ -26,7 +27,10 @@ export default function RegistrationGate({ children }: { children: ReactNode }) 
   if (status === 'loading') {
     return (
       <div className={styles.screen}>
-        <p className={styles.loading}>Загрузка…</p>
+        <div className={styles.loadingWrap}>
+          <VkTechLogo size="lg" />
+          <p className={styles.loading}>Загрузка…</p>
+        </div>
       </div>
     );
   }
@@ -34,7 +38,7 @@ export default function RegistrationGate({ children }: { children: ReactNode }) 
   return (
     <div className={styles.screen}>
       <div className={styles.card}>
-        <span className={styles.logo}>VK CLOUD CONF</span>
+        <VkTechLogo size="md" className={styles.brandLogo} />
         <h1 className={styles.title}>{REGISTRATION_TITLE}</h1>
         <p className={styles.message}>{REGISTRATION_MESSAGE}</p>
         <button type="button" className={styles.btn} onClick={close}>
