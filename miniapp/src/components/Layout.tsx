@@ -13,13 +13,13 @@ export default function Layout() {
   const { isAdminMode, openUnlockModal } = useAdmin();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const [dateTaps, setDateTaps] = useState(0);
+  const [logoTaps, setLogoTaps] = useState(0);
 
-  function handleDateTap() {
-    const next = dateTaps + 1;
-    setDateTaps(next);
+  function handleLogoTap() {
+    const next = logoTaps + 1;
+    setLogoTaps(next);
     if (next >= 5) {
-      setDateTaps(0);
+      setLogoTaps(0);
       openUnlockModal();
     }
   }
@@ -30,18 +30,19 @@ export default function Layout() {
     <div className={styles.layout}>
       <ConfDecor />
       <header className={styles.header}>
-        <VkTechLogo size="header" />
-        <div className={styles.headerMeta}>
-          {isAdminMode ? <span className="adminBadge">Админ</span> : null}
-          <button
-            type="button"
-            className={styles.date}
-            onClick={handleDateTap}
-            aria-label="Дата мероприятия"
-          >
-            17.06.2026
-          </button>
-        </div>
+        <button
+          type="button"
+          className={styles.logoBtn}
+          onClick={handleLogoTap}
+          aria-label="VK tech"
+        >
+          <VkTechLogo size="header" />
+        </button>
+        {isAdminMode ? (
+          <div className={styles.headerMeta}>
+            <span className="adminBadge">Админ</span>
+          </div>
+        ) : null}
       </header>
       <div className={styles.brandLine} aria-hidden />
       <main className={styles.main}>
