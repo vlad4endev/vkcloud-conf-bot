@@ -16,8 +16,8 @@
   position: absolute;
   inset: -2% 0 0;
   background: url('/vk-conf-bg.png') center top / cover no-repeat;
-  opacity: 0.94;
-  filter: contrast(1.12) brightness(0.92);
+  opacity: 0.58;
+  filter: contrast(0.96) brightness(0.88);
   transform: scale(1.02);
   transform-origin: center top;
 }
@@ -57,8 +57,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(0, 119, 255, 0.1) 0%, transparent 58%),
-    radial-gradient(ellipse 60% 40% at 85% 75%, rgba(0, 119, 255, 0.04) 0%, transparent 70%);
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(0, 119, 255, 0.06) 0%, transparent 58%),
+    radial-gradient(ellipse 60% 40% at 85% 75%, rgba(0, 119, 255, 0.025) 0%, transparent 70%);
   mix-blend-mode: screen;
 }
 
@@ -66,11 +66,17 @@
 .vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    ellipse 95% 88% at 50% 42%,
-    transparent 42%,
-    rgba(0, 0, 0, 0.45) 100%
-  );
+  background:
+    radial-gradient(
+      ellipse 85% 75% at 50% 45%,
+      rgba(0, 0, 0, 0.18) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 95% 88% at 50% 42%,
+      transparent 38%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
 }
 
 .frameLeft,
@@ -115,8 +121,8 @@
 
 @media (max-width: 359px) {
   .bgImage {
-    opacity: 0.88;
-    filter: contrast(1.08) brightness(0.9);
+    opacity: 0.52;
+    filter: contrast(0.94) brightness(0.86);
   }
 
 }
