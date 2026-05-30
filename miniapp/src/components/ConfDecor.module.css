@@ -16,8 +16,8 @@
   position: absolute;
   inset: -2% 0 0;
   background: url('/vk-conf-bg.png') center top / cover no-repeat;
-  opacity: 0.58;
-  filter: contrast(0.96) brightness(0.88);
+  opacity: 0.36;
+  filter: contrast(0.9) brightness(0.84);
   transform: scale(1.02);
   transform-origin: center top;
 }
@@ -68,9 +68,9 @@
   inset: 0;
   background:
     radial-gradient(
-      ellipse 85% 75% at 50% 45%,
-      rgba(0, 0, 0, 0.18) 0%,
-      transparent 55%
+      ellipse 90% 80% at 50% 45%,
+      rgba(0, 0, 0, 0.28) 0%,
+      transparent 58%
     ),
     radial-gradient(
       ellipse 95% 88% at 50% 42%,
@@ -121,8 +121,8 @@
 
 @media (max-width: 359px) {
   .bgImage {
-    opacity: 0.52;
-    filter: contrast(0.94) brightness(0.86);
+    opacity: 0.3;
+    filter: contrast(0.88) brightness(0.82);
   }
 
 }
