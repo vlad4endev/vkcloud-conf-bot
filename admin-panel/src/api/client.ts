@@ -325,7 +325,7 @@ export async function getLinks(): Promise<LinksConfig> {
 }
 
 export async function updateLinks(
-  payload: Partial<Pick<LinksConfig, 'chatUrl' | 'stickerUrl' | 'quizUrl'>>,
+  payload: Partial<Pick<LinksConfig, 'stickerUrl' | 'quizUrl'>>,
 ): Promise<LinksConfig> {
   const { data } = await api.put<LinksConfig>('/links', payload);
   return data;

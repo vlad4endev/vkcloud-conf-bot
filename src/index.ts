@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { Bot } from '@maxhub/max-bot-api';
-import { handleStart, handleMessage } from './bot/handlers';
+import { handleStart, handleMessage, handleCallback } from './bot/handlers';
 import { setBotInstance, startNotificationScheduler } from './bot/notifications';
 import { setupWebhook } from './bot/webhook';
 import { createWebhookServer } from './bot/webhookServer';
@@ -20,6 +20,7 @@ setBotInstance(bot);
 bot.on('bot_started', handleStart);
 bot.command('start', handleStart);
 bot.on('message_created', handleMessage);
+bot.on('message_callback', handleCallback);
 
 async function main(): Promise<void> {
   startNotificationScheduler();

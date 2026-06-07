@@ -16,7 +16,6 @@ export type QuizOption = 'a' | 'b' | 'c' | 'd';
 
 export type ConfigKey =
   | 'event_description'
-  | 'chat_url'
   | 'sticker_url'
   | 'map_image_url'
   | 'quiz_url';

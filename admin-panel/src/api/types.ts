@@ -129,7 +129,6 @@ export interface Notification {
 }
 
 export interface LinksConfig {
-  chatUrl: string;
   stickerUrl: string;
   quizUrl: string;
   mapImageUrl: string;

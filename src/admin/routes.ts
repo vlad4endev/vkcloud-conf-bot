@@ -88,7 +88,6 @@ const urlSchema = z.string().url();
 
 const linksUpdateSchema = z
   .object({
-    chatUrl: urlSchema.optional(),
     stickerUrl: urlSchema.optional(),
     quizUrl: urlSchema.optional(),
   })
@@ -106,7 +105,6 @@ const textsUpdateSchema = z
   });
 
 const LINK_CONFIG_KEYS = {
-  chatUrl: 'chat_url',
   stickerUrl: 'sticker_url',
   quizUrl: 'quiz_url',
   mapImageUrl: 'map_image_url',
@@ -1047,7 +1045,6 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     const config = await getConfigMap(Object.values(LINK_CONFIG_KEYS));
 
     return {
-      chatUrl: config.get(LINK_CONFIG_KEYS.chatUrl) ?? '',
       stickerUrl: config.get(LINK_CONFIG_KEYS.stickerUrl) ?? '',
       quizUrl: config.get(LINK_CONFIG_KEYS.quizUrl) ?? '',
       mapImageUrl: config.get(LINK_CONFIG_KEYS.mapImageUrl) ?? '',
@@ -1061,9 +1058,6 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     const updates: Array<[string, string]> = [];
-    if (parsed.data.chatUrl !== undefined) {
-      updates.push([LINK_CONFIG_KEYS.chatUrl, parsed.data.chatUrl]);
-    }
     if (parsed.data.stickerUrl !== undefined) {
       updates.push([LINK_CONFIG_KEYS.stickerUrl, parsed.data.stickerUrl]);
     }
@@ -1078,7 +1072,6 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     const config = await getConfigMap(Object.values(LINK_CONFIG_KEYS));
 
     return {
-      chatUrl: config.get(LINK_CONFIG_KEYS.chatUrl) ?? '',
       stickerUrl: config.get(LINK_CONFIG_KEYS.stickerUrl) ?? '',
       quizUrl: config.get(LINK_CONFIG_KEYS.quizUrl) ?? '',
       mapImageUrl: config.get(LINK_CONFIG_KEYS.mapImageUrl) ?? '',

@@ -2,11 +2,12 @@ import type { Context } from '@maxhub/max-bot-api';
 import { prisma } from '../db/client';
 import { sessions } from '../shared/types';
 import { resolveBotUsername } from '../shared/maxMiniAppLink';
-import { getMainMenuKeyboard } from './keyboards';
+import { getConfirmKeyboard, getMainMenuKeyboard } from './keyboards';
 import { MESSAGES } from './messages';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const EMAIL_IN_TEXT_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i;
+const NAME_WORD_REGEX = /^[\p{L}][\p{L}'-]*$/u;
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const messageTimestamps = new Map<number, number[]>();
@@ -48,7 +49,7 @@ function validateFullName(text: string): string | null {
   }
 
   const words = trimmed.split(/\s+/).filter(Boolean);
-  if (words.length < 2) {
+  if (words.length !== 3 || !words.every((word) => NAME_WORD_REGEX.test(word))) {
     return null;
   }
 
@@ -75,10 +76,9 @@ async function getConfig(key: string): Promise<string | null> {
 
 async function sendMainMenu(ctx: Context) {
   const miniAppBotUsername = await resolveBotUsername(ctx.api);
-  const chatUrl = (await getConfig('chat_url')) ?? '';
   const stickerUrl = (await getConfig('sticker_url')) ?? '';
 
-  const keyboard = getMainMenuKeyboard(miniAppBotUsername, chatUrl, stickerUrl);
+  const keyboard = getMainMenuKeyboard(miniAppBotUsername, stickerUrl);
 
   if (keyboard) {
     await ctx.reply(MESSAGES.MAIN_MENU, { attachments: [keyboard] });
@@ -90,6 +90,13 @@ async function sendMainMenu(ctx: Context) {
   if (userId) {
     lastStartHandledAtByUser.set(userId, Date.now());
   }
+}
+
+async function sendConfirmData(ctx: Context, fullName: string, email: string) {
+  await ctx.reply(MESSAGES.CONFIRM_DATA(fullName, email), {
+    format: 'markdown',
+    ...getConfirmKeyboard(),
+  });
 }
 
 async function completeRegistration(
@@ -189,8 +196,18 @@ export async function handleMessage(ctx: Context) {
 
   let session = sessions.get(userId);
   if (!session || session.state === 'registered') {
-    session = { state: 'waiting_name', createdAt: Date.now() };
+    session = { state: 'waiting_name', chatId, createdAt: Date.now() };
     sessions.set(userId, session);
+  } else if (session.chatId === undefined) {
+    session = { ...session, chatId };
+    sessions.set(userId, session);
+  }
+
+  if (session.state === 'waiting_confirm') {
+    return ctx.reply(MESSAGES.CONFIRM_PROMPT, {
+      format: 'markdown',
+      ...getConfirmKeyboard(),
+    });
   }
 
   if (session.state === 'waiting_name') {
@@ -202,6 +219,7 @@ export async function handleMessage(ctx: Context) {
     sessions.set(userId, {
       state: 'waiting_email',
       fullName,
+      chatId,
       createdAt: Date.now(),
     });
     return ctx.reply(MESSAGES.ASK_EMAIL, { format: 'markdown' });
@@ -213,8 +231,71 @@ export async function handleMessage(ctx: Context) {
       return ctx.reply(MESSAGES.EMAIL_ERROR, { format: 'markdown' });
     }
 
+    sessions.set(userId, {
+      state: 'waiting_confirm',
+      fullName: session.fullName,
+      email,
+      chatId,
+      createdAt: Date.now(),
+    });
+    return sendConfirmData(ctx, session.fullName, email);
+  }
+}
+
+export async function handleCallback(ctx: Context) {
+  const userId = ctx.user?.user_id;
+  const payload = ctx.callback?.payload;
+  if (!userId || !payload) {
+    return;
+  }
+
+  if (payload === 'reg:edit') {
+    const existing = await prisma.user.findUnique({
+      where: { maxUserId: BigInt(userId) },
+    });
+    if (existing?.isVerified) {
+      await ctx.answerOnCallback({ notification: 'Вы уже зарегистрированы' });
+      return sendMainMenu(ctx);
+    }
+
+    const chatId =
+      ctx.message?.recipient?.chat_id ?? ctx.chatId ?? sessions.get(userId)?.chatId;
+    sessions.set(userId, {
+      state: 'waiting_name',
+      chatId,
+      createdAt: Date.now(),
+    });
+    await ctx.answerOnCallback({ notification: 'Введите данные заново' });
+    return ctx.reply(MESSAGES.EDIT_DATA, { format: 'markdown' });
+  }
+
+  if (payload === 'reg:confirm') {
+    const existing = await prisma.user.findUnique({
+      where: { maxUserId: BigInt(userId) },
+    });
+    if (existing?.isVerified) {
+      await ctx.answerOnCallback({ notification: 'Вы уже зарегистрированы' });
+      return sendMainMenu(ctx);
+    }
+
+    const session = sessions.get(userId);
+    const chatId =
+      ctx.message?.recipient?.chat_id ?? ctx.chatId ?? session?.chatId;
+    if (
+      !session ||
+      session.state !== 'waiting_confirm' ||
+      !session.fullName ||
+      !session.email ||
+      chatId === undefined
+    ) {
+      await ctx.answerOnCallback({ notification: 'Данные устарели, начните с /start' });
+      sessions.set(userId, { state: 'waiting_name', chatId, createdAt: Date.now() });
+      return ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
+    }
+
     try {
-      await completeRegistration(ctx, userId, chatId, session.fullName, email);
+      await ctx.answerOnCallback({ notification: 'Регистрация...' });
+      await completeRegistration(ctx, userId, chatId, session.fullName, session.email);
     } catch (e) {
       console.error('Ошибка сохранения пользователя:', e);
       await ctx.reply('Произошла ошибка. Попробуйте ещё раз.');

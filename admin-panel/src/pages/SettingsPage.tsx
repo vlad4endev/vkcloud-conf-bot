@@ -110,12 +110,6 @@ export default function SettingsPage() {
         <Card className="space-y-4">
           <h2 className="font-semibold text-white">Ссылки</h2>
           <Input
-            label="Чат"
-            type="url"
-            value={links.chatUrl}
-            onChange={(e) => setLinks((l) => l && { ...l, chatUrl: e.target.value })}
-          />
-          <Input
             label="Стикерпак"
             type="url"
             value={links.stickerUrl}

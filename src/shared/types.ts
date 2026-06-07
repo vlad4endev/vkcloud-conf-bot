@@ -1,8 +1,10 @@
-export type UserState = 'waiting_name' | 'waiting_email' | 'registered';
+export type UserState = 'waiting_name' | 'waiting_email' | 'waiting_confirm' | 'registered';
 
 export type UserSession = {
   state: UserState;
   fullName?: string;
+  email?: string;
+  chatId?: number;
   createdAt: number;
 };
 

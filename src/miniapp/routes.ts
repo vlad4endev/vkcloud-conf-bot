@@ -102,7 +102,6 @@ const adminUnlockSchema = z.object({
 
 const CONFIG_KEYS = [
   'event_description',
-  'chat_url',
   'sticker_url',
   'map_image_url',
   'quiz_url',
