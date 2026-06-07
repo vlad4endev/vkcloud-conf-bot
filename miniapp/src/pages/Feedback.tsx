@@ -38,7 +38,7 @@ export default function Feedback() {
 
   return (
     <div className="page">
-      <h1 className="title">Связь</h1>
+      <h1 className="title">Оставить отзыв</h1>
 
       <form className="form" onSubmit={handleSubmit}>
         {error && <p className="error">{error}</p>}

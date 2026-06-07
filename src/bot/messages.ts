@@ -7,7 +7,6 @@ export const MESSAGES = {
 • открыть карту площадки
 • пройти квиз
 
-
 Продолжая использование бота, вы соглашаетесь с документом об обработке персональных данных:
 https://cloud.vk.com/docs/ru/start/legal/digital-cloud/events-terms
 

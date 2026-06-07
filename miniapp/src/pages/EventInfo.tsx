@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getConfig } from '../api/client';
 import { useAdmin } from '../context/AdminContext';
+import FeedbackEntryButton from '../components/FeedbackEntryButton';
 import HubAction from '../components/HubAction';
 import PartnersEntryButton from '../components/PartnersSection/PartnersEntryButton';
 import AppIcon from '../components/AppIcon';
@@ -77,7 +78,6 @@ export default function EventInfo() {
             }}
           />
         </h1>
-        <p className={styles.heroTagline}>Конструкторское бюро будущего</p>
       </section>
 
       {notification && (
@@ -124,12 +124,10 @@ export default function EventInfo() {
         <HubAction icon={appIcons.map} onClick={() => navigate('/map')}>
           Карта
         </HubAction>
-        <HubAction icon={appIcons.feedback} onClick={() => navigate('/feedback')}>
-          Связь
-        </HubAction>
+        <PartnersEntryButton />
       </div>
 
-      <PartnersEntryButton />
+      <FeedbackEntryButton />
     </div>
   );
 }

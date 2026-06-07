@@ -33,7 +33,6 @@ const envSchema = z.object({
   MAX_BOT_USERNAME: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   /** Полный диплинк вместо сборки из MAX_BOT_USERNAME */
   MAX_STARTAPP_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
-  SUPPORT_CONTACT: z.preprocess(emptyToUndefined, z.string().optional()),
 }).superRefine((data, ctx) => {
   if (data.NODE_ENV !== 'production') {
     return;
