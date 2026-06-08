@@ -1,4 +1,4 @@
-/* Глобальные правила вёрстки мини-приложения */
+/* Глобальные правила вёрстки мини-приложения — фиксированные размеры, без адаптивного масштабирования */
 
 :root {
   --app-max-width: 480px;
@@ -10,40 +10,4 @@
   --nav-label-size: 10px;
   --nav-safe-bottom: env(safe-area-inset-bottom, 0px);
   --nav-total-height: calc(var(--nav-bar-height) + var(--nav-safe-bottom));
-  --main-bottom-offset: calc(var(--nav-total-height) + var(--spacing-md));
-}
-
-/* Узкие телефоны (iPhone SE, малые Android) */
-@media (max-width: 359px) {
-  :root {
-    --header-height: 60px;
-    --nav-bar-height: 50px;
-    --nav-icon-size: 20px;
-    --nav-label-size: 9px;
-    --spacing-md: 12px;
-  }
-}
-
-/* Очень узкие — только иконки в таб-баре */
-@media (max-width: 320px) {
-  :root {
-    --nav-bar-height: 48px;
-    --nav-icon-size: 22px;
-    --nav-label-size: 0px;
-  }
-}
-
-/* Крупные телефоны */
-@media (min-width: 400px) {
-  :root {
-    --nav-bar-height: 58px;
-    --nav-icon-size: 24px;
-    --nav-label-size: 10px;
-  }
-}
-
-@media (min-width: 428px) {
-  :root {
-    --spacing-md: 18px;
-  }
 }
