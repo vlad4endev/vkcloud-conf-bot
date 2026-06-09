@@ -4,18 +4,11 @@ export const QUIZ_MEDALS: Record<number, string> = {
   3: '🥉',
 };
 
-export type QuizResultRow = {
-  userId: string;
-  fullName: string;
-  email: string;
-  correctAnswers: number;
-  totalQuestions: number;
-};
+import type { QuizResultRow } from '../api/types';
 
 export type RankedQuizResult = QuizResultRow & {
   rank: number;
   medal: string | null;
-  isPerfect: boolean;
 };
 
 export const QUIZ_RANK_ROW_CLASS: Record<number, string> = {
@@ -30,6 +23,9 @@ export function rankQuizResults(results: QuizResultRow[]): RankedQuizResult[] {
     if (b.correctAnswers !== a.correctAnswers) {
       return b.correctAnswers - a.correctAnswers;
     }
+    if (b.answeredQuestions !== a.answeredQuestions) {
+      return b.answeredQuestions - a.answeredQuestions;
+    }
     return a.fullName.localeCompare(b.fullName, 'ru');
   });
 
@@ -42,14 +38,10 @@ export function rankQuizResults(results: QuizResultRow[]): RankedQuizResult[] {
       prevScore = row.correctAnswers;
     }
 
-    const isPerfect =
-      row.totalQuestions > 0 && row.correctAnswers === row.totalQuestions;
-
     return {
       ...row,
       rank,
-      medal: QUIZ_MEDALS[rank] ?? null,
-      isPerfect,
+      medal: row.isWinner ? (QUIZ_MEDALS[rank] ?? null) : null,
     };
   });
 }

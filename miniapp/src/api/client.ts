@@ -106,7 +106,9 @@ export interface QuizStatus {
   totalQuestions: number;
   answeredQuestions: number;
   correctAnswers: number;
+  isComplete: boolean;
   isWinner: boolean;
+  answeredQuestionIds: string[];
 }
 
 export interface CreatedResource {

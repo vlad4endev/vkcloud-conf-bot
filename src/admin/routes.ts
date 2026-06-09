@@ -23,6 +23,7 @@ import {
   speakerUpdateSchema,
 } from '../shared/schemas/admin';
 import { createQuizQuestionRecord } from '../shared/quizQuestion';
+import { isQuizComplete, isQuizWinner } from '../shared/quizStatus';
 import {
   buildSessionSpeakersCreate,
   getNextScheduleSessionOrder,
@@ -226,7 +227,10 @@ async function getQuizParticipantStats(): Promise<{
     userId: string;
     fullName: string;
     email: string;
+    answeredQuestions: number;
     correctAnswers: number;
+    isComplete: boolean;
+    isWinner: boolean;
     completedAt: Date | null;
   }>;
 }> {
@@ -266,13 +270,25 @@ async function getQuizParticipantStats(): Promise<{
     totalQuestions,
     participants: participants.map((row) => {
       const user = userMap.get(row.userId);
+      const answeredQuestions = row._count._all;
+      const correctAnswers = correctMap.get(row.userId) ?? 0;
+      const complete = isQuizComplete(answeredQuestions, totalQuestions);
 
       return {
         userId: row.userId,
         fullName: user?.fullName ?? '',
         email: user?.email ?? '',
-        correctAnswers: correctMap.get(row.userId) ?? 0,
-        completedAt: completedAtMap.get(row.userId) ?? null,
+        answeredQuestions,
+        correctAnswers,
+        isComplete: complete,
+        isWinner: isQuizWinner(
+          answeredQuestions,
+          correctAnswers,
+          totalQuestions,
+        ),
+        completedAt: complete
+          ? (completedAtMap.get(row.userId) ?? null)
+          : null,
       };
     }),
   };
@@ -833,47 +849,20 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   );
 
   fastify.get('/quiz/results', auth, async () => {
-    const [totalQuestions, correctByUser, participants] = await Promise.all([
-      prisma.quizQuestion.count(),
-      prisma.quizResult.groupBy({
-        by: ['userId'],
-        where: { isCorrect: true },
-        _count: { _all: true },
-      }),
-      prisma.quizResult.groupBy({
-        by: ['userId'],
-        _count: { _all: true },
-      }),
-    ]);
+    const { totalQuestions, participants } = await getQuizParticipantStats();
 
-    const correctMap = new Map(
-      correctByUser.map((row) => [row.userId, row._count._all]),
-    );
+    const results = participants.map((row) => ({
+      userId: row.userId,
+      fullName: row.fullName,
+      email: row.email,
+      answeredQuestions: row.answeredQuestions,
+      correctAnswers: row.correctAnswers,
+      totalQuestions,
+      isComplete: row.isComplete,
+      isWinner: row.isWinner,
+    }));
 
-    const userIds = participants.map((row) => row.userId);
-    const users = await prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: { id: true, fullName: true, email: true },
-    });
-
-    const userMap = new Map(users.map((user) => [user.id, user]));
-
-    const results = participants.map((row) => {
-      const user = userMap.get(row.userId);
-      const correctAnswers = correctMap.get(row.userId) ?? 0;
-
-      return {
-        userId: row.userId,
-        fullName: user?.fullName ?? '',
-        email: user?.email ?? '',
-        correctAnswers,
-        totalQuestions,
-      };
-    });
-
-    const winners = results.filter(
-      (row) => totalQuestions > 0 && row.correctAnswers === totalQuestions,
-    );
+    const winners = results.filter((row) => row.isWinner);
 
     return { results, winners };
   });
@@ -905,12 +894,11 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     const rows = participants.map((row) => ({
       ФИО: row.fullName,
       Email: row.email,
+      'Отвечено вопросов': row.answeredQuestions,
       'Правильных ответов': row.correctAnswers,
       'Всего вопросов': totalQuestions,
-      Победитель:
-        totalQuestions > 0 && row.correctAnswers === totalQuestions
-          ? 'Да'
-          : 'Нет',
+      Статус: row.isComplete ? 'Завершён' : 'В процессе',
+      Победитель: row.isWinner ? 'Да' : 'Нет',
     }));
 
     return createExcelResponse(reply, rows, 'quiz-results.xlsx');
@@ -920,10 +908,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     const { totalQuestions, participants } = await getQuizParticipantStats();
 
     const rows = participants
-      .filter(
-        (row) =>
-          totalQuestions > 0 && row.correctAnswers === totalQuestions,
-      )
+      .filter((row) => row.isWinner)
       .map((row) => ({
         ФИО: row.fullName,
         Email: row.email,

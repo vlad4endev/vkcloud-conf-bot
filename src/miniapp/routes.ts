@@ -19,6 +19,7 @@ import {
   validateMaxUser,
 } from '../shared/maxValidation';
 import { quizOptionSchema } from '../shared/schemas/admin';
+import { getUserQuizStatus } from '../shared/quizStatus';
 import {
   scheduleSessionInclude,
   serializeScheduleSessions,
@@ -407,21 +408,7 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
         return notFound(reply, 'User');
       }
 
-      const [totalQuestions, answeredQuestions, correctAnswers] =
-        await Promise.all([
-          prisma.quizQuestion.count(),
-          prisma.quizResult.count({ where: { userId: user.id } }),
-          prisma.quizResult.count({
-            where: { userId: user.id, isCorrect: true },
-          }),
-        ]);
-
-      return {
-        totalQuestions,
-        answeredQuestions,
-        correctAnswers,
-        isWinner: totalQuestions > 0 && correctAnswers === totalQuestions,
-      };
+      return getUserQuizStatus(user.id);
     },
   );
 

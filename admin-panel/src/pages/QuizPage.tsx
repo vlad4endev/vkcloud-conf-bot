@@ -276,17 +276,17 @@ export default function QuizPage() {
                 </div>
                 <ListCardMeta>
                   <span>
-                    {row.correctAnswers} / {row.totalQuestions} правильно
+                    {row.answeredQuestions} / {row.totalQuestions} отвечено ·{' '}
+                    {row.correctAnswers} правильно
                   </span>
-                  {row.medal ? (
+                  {row.isWinner ? (
                     <Badge tone="success">
-                      {row.rank} место
-                      {row.isPerfect ? ' · 100%' : ''}
+                      {row.medal ? `${row.rank} место · ` : ''}Победитель
                     </Badge>
-                  ) : row.isPerfect ? (
-                    <Badge tone="success">100%</Badge>
+                  ) : row.isComplete ? (
+                    <Badge>Завершён</Badge>
                   ) : (
-                    <Badge>Участник</Badge>
+                    <Badge tone="warning">В процессе</Badge>
                   )}
                 </ListCardMeta>
               </Card>
@@ -301,6 +301,7 @@ export default function QuizPage() {
                 <th className="px-4 py-3 w-16">Место</th>
                 <th className="px-4 py-3">Участник</th>
                 <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Отвечено</th>
                 <th className="px-4 py-3">Правильно</th>
                 <th className="px-4 py-3">Статус</th>
                 <th className="px-4 py-3 w-12" />
@@ -332,18 +333,20 @@ export default function QuizPage() {
                     <td className="px-4 py-3 font-medium text-white">{row.fullName}</td>
                     <td className="px-4 py-3 text-slate-300">{row.email}</td>
                     <td className="px-4 py-3">
+                      {row.answeredQuestions} / {row.totalQuestions}
+                    </td>
+                    <td className="px-4 py-3">
                       {row.correctAnswers} / {row.totalQuestions}
                     </td>
                     <td className="px-4 py-3">
-                      {row.medal ? (
+                      {row.isWinner ? (
                         <Badge tone="success">
-                          {row.rank} место
-                          {row.isPerfect ? ' · 100%' : ''}
+                          {row.medal ? `${row.rank} место · ` : ''}Победитель
                         </Badge>
-                      ) : row.isPerfect ? (
-                        <Badge tone="success">100%</Badge>
+                      ) : row.isComplete ? (
+                        <Badge>Завершён</Badge>
                       ) : (
-                        <Badge>Участник</Badge>
+                        <Badge tone="warning">В процессе</Badge>
                       )}
                     </td>
                     <td className="px-4 py-3">

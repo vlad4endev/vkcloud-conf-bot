@@ -87,21 +87,20 @@ export interface QuizQuestion {
   order: number;
 }
 
+export interface QuizResultRow {
+  userId: string;
+  fullName: string;
+  email: string;
+  answeredQuestions: number;
+  correctAnswers: number;
+  totalQuestions: number;
+  isComplete: boolean;
+  isWinner: boolean;
+}
+
 export interface QuizResultsResponse {
-  results: Array<{
-    userId: string;
-    fullName: string;
-    email: string;
-    correctAnswers: number;
-    totalQuestions: number;
-  }>;
-  winners: Array<{
-    userId: string;
-    fullName: string;
-    email: string;
-    correctAnswers: number;
-    totalQuestions: number;
-  }>;
+  results: QuizResultRow[];
+  winners: QuizResultRow[];
 }
 
 export interface SpeakerQuestion {

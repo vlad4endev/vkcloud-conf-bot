@@ -29,6 +29,14 @@ function optionText(question: QuizQuestion, option: QuizOption): string {
   return map[option];
 }
 
+function filterPendingQuestions(
+  allQuestions: QuizQuestion[],
+  answeredQuestionIds: string[],
+): QuizQuestion[] {
+  const answered = new Set(answeredQuestionIds);
+  return allQuestions.filter((question) => !answered.has(question.id));
+}
+
 export default function Quiz() {
   const { userId, haptic } = useUserContext();
 
@@ -64,26 +72,29 @@ export default function Quiz() {
 
     async function init() {
       try {
-        const statusData = await getQuizStatus(uid);
+        const [statusData, allQuestions] = await Promise.all([
+          getQuizStatus(uid),
+          getQuizQuestions(),
+        ]);
 
         if (cancelled) {
           return;
         }
 
-        if (statusData.answeredQuestions > 0) {
-          setQuizStatus(statusData);
+        setQuizStatus(statusData);
+
+        if (statusData.isComplete) {
           setStatus('finished');
           return;
         }
 
-        const loadedQuestions = await getQuizQuestions();
+        const pendingQuestions = filterPendingQuestions(
+          allQuestions,
+          statusData.answeredQuestionIds,
+        );
 
-        if (cancelled) {
-          return;
-        }
-
-        setQuestions(loadedQuestions);
-        setStatus('idle');
+        setQuestions(pendingQuestions);
+        setStatus(pendingQuestions.length > 0 ? 'idle' : 'finished');
       } catch {
         if (!cancelled) {
           setError('Не удалось загрузить квиз');
@@ -141,7 +152,17 @@ export default function Quiz() {
           try {
             const updatedStatus = await getQuizStatus(userId);
             setQuizStatus(updatedStatus);
-            setStatus('finished');
+            setStatus(updatedStatus.isComplete ? 'finished' : 'idle');
+            if (!updatedStatus.isComplete) {
+              const allQuestions = await getQuizQuestions();
+              setQuestions(
+                filterPendingQuestions(
+                  allQuestions,
+                  updatedStatus.answeredQuestionIds,
+                ),
+              );
+              setCurrentIndex(0);
+            }
           } catch {
             setError('Не удалось загрузить результаты');
           }
@@ -178,8 +199,13 @@ export default function Quiz() {
   }
 
   const currentQuestion = questions[currentIndex];
+  const answeredBefore = quizStatus?.answeredQuestions ?? 0;
+  const totalQuestions = quizStatus?.totalQuestions ?? questions.length;
   const progress =
-    questions.length > 0 ? (currentIndex / questions.length) * 100 : 0;
+    totalQuestions > 0
+      ? ((answeredBefore + currentIndex) / totalQuestions) * 100
+      : 0;
+  const hasProgress = (quizStatus?.answeredQuestions ?? 0) > 0;
 
   if (status === 'loading') {
     return (
@@ -195,7 +221,7 @@ export default function Quiz() {
 
       {error && <p className="error">{error}</p>}
 
-      {status === 'in_progress' && questions.length > 0 && (
+      {status === 'in_progress' && totalQuestions > 0 && (
         <div className={quizStyles.progressTrack} aria-hidden>
           <div
             className={quizStyles.progressFill}
@@ -208,22 +234,34 @@ export default function Quiz() {
         <>
           {questions.length === 0 ? (
             <p className="placeholder">Квиз скоро появится</p>
-          ) : questions.length > 0 ? (
-            <div className="actions">
-              <button
-                type="button"
-                className="btn"
-                onClick={handleStart}
-              >
-                Начать квиз
-              </button>
-            </div>
-          ) : null}
+          ) : (
+            <>
+              {quizStatus && totalQuestions > 0 ? (
+                <p className={quizStyles.progressHint}>
+                  {hasProgress
+                    ? `Пройдено ${quizStatus.answeredQuestions} из ${totalQuestions} вопросов`
+                    : `Вопросов в квизе: ${totalQuestions}`}
+                </p>
+              ) : null}
+              <div className="actions">
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={handleStart}
+                >
+                  {hasProgress ? 'Продолжить квиз' : 'Начать квиз'}
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
 
       {status === 'in_progress' && currentQuestion && (
         <>
+          <p className={quizStyles.questionMeta}>
+            Вопрос {answeredBefore + currentIndex + 1} из {totalQuestions}
+          </p>
           <p className={quizStyles.question}>{currentQuestion.question}</p>
           <div className={quizStyles.options}>
             {OPTIONS.map((option) => (
