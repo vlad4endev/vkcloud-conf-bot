@@ -112,13 +112,18 @@ async function main(): Promise<void> {
   }
 
   for (const quizQuestion of QUIZ_QUESTIONS) {
-    const record = await prisma.quizQuestion.upsert({
+    const existing = await prisma.quizQuestion.findFirst({
       where: { order: quizQuestion.order },
-      create: quizQuestion,
-      update: quizQuestion,
+      select: { id: true, order: true },
     });
 
-    console.log('Quiz question upserted:', record.order);
+    if (existing) {
+      console.log(`Quiz question kept at order ${existing.order}`);
+      continue;
+    }
+
+    const record = await prisma.quizQuestion.create({ data: quizQuestion });
+    console.log('Quiz question created:', record.order);
   }
 }
 

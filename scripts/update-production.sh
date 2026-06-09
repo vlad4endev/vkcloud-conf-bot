@@ -17,8 +17,8 @@ fi
 echo "📥 git pull..."
 git pull
 
-echo "🔨 Сборка образов bot + admin..."
-$COMPOSE build bot admin
+echo "🔨 Сборка образов bot + admin (без кэша)..."
+$COMPOSE build --no-cache bot admin
 
 echo "🗄️ PostgreSQL..."
 $COMPOSE up -d postgres
@@ -27,8 +27,8 @@ sleep 5
 echo "🔄 Миграции Prisma (в контейнере)..."
 $COMPOSE run --rm bot npx prisma migrate deploy
 
-echo "🚀 Запуск сервисов..."
-$COMPOSE up -d bot admin
+echo "🚀 Запуск сервисов (пересоздание контейнеров)..."
+$COMPOSE up -d --force-recreate bot admin
 
 echo "🌐 Публикация miniapp и админ-панели..."
 chmod +x scripts/publish-miniapp.sh scripts/publish-admin-panel.sh

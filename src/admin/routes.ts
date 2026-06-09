@@ -22,7 +22,7 @@ import {
   speakerReorderSchema,
   speakerUpdateSchema,
 } from '../shared/schemas/admin';
-import { getNextQuizQuestionOrder } from '../shared/quizQuestion';
+import { createQuizQuestionRecord } from '../shared/quizQuestion';
 import {
   buildSessionSpeakersCreate,
   getNextScheduleSessionOrder,
@@ -785,12 +785,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     const { order, ...rest } = parsed.data;
 
     return reply.status(201).send(
-      await prisma.quizQuestion.create({
-        data: {
-          ...rest,
-          order: order ?? (await getNextQuizQuestionOrder()),
-        },
-      }),
+      await createQuizQuestionRecord(rest, order),
     );
   });
 
