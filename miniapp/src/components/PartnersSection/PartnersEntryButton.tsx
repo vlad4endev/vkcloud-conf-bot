@@ -20,7 +20,7 @@ export default function PartnersEntryButton() {
 
   return (
     <HubAction icon={appIcons.partners} onClick={() => navigate('/partners')}>
-      Партнёры VK Cloud Conf
+      Партнеры конференции
     </HubAction>
   );
 }
