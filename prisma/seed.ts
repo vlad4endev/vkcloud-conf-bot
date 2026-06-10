@@ -18,6 +18,7 @@ const configDefaults: Record<string, string> = {
 
 const QUIZ_QUESTIONS = [
   {
+    category: 'VK Cloud',
     question: 'Какой сервис VK Cloud используется для виртуальных машин?',
     optionA: 'Cloud Servers',
     optionB: 'Cloud Storage',
@@ -27,6 +28,7 @@ const QUIZ_QUESTIONS = [
     order: 1,
   },
   {
+    category: 'Безопасность',
     question: 'Какой протокол чаще всего используют для безопасного доступа к API?',
     optionA: 'FTP',
     optionB: 'HTTPS',
@@ -36,6 +38,7 @@ const QUIZ_QUESTIONS = [
     order: 2,
   },
   {
+    category: 'VK Cloud',
     question: 'Что из перечисленного относится к managed-сервисам в облаке?',
     optionA: 'Самостоятельная установка PostgreSQL на VM',
     optionB: 'Managed Kubernetes',

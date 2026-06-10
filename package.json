@@ -15,7 +15,7 @@
     "build:admin-panel": "cd admin-panel && npm run build",
     "predeploy": "npm run typecheck && npm run build && npm run build:miniapp && npm run build:admin-panel",
     "typecheck": "tsc --noEmit",
-    "test:quiz": "tsx --test src/shared/quizStatus.test.ts src/shared/quizLiveBroadcaster.test.ts miniapp/src/lib/quizFlow.test.ts",
+    "test:quiz": "tsx --test src/shared/quizStatus.test.ts src/shared/quizLiveBroadcaster.test.ts src/shared/quizCategory.test.ts miniapp/src/lib/quizFlow.test.ts",
     "start": "node dist/index.js",
     "start:admin": "node dist/admin/server.js",
     "db:generate": "npx prisma generate",

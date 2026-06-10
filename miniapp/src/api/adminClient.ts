@@ -187,7 +187,12 @@ export type QuizVisibilityInfo = {
 };
 
 export type AdminQuizResponse = QuizVisibilityInfo & {
-  questions: Array<{ id: string; question: string }>;
+  questions: Array<{
+    id: string;
+    category: string;
+    question: string;
+    order: number;
+  }>;
 };
 
 export async function getQuizQuestions() {

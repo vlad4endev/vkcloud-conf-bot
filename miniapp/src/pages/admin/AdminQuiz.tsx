@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   createQuizQuestion,
   deleteQuizQuestion,
@@ -6,12 +6,21 @@ import {
   getQuizQuestions,
   setQuizSectionVisible,
 } from '../../api/adminClient';
+import { groupQuizQuestionsByCategory } from '../../lib/quizFlow';
+
+type QuizListItem = {
+  id: string;
+  category: string;
+  question: string;
+  order: number;
+};
 
 export default function AdminQuiz() {
-  const [questions, setQuestions] = useState<Array<{ id: string; question: string }>>([]);
+  const [questions, setQuestions] = useState<QuizListItem[]>([]);
   const [sectionVisible, setSectionVisible] = useState(true);
   const [visibilitySaving, setVisibilitySaving] = useState(false);
   const [form, setForm] = useState({
+    category: 'Общее',
     question: '',
     optionA: '',
     optionB: '',
@@ -21,10 +30,22 @@ export default function AdminQuiz() {
   });
   const [message, setMessage] = useState('');
 
+  const groupedQuestions = useMemo(
+    () => groupQuizQuestionsByCategory(questions),
+    [questions],
+  );
+
   async function load() {
     try {
       const data = await getQuizQuestions();
-      setQuestions(data.questions);
+      setQuestions(
+        data.questions.map((item) => ({
+          id: item.id,
+          category: item.category,
+          question: item.question,
+          order: item.order,
+        })),
+      );
       setSectionVisible(data.sectionVisible);
     } catch (e) {
       setMessage(getApiErrorMessage(e));
@@ -56,6 +77,7 @@ export default function AdminQuiz() {
         correctOption: form.correctOption as 'a' | 'b' | 'c' | 'd',
       });
       setForm({
+        category: 'Общее',
         question: '',
         optionA: '',
         optionB: '',
@@ -102,6 +124,12 @@ export default function AdminQuiz() {
         </div>
       ) : null}
       <div className="form">
+        <input
+          className="input"
+          placeholder="Категория"
+          value={form.category}
+          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+        />
         <textarea className="textarea" placeholder="Вопрос" value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} />
         <input className="input" placeholder="A" value={form.optionA} onChange={(e) => setForm((f) => ({ ...f, optionA: e.target.value }))} />
         <input className="input" placeholder="B" value={form.optionB} onChange={(e) => setForm((f) => ({ ...f, optionB: e.target.value }))} />
@@ -117,23 +145,32 @@ export default function AdminQuiz() {
           Добавить вопрос
         </button>
       </div>
-      <ul className="list" style={{ marginTop: 16 }}>
-        {questions.map((q) => (
-          <li key={q.id} className="session">
-            <p className="sessionTitle">{q.question}</p>
-            <button
-              type="button"
-              className="btn btnSecondary"
-              style={{ marginTop: 8 }}
-              onClick={() => {
-                if (confirm('Удалить?')) void deleteQuizQuestion(q.id).then(load);
-              }}
-            >
-              Удалить
-            </button>
-          </li>
+      <div style={{ marginTop: 16 }}>
+        {groupedQuestions.map((group) => (
+          <section key={group.category} style={{ marginBottom: 20 }}>
+            <h2 className="muted" style={{ marginBottom: 8 }}>
+              {group.category} ({group.questions.length})
+            </h2>
+            <ul className="list">
+              {group.questions.map((q) => (
+                <li key={q.id} className="session">
+                  <p className="sessionTitle">{q.question}</p>
+                  <button
+                    type="button"
+                    className="btn btnSecondary"
+                    style={{ marginTop: 8 }}
+                    onClick={() => {
+                      if (confirm('Удалить?')) void deleteQuizQuestion(q.id).then(load);
+                    }}
+                  >
+                    Удалить
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

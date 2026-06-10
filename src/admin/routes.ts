@@ -24,6 +24,7 @@ import {
 } from '../shared/schemas/admin';
 import { invalidateAllContentCaches } from '../shared/invalidateContentCaches';
 import { createQuizQuestionRecord } from '../shared/quizQuestion';
+import { normalizeQuizCategory } from '../shared/quizCategory';
 import { isQuizComplete, isQuizWinner } from '../shared/quizStatus';
 import {
   PARTNERS_VISIBLE_CONFIG_KEY,
@@ -840,7 +841,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/quiz/questions', auth, async () => {
     const [questions, visibility] = await Promise.all([
       prisma.quizQuestion.findMany({
-        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+        orderBy: [{ category: 'asc' }, { order: 'asc' }, { createdAt: 'asc' }],
       }),
       getQuizVisibilityState(),
     ]);
@@ -906,9 +907,15 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       }
 
       try {
+        const { category, ...rest } = parsed.data;
         const updated = await prisma.quizQuestion.update({
           where: { id },
-          data: parsed.data,
+          data: {
+            ...rest,
+            ...(category !== undefined
+              ? { category: normalizeQuizCategory(category) }
+              : {}),
+          },
         });
         invalidateAllContentCaches();
         return updated;

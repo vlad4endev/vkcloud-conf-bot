@@ -1,7 +1,10 @@
 import type { QuizQuestion, QuizStatus } from '../api/client';
 import { sortQuizQuestions } from '../../../src/shared/quizCategory';
 
-export { groupQuizQuestionsByCategory, countAnsweredInCategory } from '../../../src/shared/quizCategory';
+export {
+  groupQuizQuestionsByCategory,
+  countAnsweredInCategory,
+} from '../../../src/shared/quizCategory';
 
 export function toAnsweredSet(answeredQuestionIds: string[]): Set<string> {
   return new Set(answeredQuestionIds);

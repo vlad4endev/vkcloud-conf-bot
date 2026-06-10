@@ -9,6 +9,7 @@ import { useQuizLive } from '../context/QuizLiveContext';
 import { useUserContext } from '../context/UserContext';
 import {
   applyAnswerToQuizStatus,
+  countAnsweredInCategory,
   findNextQuestion,
   toAnsweredSet,
 } from '../lib/quizFlow';
@@ -306,6 +307,7 @@ export default function Quiz() {
   const progress =
     totalQuestions > 0 ? (answeredBefore / totalQuestions) * 100 : 0;
   const hasProgress = answeredIds.size > 0;
+  const categoryProgress = countAnsweredInCategory(allQuestions, answeredIds);
 
   if (status === 'loading') {
     return (
@@ -345,6 +347,31 @@ export default function Quiz() {
                     : `Вопросов в квизе: ${totalQuestions}`}
                 </p>
               ) : null}
+              {categoryProgress.length > 0 ? (
+                <section
+                  className={quizStyles.categoryList}
+                  aria-label="Категории квиза"
+                >
+                  {categoryProgress.map(({ category, total, answered }) => (
+                    <div key={category} className={quizStyles.categoryCard}>
+                      <div className={quizStyles.categoryHeader}>
+                        <span className={quizStyles.categoryTitle}>{category}</span>
+                        <span className={quizStyles.categoryCount}>
+                          {answered} / {total}
+                        </span>
+                      </div>
+                      <div className={quizStyles.categoryTrack} aria-hidden>
+                        <div
+                          className={quizStyles.categoryFill}
+                          style={{
+                            width: `${total > 0 ? (answered / total) * 100 : 0}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              ) : null}
               <QuizRules />
               <div className="actions">
                 <button
@@ -362,6 +389,7 @@ export default function Quiz() {
 
       {status === 'in_progress' && currentQuestion && (
         <>
+          <span className={quizStyles.categoryBadge}>{currentQuestion.category}</span>
           <p className={quizStyles.questionMeta}>
             Вопрос {questionNumber} из {totalQuestions}
           </p>
