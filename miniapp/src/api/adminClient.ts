@@ -99,6 +99,7 @@ export type AdminPartner = {
   description: string;
   url: string;
   logoUrl: string | null;
+  logoScale: number;
   order: number;
 };
 

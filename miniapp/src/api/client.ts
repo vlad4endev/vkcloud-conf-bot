@@ -54,6 +54,7 @@ export interface Partner {
   description: string;
   url: string;
   logoUrl: string | null;
+  logoScale: number;
   order: number;
 }
 

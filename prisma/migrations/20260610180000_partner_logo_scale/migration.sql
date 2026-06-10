@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "logo_scale" INTEGER NOT NULL DEFAULT 100;

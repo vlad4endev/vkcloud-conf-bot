@@ -26,15 +26,33 @@ import {
 } from '../components/ui';
 import { useToast } from '../context/ToastContext';
 import { getErrorMessage } from '../lib/format';
+import {
+  DEFAULT_PARTNER_LOGO_SCALE,
+  MAX_PARTNER_LOGO_SCALE,
+  MIN_PARTNER_LOGO_SCALE,
+  partnerLogoScaleFactor,
+} from '../../../src/shared/partnerLogoScale';
 
-type PartnerForm = { name: string; description: string; url: string };
+type PartnerForm = {
+  name: string;
+  description: string;
+  url: string;
+  logoScale: number;
+};
 
 type LogoDraft =
   | { kind: 'none' }
   | { kind: 'existing'; url: string }
   | { kind: 'preview'; file: File; previewUrl: string };
 
-const emptyForm: PartnerForm = { name: '', description: '', url: '' };
+const LOGO_SCALE_PRESETS = [75, 100, 125, 150] as const;
+
+const emptyForm: PartnerForm = {
+  name: '',
+  description: '',
+  url: '',
+  logoScale: DEFAULT_PARTNER_LOGO_SCALE,
+};
 const emptyLogo: LogoDraft = { kind: 'none' };
 
 function revokePreviewUrl(logo: LogoDraft) {
@@ -124,6 +142,7 @@ export default function PartnersPage() {
       name: partner.name,
       description: partner.description,
       url: partner.url,
+      logoScale: partner.logoScale,
     });
     setEditing(partner);
     setLogo(logoFromPartner(partner));
@@ -165,6 +184,7 @@ export default function PartnersPage() {
         name: form.name.trim(),
         description: form.description.trim(),
         url: form.url.trim(),
+        logoScale: form.logoScale,
       };
 
       if (!payload.name || !payload.url) {
@@ -277,11 +297,15 @@ export default function PartnersPage() {
             <Card key={partner.id} className="space-y-3">
               <div className="flex items-start gap-3">
                 {partner.logoUrl ? (
-                  <span className="flex h-16 w-24 shrink-0 items-center justify-center sm:h-20 sm:w-28">
+                  <span className="flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--color-surface-2)] sm:h-20 sm:w-32">
                     <img
                       src={partner.logoUrl}
                       alt=""
-                      className="max-h-full max-w-full object-contain"
+                      className="max-h-10 max-w-[68%] object-contain"
+                      style={{
+                        transform: `scale(${partnerLogoScaleFactor(partner.logoScale)})`,
+                        transformOrigin: 'center center',
+                      }}
                     />
                   </span>
                 ) : (
@@ -290,7 +314,14 @@ export default function PartnersPage() {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-white">{partner.name}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-white">{partner.name}</h3>
+                    {partner.logoUrl ? (
+                      <span className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-xs text-slate-400">
+                        Лого {partner.logoScale}%
+                      </span>
+                    ) : null}
+                  </div>
                   {partner.description ? (
                     <p className="mt-1 text-sm leading-snug text-slate-400">
                       {partner.description}
@@ -338,11 +369,15 @@ export default function PartnersPage() {
             <span className="text-sm text-slate-400">Логотип</span>
             <div className="flex flex-wrap items-start gap-4">
               {previewUrl ? (
-                <span className="flex h-28 w-40 items-center justify-center rounded-xl bg-[var(--color-surface-2)] p-2">
+                <span className="flex h-24 w-full max-w-xs items-center justify-center overflow-hidden rounded-xl bg-[var(--color-surface-2)] px-4 py-3">
                   <img
                     src={previewUrl}
                     alt=""
-                    className="max-h-full max-w-full object-contain"
+                    className="max-h-10 max-w-[68%] object-contain"
+                    style={{
+                      transform: `scale(${partnerLogoScaleFactor(form.logoScale)})`,
+                      transformOrigin: 'center center',
+                    }}
                   />
                 </span>
               ) : (
@@ -376,6 +411,45 @@ export default function PartnersPage() {
                   </Button>
                 ) : null}
               </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-slate-400">Размер логотипа</span>
+                <span className="text-sm font-medium text-white">{form.logoScale}%</span>
+              </div>
+              <input
+                type="range"
+                min={MIN_PARTNER_LOGO_SCALE}
+                max={MAX_PARTNER_LOGO_SCALE}
+                step={5}
+                value={form.logoScale}
+                onChange={(e) =>
+                  setForm((current) => ({
+                    ...current,
+                    logoScale: Number(e.target.value),
+                  }))
+                }
+                className="w-full accent-blue-500"
+              />
+              <div className="flex flex-wrap gap-2">
+                {LOGO_SCALE_PRESETS.map((preset) => (
+                  <Button
+                    key={preset}
+                    type="button"
+                    variant={form.logoScale === preset ? 'primary' : 'secondary'}
+                    size="sm"
+                    onClick={() =>
+                      setForm((current) => ({ ...current, logoScale: preset }))
+                    }
+                  >
+                    {preset}%
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs leading-snug text-slate-500">
+                Превью повторяет мини-приложение. Для одинакового вида выставьте
+                один и тот же процент у всех партнёров.
+              </p>
             </div>
           </div>
 

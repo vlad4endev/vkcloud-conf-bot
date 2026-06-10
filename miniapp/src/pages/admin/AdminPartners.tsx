@@ -9,6 +9,12 @@ import {
   uploadPartnerLogo,
   type AdminPartner,
 } from '../../api/adminClient';
+import {
+  DEFAULT_PARTNER_LOGO_SCALE,
+  MAX_PARTNER_LOGO_SCALE,
+  MIN_PARTNER_LOGO_SCALE,
+  partnerLogoScaleFactor,
+} from '../../../../src/shared/partnerLogoScale';
 
 type LogoDraft =
   | { kind: 'none' }
@@ -43,6 +49,7 @@ export default function AdminPartners() {
   const [url, setUrl] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [logo, setLogo] = useState<LogoDraft>(emptyLogo);
+  const [logoScale, setLogoScale] = useState(DEFAULT_PARTNER_LOGO_SCALE);
   const [message, setMessage] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -64,6 +71,7 @@ export default function AdminPartners() {
     setDescription('');
     setUrl('');
     setEditingId(null);
+    setLogoScale(DEFAULT_PARTNER_LOGO_SCALE);
     setLogo((current) => {
       revokePreview(current);
       return emptyLogo;
@@ -93,6 +101,7 @@ export default function AdminPartners() {
         name: trimmedName,
         description: description.trim(),
         url: trimmedUrl,
+        logoScale,
       };
 
       if (editingId) {
@@ -164,7 +173,13 @@ export default function AdminPartners() {
               <img
                 src={preview}
                 alt=""
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                style={{
+                  maxWidth: '68%',
+                  maxHeight: 40,
+                  objectFit: 'contain',
+                  transform: `scale(${partnerLogoScaleFactor(logoScale)})`,
+                  transformOrigin: 'center center',
+                }}
               />
             </div>
           ) : (
@@ -225,6 +240,19 @@ export default function AdminPartners() {
           ) : null}
         </div>
 
+        <label className="sessionMeta" style={{ display: 'block', marginTop: 8 }}>
+          Размер логотипа: {logoScale}%
+          <input
+            type="range"
+            min={MIN_PARTNER_LOGO_SCALE}
+            max={MAX_PARTNER_LOGO_SCALE}
+            step={5}
+            value={logoScale}
+            onChange={(e) => setLogoScale(Number(e.target.value))}
+            style={{ width: '100%', marginTop: 8 }}
+          />
+        </label>
+
         <button type="button" className="btn" onClick={() => void save()}>
           {editingId ? 'Обновить' : 'Добавить'}
         </button>
@@ -253,7 +281,13 @@ export default function AdminPartners() {
                   <img
                     src={partner.logoUrl}
                     alt=""
-                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                    style={{
+                      maxWidth: '68%',
+                      maxHeight: 40,
+                      objectFit: 'contain',
+                      transform: `scale(${partnerLogoScaleFactor(partner.logoScale)})`,
+                      transformOrigin: 'center center',
+                    }}
                   />
                 ) : (
                   <span className="sessionMeta">?</span>
@@ -276,6 +310,7 @@ export default function AdminPartners() {
                   setName(partner.name);
                   setDescription(partner.description);
                   setUrl(partner.url);
+                  setLogoScale(partner.logoScale);
                   setLogo((current) => {
                     revokePreview(current);
                     return logoFromPartner(partner);

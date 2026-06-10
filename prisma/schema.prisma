@@ -169,6 +169,7 @@ model Partner {
   description String   @default("") @db.Text
   url         String
   logoUrl     String?  @map("logo_url")
+  logoScale   Int      @default(100) @map("logo_scale")
   order       Int      @default(0) @map("display_order")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

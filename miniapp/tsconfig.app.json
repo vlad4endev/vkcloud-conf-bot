@@ -28,7 +28,8 @@
     "../src/shared/quizVisibility.ts",
     "../src/shared/sectionVisibility.ts",
     "../src/shared/scheduleTrack.ts",
-    "../src/shared/registrationMessages.ts"
+    "../src/shared/registrationMessages.ts",
+    "../src/shared/partnerLogoScale.ts"
   ],
   "exclude": ["src/**/*.test.ts"]
 }

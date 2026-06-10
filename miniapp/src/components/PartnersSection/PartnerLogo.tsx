@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import type { Partner } from '../../api/client';
+import { partnerLogoScaleFactor } from '../../../../src/shared/partnerLogoScale';
 import { measurePartnerLogoBoost } from './partnerLogoBoost';
 import styles from './PartnersSection.module.css';
 
@@ -12,7 +13,7 @@ const sizeClass: Record<PartnerLogoSize, string> = {
 };
 
 type PartnerLogoProps = {
-  partner: Pick<Partner, 'name' | 'logoUrl'>;
+  partner: Pick<Partner, 'name' | 'logoUrl' | 'logoScale'>;
   size?: PartnerLogoSize;
   variant?: 'default' | 'banner';
   className?: string;
@@ -27,6 +28,7 @@ export default function PartnerLogo({
   const [logoBoost, setLogoBoost] = useState(1);
   const imgRef = useRef<HTMLImageElement>(null);
   const isBanner = variant === 'banner';
+  const manualScale = partnerLogoScaleFactor(partner.logoScale);
 
   useEffect(() => {
     setLogoBoost(1);
@@ -75,9 +77,13 @@ export default function PartnerLogo({
             .filter(Boolean)
             .join(' ')}
           style={
-            isBanner && logoBoost > 1
-              ? { transform: `scale(${logoBoost})` }
-              : undefined
+            isBanner
+              ? {
+                  transform: `scale(${manualScale * logoBoost})`,
+                }
+              : manualScale !== 1
+                ? { transform: `scale(${manualScale})` }
+                : undefined
           }
           loading="lazy"
           decoding="async"

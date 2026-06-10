@@ -111,6 +111,7 @@ export const partnerCreateSchema = z.object({
   description: z.string().trim().max(2000).optional().default(''),
   url: z.string().trim().url(),
   logoUrl: z.string().url().optional(),
+  logoScale: z.number().int().min(50).max(200).optional().default(100),
   order: z.number().int().default(0),
 });
 

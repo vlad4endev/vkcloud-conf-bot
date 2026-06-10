@@ -6,6 +6,7 @@ export type PartnerDto = {
   description: string;
   url: string;
   logoUrl: string | null;
+  logoScale: number;
   order: number;
 };
 
@@ -16,6 +17,7 @@ export function serializePartner(partner: Partner): PartnerDto {
     description: partner.description,
     url: partner.url,
     logoUrl: partner.logoUrl,
+    logoScale: partner.logoScale,
     order: partner.order,
   };
 }
