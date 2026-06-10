@@ -112,7 +112,10 @@ async function requireRegisteredMaxUser(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> {
-  await attachVerifiedMaxUser(request, reply);
+  const user = await attachVerifiedMaxUser(request, reply);
+  if (!user) {
+    return;
+  }
 }
 
 const adminUnlockSchema = z.object({

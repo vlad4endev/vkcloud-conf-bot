@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { QuizOption, QuizQuestion, QuizStatus } from '../api/client';
 import {
+  getApiErrorMessage,
   getQuizQuestions,
   getQuizStatus,
   postQuizAnswer,
@@ -165,15 +166,20 @@ export default function Quiz() {
 
         setCurrentQuestionId(null);
         setStatus(questions.length > 0 ? 'idle' : 'finished');
-      } catch {
+      } catch (loadError) {
         if (!cancelled && statusRef.current !== 'in_progress') {
-          setError('Не удалось загрузить квиз');
+          setError(getApiErrorMessage(loadError));
           setStatus('idle');
         }
       }
     }
 
-    void syncQuiz();
+    void syncQuiz().catch((loadError) => {
+      if (!cancelled && statusRef.current !== 'in_progress') {
+        setError(getApiErrorMessage(loadError));
+        setStatus('idle');
+      }
+    });
 
     return () => {
       cancelled = true;
@@ -307,7 +313,13 @@ export default function Quiz() {
   const progress =
     totalQuestions > 0 ? (answeredBefore / totalQuestions) * 100 : 0;
   const hasProgress = answeredIds.size > 0;
-  const categoryProgress = countAnsweredInCategory(allQuestions, answeredIds);
+  const categoryProgress = useMemo(() => {
+    try {
+      return countAnsweredInCategory(allQuestions, answeredIds);
+    } catch {
+      return [];
+    }
+  }, [allQuestions, answeredIds]);
 
   if (status === 'loading') {
     return (

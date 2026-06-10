@@ -82,7 +82,9 @@ export function useMaxBridge() {
 
   const haptic = useCallback((type: HapticType) => {
     try {
-      void window.WebApp?.HapticFeedback?.notificationOccurred?.(type);
+      void window.WebApp?.HapticFeedback?.notificationOccurred?.(type)?.catch?.(
+        () => undefined,
+      );
     } catch {
       // ignore
     }

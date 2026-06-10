@@ -26,7 +26,10 @@ export function sortQuizQuestions<T extends QuizQuestionWithCategory>(
   questions: readonly T[],
 ): T[] {
   return [...questions].sort((left, right) => {
-    const categoryCompare = left.category.localeCompare(right.category, 'ru');
+    const categoryCompare = normalizeQuizCategory(left.category).localeCompare(
+      normalizeQuizCategory(right.category),
+      'ru',
+    );
     if (categoryCompare !== 0) {
       return categoryCompare;
     }
@@ -41,13 +44,14 @@ export function groupQuizQuestionsByCategory<T extends QuizQuestionWithCategory>
   const groups: QuizCategoryGroup<T>[] = [];
 
   for (const question of sortQuizQuestions(questions)) {
+    const category = normalizeQuizCategory(question.category);
     const lastGroup = groups[groups.length - 1];
-    if (lastGroup && lastGroup.category === question.category) {
+    if (lastGroup && lastGroup.category === category) {
       lastGroup.questions.push(question);
       continue;
     }
 
-    groups.push({ category: question.category, questions: [question] });
+    groups.push({ category, questions: [question] });
   }
 
   return groups;

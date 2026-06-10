@@ -4,6 +4,7 @@ import { sortQuizQuestions } from '../../../src/shared/quizCategory';
 export {
   groupQuizQuestionsByCategory,
   countAnsweredInCategory,
+  normalizeQuizCategory,
 } from '../../../src/shared/quizCategory';
 
 export function toAnsweredSet(answeredQuestionIds: string[]): Set<string> {

@@ -266,7 +266,10 @@ export async function postQuestion(
 
 export async function getQuizQuestions(): Promise<QuizQuestion[]> {
   const { data } = await api.get<QuizQuestion[]>('/quiz/questions');
-  return data;
+  return data.map((question) => ({
+    ...question,
+    category: question.category?.trim() || 'Общее',
+  }));
 }
 
 export async function postQuizAnswer(

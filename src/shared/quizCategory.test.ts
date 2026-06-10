@@ -43,4 +43,17 @@ describe('quizCategory', () => {
       ],
     );
   });
+
+  it('treats missing category as default when sorting', () => {
+    assert.doesNotThrow(() => {
+      sortQuizQuestions([
+        { id: 'q1', category: '', order: 2 },
+        { id: 'q2', category: 'VK Cloud', order: 1 },
+      ]);
+    });
+    assert.deepEqual(
+      groupQuizQuestionsByCategory([{ id: 'q1', category: '', order: 1 }]),
+      [{ category: 'Общее', questions: [{ id: 'q1', category: '', order: 1 }] }],
+    );
+  });
 });
