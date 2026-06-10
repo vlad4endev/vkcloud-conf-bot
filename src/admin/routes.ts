@@ -22,6 +22,7 @@ import {
   speakerReorderSchema,
   speakerUpdateSchema,
 } from '../shared/schemas/admin';
+import { invalidateAllContentCaches } from '../shared/invalidateContentCaches';
 import { createQuizQuestionRecord } from '../shared/quizQuestion';
 import { isQuizComplete, isQuizWinner } from '../shared/quizStatus';
 import {
@@ -202,6 +203,7 @@ async function upsertConfig(key: string, value: string): Promise<void> {
     create: { key, value },
     update: { value },
   });
+  invalidateAllContentCaches();
 }
 
 async function assertSpeakerExists(speakerId: string | null | undefined): Promise<boolean> {
@@ -517,20 +519,32 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       return reply.status(201).send(notification);
     }
 
-    try {
-      const sentCount = await broadcastToAll(text);
-      const sentAt = new Date();
-      const notification = await prisma.notification.create({
-        data: { text, isSent: true, sentAt },
+    const notification = await prisma.notification.create({
+      data: { text, isSent: false },
+    });
+
+    void broadcastToAll(text)
+      .then(async (sentCount) => {
+        await prisma.notification.update({
+          where: { id: notification.id },
+          data: { isSent: true, sentAt: new Date() },
+        });
+        fastify.log.info(
+          { notificationId: notification.id, sentCount },
+          'Immediate broadcast completed',
+        );
+      })
+      .catch((error) => {
+        fastify.log.error(
+          { err: error, notificationId: notification.id },
+          'Immediate broadcast failed',
+        );
       });
 
-      return { sent: true, sentCount, notification };
-    } catch (error) {
-      fastify.log.error(error);
-      return reply.status(503).send({
-        error: 'Bot is unavailable for immediate broadcast',
-      });
-    }
+    return reply.status(202).send({
+      accepted: true,
+      notification,
+    });
   });
 
   fastify.patch<{ Params: { id: string } }>(
@@ -848,6 +862,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
         await prisma.config.deleteMany({
           where: { key: QUIZ_START_AT_CONFIG_KEY },
         });
+        invalidateAllContentCaches();
       } else {
         await upsertConfig(QUIZ_START_AT_CONFIG_KEY, parsed.data.startAt);
       }
@@ -884,10 +899,12 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       }
 
       try {
-        return await prisma.quizQuestion.update({
+        const updated = await prisma.quizQuestion.update({
           where: { id },
           data: parsed.data,
         });
+        invalidateAllContentCaches();
+        return updated;
       } catch {
         return notFound(reply, 'Question');
       }
@@ -905,6 +922,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
 
       try {
         await prisma.quizQuestion.delete({ where: { id } });
+        invalidateAllContentCaches();
         return reply.status(204).send();
       } catch {
         return notFound(reply, 'Question');
@@ -1057,10 +1075,9 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
         return validationError(reply, bodyParsed.error);
       }
 
-      return prisma.config.upsert({
+      await upsertConfig(keyParsed.data.key, bodyParsed.data.value);
+      return prisma.config.findUniqueOrThrow({
         where: { key: keyParsed.data.key },
-        create: { key: keyParsed.data.key, value: bodyParsed.data.value },
-        update: { value: bodyParsed.data.value },
       });
     },
   );
@@ -1074,21 +1091,13 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
 
     const url = await saveUploadedFile(file, 'maps');
 
-    await prisma.config.upsert({
-      where: { key: 'map_image_url' },
-      create: { key: 'map_image_url', value: url },
-      update: { value: url },
-    });
+    await upsertConfig('map_image_url', url);
 
     return { url };
   });
 
   fastify.delete('/config/map-image', auth, async (_request, reply) => {
-    await prisma.config.upsert({
-      where: { key: LINK_CONFIG_KEYS.mapImageUrl },
-      create: { key: LINK_CONFIG_KEYS.mapImageUrl, value: '' },
-      update: { value: '' },
-    });
+    await upsertConfig(LINK_CONFIG_KEYS.mapImageUrl, '');
 
     return reply.status(204).send();
   });

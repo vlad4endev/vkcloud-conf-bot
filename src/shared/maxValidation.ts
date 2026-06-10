@@ -139,13 +139,7 @@ function parsePositiveMaxUserId(value: unknown): number | null {
   return null;
 }
 
-export function parseMaxUserIdFromInitData(data: unknown): number | null {
-  const initData = normalizeInitData(data);
-  if (!initData || !validateMaxUser(initData)) {
-    return null;
-  }
-
-  const pairs = parseInitDataPairs(initData);
+function parseMaxUserIdFromPairs(pairs: InitDataPair[] | null): number | null {
   const userRaw = pairs?.find(([key]) => key === 'user')?.[1];
   if (!userRaw) {
     return null;
@@ -162,4 +156,20 @@ export function parseMaxUserIdFromInitData(data: unknown): number | null {
   }
 
   return null;
+}
+
+/** Parse user id from initData that has already passed validateMaxUser. */
+export function parseMaxUserIdFromValidatedInitData(initData: string): number | null {
+  const pairs = parseInitDataPairs(initData);
+  return parseMaxUserIdFromPairs(pairs);
+}
+
+export function parseMaxUserIdFromInitData(data: unknown): number | null {
+  const initData = normalizeInitData(data);
+  if (!initData || !validateMaxUser(initData)) {
+    return null;
+  }
+
+  const pairs = parseInitDataPairs(initData);
+  return parseMaxUserIdFromPairs(pairs);
 }

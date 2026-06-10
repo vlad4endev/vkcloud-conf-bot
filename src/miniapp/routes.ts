@@ -11,24 +11,29 @@ import {
 import { env } from '../shared/env';
 import type { AdminJwtPayload } from '../shared/jwt';
 import {
+  getCachedPublicConfig,
+  getCachedQuizQuestionForAnswer,
+  getCachedQuizQuestionsPublic,
+  getCachedQuizVisibility,
+} from '../shared/miniappCache';
+import {
+  parseMaxUserIdFromValidatedInitData,
+  validateMaxUser,
+} from '../shared/maxValidation';
+import {
   API_REGISTRATION_REQUIRED,
   MINIAPP_REGISTRATION_MESSAGE,
 } from '../shared/registrationMessages';
-import {
-  parseMaxUserIdFromInitData,
-  validateMaxUser,
-} from '../shared/maxValidation';
 import { quizOptionSchema } from '../shared/schemas/admin';
 import { getUserQuizStatus } from '../shared/quizStatus';
+import {
+  getQuizLiveState,
+  subscribe,
+} from '../shared/quizLiveBroadcaster';
 import {
   PARTNERS_VISIBLE_CONFIG_KEY,
   isSectionVisible,
 } from '../shared/sectionVisibility';
-import {
-  QUIZ_START_AT_CONFIG_KEY,
-  QUIZ_VISIBLE_CONFIG_KEY,
-  resolveQuizVisibilityFromConfig,
-} from '../shared/quizVisibility';
 import {
   scheduleSessionInclude,
   serializeScheduleSessions,
@@ -60,6 +65,10 @@ function readMaxInitData(request: FastifyRequest): string | null {
   return initData;
 }
 
+function parseMaxUserIdFromRequestInitData(initData: string): number | null {
+  return parseMaxUserIdFromValidatedInitData(initData);
+}
+
 async function requireMaxInitData(
   request: FastifyRequest,
   reply: FastifyReply,
@@ -79,7 +88,7 @@ async function attachVerifiedMaxUser(
     return undefined;
   }
 
-  const maxUserId = parseMaxUserIdFromInitData(initData);
+  const maxUserId = parseMaxUserIdFromRequestInitData(initData);
   if (maxUserId === null) {
     reply.status(403).send({ error: 'Invalid MAX init data' });
     return undefined;
@@ -110,25 +119,6 @@ const adminUnlockSchema = z.object({
   codeWord: z.string().trim().min(1),
 });
 
-const CONFIG_KEYS = [
-  'event_description',
-  'sticker_url',
-  'map_image_url',
-  'quiz_url',
-  QUIZ_VISIBLE_CONFIG_KEY,
-  QUIZ_START_AT_CONFIG_KEY,
-] as const;
-
-async function isQuizSectionVisible(nowMs = Date.now()): Promise<boolean> {
-  const rows = await prisma.config.findMany({
-    where: {
-      key: { in: [QUIZ_VISIBLE_CONFIG_KEY, QUIZ_START_AT_CONFIG_KEY] },
-    },
-  });
-  const config = new Map(rows.map((row) => [row.key, row.value]));
-  return resolveQuizVisibilityFromConfig(config, nowMs).sectionVisible;
-}
-
 const questionToSpeakerSchema = z.object({
   userId: z.coerce.number().int().positive().optional(),
   question: z.coerce.string().trim().min(1, 'Укажите текст вопроса'),
@@ -144,16 +134,6 @@ const quizAnswerSchema = z.object({
   questionId: z.string().trim().min(1),
   answer: quizOptionSchema,
 });
-
-const quizQuestionSelect = {
-  id: true,
-  question: true,
-  optionA: true,
-  optionB: true,
-  optionC: true,
-  optionD: true,
-  order: true,
-} as const;
 
 async function findUserByMaxUserId(maxUserId: number) {
   return prisma.user.findUnique({
@@ -179,7 +159,7 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
       return reply.status(403).send({ error: 'MAX init data required' });
     }
 
-    const maxUserId = parseMaxUserIdFromInitData(initData);
+    const maxUserId = parseMaxUserIdFromRequestInitData(initData);
     if (maxUserId === null) {
       return reply.status(403).send({ error: 'Invalid MAX init data' });
     }
@@ -193,17 +173,27 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     };
   });
 
-  app.get('/config', async () => {
-    const rows = await prisma.config.findMany();
-    const config = Object.fromEntries(rows.map((row) => [row.key, row.value]));
+  app.get('/config', async () => getCachedPublicConfig());
 
-    for (const key of CONFIG_KEYS) {
-      if (!(key in config)) {
-        config[key] = '';
-      }
-    }
+  app.get('/quiz/live', async () => getQuizLiveState());
 
-    return config;
+  app.get('/quiz/events', async (request, reply) => {
+    reply.hijack();
+    reply.raw.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+    reply.raw.write(': connected\n\n');
+
+    const unsubscribe = subscribe((chunk) => {
+      reply.raw.write(chunk);
+    });
+
+    request.raw.on('close', () => {
+      unsubscribe();
+    });
   });
 
   app.get('/partners', async () => {
@@ -358,14 +348,11 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     '/quiz/questions',
     { preHandler: requireRegisteredMaxUser },
     async () => {
-      if (!(await isQuizSectionVisible())) {
+      if (!(await getCachedQuizVisibility())) {
         return [];
       }
 
-      return prisma.quizQuestion.findMany({
-        select: quizQuestionSelect,
-        orderBy: { order: 'asc' },
-      });
+      return getCachedQuizQuestionsPublic();
     },
   );
 
@@ -378,7 +365,7 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
       return validationError(reply, parsed.error);
     }
 
-    if (!(await isQuizSectionVisible())) {
+    if (!(await getCachedQuizVisibility())) {
       return reply.status(403).send({ error: 'Quiz is not available' });
     }
 
@@ -391,9 +378,7 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
       return reply.status(403).send({ error: 'User mismatch' });
     }
 
-    const question = await prisma.quizQuestion.findUnique({
-      where: { id: parsed.data.questionId },
-    });
+    const question = await getCachedQuizQuestionForAnswer(parsed.data.questionId);
 
     if (!question) {
       return notFound(reply, 'Question');
@@ -436,12 +421,16 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
         return reply.status(400).send({ error: 'Invalid userId' });
       }
 
-      const user = await findUserByMaxUserId(maxUserId);
-      if (!user) {
-        return notFound(reply, 'User');
+      const verifiedUser = (request as AuthenticatedRequest).verifiedUser;
+      if (!verifiedUser) {
+        return reply.status(403).send({ error: 'MAX init data required' });
       }
 
-      return getUserQuizStatus(user.id);
+      if (Number(verifiedUser.maxUserId) !== maxUserId) {
+        return reply.status(403).send({ error: 'User mismatch' });
+      }
+
+      return getUserQuizStatus(verifiedUser.id);
     },
   );
 

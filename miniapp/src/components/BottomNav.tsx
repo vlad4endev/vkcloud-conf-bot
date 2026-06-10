@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { getConfig } from '../api/client';
-import { isQuizVisibleInApp } from '../lib/quizVisibility';
+import { useQuizLive } from '../context/QuizLiveContext';
 import { appIcons } from '../icons';
 import AppIcon from './AppIcon';
 import BottomNavShell from './BottomNavShell';
@@ -36,32 +34,7 @@ function isTabActive(pathname: string, tabPath: string): boolean {
 
 export default function BottomNav() {
   const { pathname } = useLocation();
-  const [quizVisible, setQuizVisible] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const sync = () => {
-      getConfig()
-        .then((config) => {
-          if (!cancelled) {
-            setQuizVisible(isQuizVisibleInApp(config));
-          }
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setQuizVisible(true);
-          }
-        });
-    };
-
-    sync();
-    const timer = window.setInterval(sync, 60_000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, []);
+  const { quizVisible } = useQuizLive();
 
   const tabs = baseTabs.filter((tab) => tab.path !== '/quiz' || quizVisible);
 

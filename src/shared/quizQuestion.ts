@@ -1,5 +1,6 @@
 import { Prisma, type QuizCorrectOption } from '@prisma/client';
 import { prisma } from '../db/client';
+import { invalidateAllContentCaches } from './invalidateContentCaches';
 
 export type QuizQuestionInput = {
   question: string;
@@ -49,9 +50,11 @@ export async function createQuizQuestionRecord(
 
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
-      return await prisma.quizQuestion.create({
+      const created = await prisma.quizQuestion.create({
         data: { ...data, order },
       });
+      invalidateAllContentCaches();
+      return created;
     } catch (error) {
       if (preferredOrder !== undefined || !isDisplayOrderConflict(error)) {
         throw error;

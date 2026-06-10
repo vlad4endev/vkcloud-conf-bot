@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AdminRoute from './components/AdminRoute';
 import Layout from './components/Layout';
 import { AdminProvider } from './context/AdminContext';
+import { QuizLiveProvider } from './context/QuizLiveContext';
 import { UserProvider } from './context/UserContext';
 import AdminContentHub from './pages/admin/AdminContentHub';
 import AdminFeedback from './pages/admin/AdminFeedback';
@@ -69,9 +70,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <UserProvider>
-      <AdminProvider>
-        <AppRoutes />
-      </AdminProvider>
+      <QuizLiveProvider>
+        <AdminProvider>
+          <AppRoutes />
+        </AdminProvider>
+      </QuizLiveProvider>
     </UserProvider>
   );
 }

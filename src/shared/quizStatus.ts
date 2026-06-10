@@ -1,4 +1,5 @@
 import { prisma } from '../db/client';
+import { getCachedTotalQuestions } from './miniappCache';
 
 export type UserQuizStatus = {
   totalQuestions: number;
@@ -53,7 +54,7 @@ export function buildQuizStatus(
 
 export async function getUserQuizStatus(userId: string): Promise<UserQuizStatus> {
   const [totalQuestions, results] = await Promise.all([
-    prisma.quizQuestion.count(),
+    getCachedTotalQuestions(),
     prisma.quizResult.findMany({
       where: { userId },
       select: { questionId: true, isCorrect: true },

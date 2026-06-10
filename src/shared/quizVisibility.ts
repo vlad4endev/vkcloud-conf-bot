@@ -46,17 +46,24 @@ export function resolveQuizVisibility(
   };
 }
 
+function readConfigValue(
+  config: ReadonlyMap<string, string> | Record<string, string | undefined>,
+  key: string,
+): string | undefined {
+  if (config instanceof Map) {
+    return config.get(key);
+  }
+  return config[key];
+}
+
 export function resolveQuizVisibilityFromConfig(
   config: ReadonlyMap<string, string> | Record<string, string | undefined>,
   nowMs: number = Date.now(),
 ): QuizVisibilityState {
-  const read = (key: string): string | undefined =>
-    config instanceof Map ? config.get(key) : config[key];
-
   return resolveQuizVisibility(
     {
-      manuallyEnabled: isSectionVisible(read(QUIZ_VISIBLE_CONFIG_KEY)),
-      startAt: read(QUIZ_START_AT_CONFIG_KEY) ?? null,
+      manuallyEnabled: isSectionVisible(readConfigValue(config, QUIZ_VISIBLE_CONFIG_KEY)),
+      startAt: readConfigValue(config, QUIZ_START_AT_CONFIG_KEY) ?? null,
     },
     nowMs,
   );

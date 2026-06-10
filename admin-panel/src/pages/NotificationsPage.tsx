@@ -78,9 +78,14 @@ export default function NotificationsPage() {
 
       const result = await sendNotification(payload);
 
-      if (immediate && result && typeof result === 'object' && 'sent' in result) {
-        const sentCount = (result as { sentCount?: number }).sentCount;
-        toast(`Отправлено: ${sentCount ?? 0} участникам`, 'success');
+      if (
+        immediate &&
+        result &&
+        typeof result === 'object' &&
+        'accepted' in result &&
+        (result as { accepted?: boolean }).accepted
+      ) {
+        toast('Рассылка запущена в фоне — сообщения уйдут участникам постепенно', 'success');
       } else {
         toast(
           immediate

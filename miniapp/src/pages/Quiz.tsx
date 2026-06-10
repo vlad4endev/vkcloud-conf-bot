@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { QuizOption, QuizQuestion, QuizStatus } from '../api/client';
 import {
-  getConfig,
   getQuizQuestions,
   getQuizStatus,
   postQuizAnswer,
 } from '../api/client';
+import { useQuizLive } from '../context/QuizLiveContext';
 import { useUserContext } from '../context/UserContext';
-import { isQuizHiddenInApp } from '../lib/quizVisibility';
 import {
   applyAnswerToQuizStatus,
   findNextQuestion,
@@ -62,6 +61,7 @@ function optionText(question: QuizQuestion, option: QuizOption): string {
 
 export default function Quiz() {
   const { userId, haptic } = useUserContext();
+  const { liveState } = useQuizLive();
 
   const [status, setStatus] = useState<QuizPageStatus>('loading');
   const [allQuestions, setAllQuestions] = useState<QuizQuestion[]>([]);
@@ -87,6 +87,7 @@ export default function Quiz() {
   answeredIdsRef.current = answeredIds;
 
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const liveSyncKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -97,32 +98,43 @@ export default function Quiz() {
   }, []);
 
   useEffect(() => {
-    if (!userId) {
+    if (!userId || !liveState) {
       return;
     }
 
     let cancelled = false;
     const uid = userId;
+    const currentLiveState = liveState;
+    const syncKey = `${currentLiveState.revision}|${currentLiveState.sectionVisible}|${currentLiveState.questionsCount}`;
 
-    async function init() {
+    if (liveSyncKeyRef.current === syncKey && statusRef.current !== 'loading') {
+      return;
+    }
+    liveSyncKeyRef.current = syncKey;
+
+    async function syncQuiz() {
       try {
-        const [config, statusData, questions] = await Promise.all([
-          getConfig(),
-          getQuizStatus(uid),
-          getQuizQuestions(),
-        ]);
-
-        if (isQuizHiddenInApp(config)) {
+        if (!currentLiveState.sectionVisible) {
           if (!cancelled) {
             setSectionHidden(true);
+            setError(null);
             setStatus('idle');
+            setCurrentQuestionId(null);
           }
           return;
         }
 
+        const [statusData, questions] = await Promise.all([
+          getQuizStatus(uid),
+          getQuizQuestions(),
+        ]);
+
         if (cancelled) {
           return;
         }
+
+        setSectionHidden(false);
+        setError(null);
 
         const answered = toAnsweredSet(statusData.answeredQuestionIds);
 
@@ -144,6 +156,9 @@ export default function Quiz() {
             }
             return nextQuestion?.id ?? null;
           });
+          if (!nextQuestion) {
+            setStatus('finished');
+          }
           return;
         }
 
@@ -157,12 +172,12 @@ export default function Quiz() {
       }
     }
 
-    void init();
+    void syncQuiz();
 
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, liveState]);
 
   function handleStart() {
     const nextQuestion = findNextQuestion(

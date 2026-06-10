@@ -24,6 +24,14 @@ export type ConfigKey =
 
 export type AppConfig = Record<ConfigKey, string>;
 
+export type QuizLiveState = {
+  revision: string;
+  sectionVisible: boolean;
+  questionsCount: number;
+  awaitingSchedule: boolean;
+  startsAtMs: number | null;
+};
+
 export interface SpeakerSession {
   id: string;
   title: string;
@@ -190,6 +198,7 @@ function requireUserId(userId: number | undefined | null): number {
 
 const api = axios.create({
   baseURL: '/api',
+  timeout: 15_000,
 });
 
 api.interceptors.request.use((config) => {
@@ -207,6 +216,11 @@ export async function getMe(): Promise<MeResponse> {
 
 export async function getConfig(): Promise<AppConfig> {
   const { data } = await api.get<AppConfig>('/config');
+  return data;
+}
+
+export async function getQuizLive(): Promise<QuizLiveState> {
+  const { data } = await api.get<QuizLiveState>('/quiz/live');
   return data;
 }
 

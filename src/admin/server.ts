@@ -10,6 +10,7 @@ import { ZodError } from 'zod';
 import { env } from '../shared/env';
 import '../shared/jwt';
 import { miniappRoutes } from '../miniapp/routes';
+import { startQuizLiveBroadcaster } from '../shared/quizLiveBroadcaster';
 import { adminRoutes } from './routes';
 
 export async function createAdminServer() {
@@ -33,11 +34,6 @@ export async function createAdminServer() {
     frameguard: false, // без X-Frame-Options — miniapp в iframe MAX
   });
 
-  await app.register(rateLimit, {
-    max: 100,
-    timeWindow: '1 minute',
-  });
-
   await app.register(cors, {
     origin: false, // CORS в nginx, не дублируем заголовки в Fastify
   });
@@ -59,7 +55,16 @@ export async function createAdminServer() {
     return reply.status(200).send({ status: 'ok' });
   });
 
-  await app.register(adminRoutes, { prefix: '/admin' });
+  await app.register(
+    async (adminApp) => {
+      await adminApp.register(rateLimit, {
+        max: 100,
+        timeWindow: '1 minute',
+      });
+      await adminApp.register(adminRoutes);
+    },
+    { prefix: '/admin' },
+  );
   await app.register(miniappRoutes, { prefix: '/api' });
 
   app.setErrorHandler((error, _request, reply) => {
@@ -83,6 +88,7 @@ export async function createAdminServer() {
 
 if (require.main === module) {
   void (async () => {
+    startQuizLiveBroadcaster();
     const app = await createAdminServer();
     const port = env.ADMIN_PORT;
 
