@@ -48,7 +48,8 @@ export default function AdminPartners() {
 
   async function load() {
     try {
-      setPartners(await getPartners());
+      const data = await getPartners();
+      setPartners(data.partners);
     } catch (e) {
       setMessage(getApiErrorMessage(e));
     }
