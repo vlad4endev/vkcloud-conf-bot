@@ -26,9 +26,14 @@ import { createQuizQuestionRecord } from '../shared/quizQuestion';
 import { isQuizComplete, isQuizWinner } from '../shared/quizStatus';
 import {
   PARTNERS_VISIBLE_CONFIG_KEY,
-  QUIZ_VISIBLE_CONFIG_KEY,
   isSectionVisible,
 } from '../shared/sectionVisibility';
+import {
+  QUIZ_START_AT_CONFIG_KEY,
+  QUIZ_VISIBLE_CONFIG_KEY,
+  resolveQuizVisibilityFromConfig,
+  type QuizVisibilityState,
+} from '../shared/quizVisibility';
 import {
   buildSessionSpeakersCreate,
   getNextScheduleSessionOrder,
@@ -126,14 +131,32 @@ const sectionVisibilitySchema = z.object({
   visible: z.boolean(),
 });
 
+const quizVisibilityUpdateSchema = z
+  .object({
+    visible: z.boolean().optional(),
+    startAt: z.union([z.string().datetime(), z.null()]).optional(),
+  })
+  .refine((data) => data.visible !== undefined || data.startAt !== undefined, {
+    message: 'At least one field is required',
+  });
+
 async function isPartnersSectionVisible(): Promise<boolean> {
   const config = await getConfigMap([PARTNERS_VISIBLE_CONFIG_KEY]);
   return isSectionVisible(config.get(PARTNERS_VISIBLE_CONFIG_KEY));
 }
 
-async function isQuizSectionVisible(): Promise<boolean> {
-  const config = await getConfigMap([QUIZ_VISIBLE_CONFIG_KEY]);
-  return isSectionVisible(config.get(QUIZ_VISIBLE_CONFIG_KEY));
+async function getQuizVisibilityState(nowMs = Date.now()): Promise<QuizVisibilityState> {
+  const config = await getConfigMap([QUIZ_VISIBLE_CONFIG_KEY, QUIZ_START_AT_CONFIG_KEY]);
+  return resolveQuizVisibilityFromConfig(config, nowMs);
+}
+
+function serializeQuizVisibility(state: QuizVisibilityState) {
+  return {
+    manuallyEnabled: state.manuallyEnabled,
+    startAt: state.startAt,
+    sectionVisible: state.sectionVisible,
+    awaitingSchedule: state.awaitingSchedule,
+  };
 }
 
 const quizQuestionUpdateSchema = quizQuestionCreateSchema;
@@ -794,28 +817,43 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   );
 
   fastify.get('/quiz/questions', auth, async () => {
-    const [questions, sectionVisible] = await Promise.all([
+    const [questions, visibility] = await Promise.all([
       prisma.quizQuestion.findMany({
         orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
       }),
-      isQuizSectionVisible(),
+      getQuizVisibilityState(),
     ]);
 
-    return { sectionVisible, questions };
+    return {
+      ...serializeQuizVisibility(visibility),
+      questions,
+    };
   });
 
   fastify.put('/quiz/visibility', auth, async (request, reply) => {
-    const parsed = parseBody(sectionVisibilitySchema, request.body);
+    const parsed = parseBody(quizVisibilityUpdateSchema, request.body);
     if (!parsed.success) {
       return validationError(reply, parsed.error);
     }
 
-    await upsertConfig(
-      QUIZ_VISIBLE_CONFIG_KEY,
-      parsed.data.visible ? 'true' : 'false',
-    );
+    if (parsed.data.visible !== undefined) {
+      await upsertConfig(
+        QUIZ_VISIBLE_CONFIG_KEY,
+        parsed.data.visible ? 'true' : 'false',
+      );
+    }
 
-    return { sectionVisible: parsed.data.visible };
+    if (parsed.data.startAt !== undefined) {
+      if (parsed.data.startAt === null) {
+        await prisma.config.deleteMany({
+          where: { key: QUIZ_START_AT_CONFIG_KEY },
+        });
+      } else {
+        await upsertConfig(QUIZ_START_AT_CONFIG_KEY, parsed.data.startAt);
+      }
+    }
+
+    return serializeQuizVisibility(await getQuizVisibilityState());
   });
 
   fastify.post('/quiz/questions', auth, async (request, reply) => {

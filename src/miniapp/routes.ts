@@ -22,9 +22,13 @@ import { quizOptionSchema } from '../shared/schemas/admin';
 import { getUserQuizStatus } from '../shared/quizStatus';
 import {
   PARTNERS_VISIBLE_CONFIG_KEY,
-  QUIZ_VISIBLE_CONFIG_KEY,
   isSectionVisible,
 } from '../shared/sectionVisibility';
+import {
+  QUIZ_START_AT_CONFIG_KEY,
+  QUIZ_VISIBLE_CONFIG_KEY,
+  resolveQuizVisibilityFromConfig,
+} from '../shared/quizVisibility';
 import {
   scheduleSessionInclude,
   serializeScheduleSessions,
@@ -112,13 +116,17 @@ const CONFIG_KEYS = [
   'map_image_url',
   'quiz_url',
   QUIZ_VISIBLE_CONFIG_KEY,
+  QUIZ_START_AT_CONFIG_KEY,
 ] as const;
 
-async function isQuizSectionVisible(): Promise<boolean> {
-  const row = await prisma.config.findUnique({
-    where: { key: QUIZ_VISIBLE_CONFIG_KEY },
+async function isQuizSectionVisible(nowMs = Date.now()): Promise<boolean> {
+  const rows = await prisma.config.findMany({
+    where: {
+      key: { in: [QUIZ_VISIBLE_CONFIG_KEY, QUIZ_START_AT_CONFIG_KEY] },
+    },
   });
-  return isSectionVisible(row?.value);
+  const config = new Map(rows.map((row) => [row.key, row.value]));
+  return resolveQuizVisibilityFromConfig(config, nowMs).sectionVisible;
 }
 
 const questionToSpeakerSchema = z.object({

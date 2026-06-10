@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getConfig } from '../api/client';
+import { isQuizVisibleInApp } from '../lib/quizVisibility';
 import { appIcons } from '../icons';
 import AppIcon from './AppIcon';
 import BottomNavShell from './BottomNavShell';
@@ -38,9 +39,28 @@ export default function BottomNav() {
   const [quizVisible, setQuizVisible] = useState(true);
 
   useEffect(() => {
-    getConfig()
-      .then((config) => setQuizVisible(config.quiz_visible !== 'false'))
-      .catch(() => setQuizVisible(true));
+    let cancelled = false;
+
+    const sync = () => {
+      getConfig()
+        .then((config) => {
+          if (!cancelled) {
+            setQuizVisible(isQuizVisibleInApp(config));
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setQuizVisible(true);
+          }
+        });
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
   }, []);
 
   const tabs = baseTabs.filter((tab) => tab.path !== '/quiz' || quizVisible);

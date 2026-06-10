@@ -247,8 +247,14 @@ export async function reorderSchedule(items: ReorderItem[]): Promise<ScheduleSes
   return data;
 }
 
-export type AdminQuizResponse = {
+export type QuizVisibilityInfo = {
+  manuallyEnabled: boolean;
+  startAt: string | null;
   sectionVisible: boolean;
+  awaitingSchedule: boolean;
+};
+
+export type AdminQuizResponse = QuizVisibilityInfo & {
   questions: QuizQuestion[];
 };
 
@@ -257,11 +263,18 @@ export async function getQuizQuestions(): Promise<AdminQuizResponse> {
   return data;
 }
 
+export async function updateQuizVisibility(payload: {
+  visible?: boolean;
+  startAt?: string | null;
+}): Promise<QuizVisibilityInfo> {
+  const { data } = await api.put<QuizVisibilityInfo>('/quiz/visibility', payload);
+  return data;
+}
+
+/** @deprecated Use updateQuizVisibility */
 export async function setQuizSectionVisible(visible: boolean): Promise<boolean> {
-  const { data } = await api.put<{ sectionVisible: boolean }>('/quiz/visibility', {
-    visible,
-  });
-  return data.sectionVisible;
+  const next = await updateQuizVisibility({ visible, startAt: visible ? undefined : null });
+  return next.sectionVisible;
 }
 
 export async function createQuizQuestion(

@@ -179,8 +179,14 @@ export async function deleteScheduleSession(id: string) {
   await adminApi.delete(`/schedule/${id}`);
 }
 
-export type AdminQuizResponse = {
+export type QuizVisibilityInfo = {
+  manuallyEnabled: boolean;
+  startAt: string | null;
   sectionVisible: boolean;
+  awaitingSchedule: boolean;
+};
+
+export type AdminQuizResponse = QuizVisibilityInfo & {
   questions: Array<{ id: string; question: string }>;
 };
 
@@ -189,11 +195,19 @@ export async function getQuizQuestions() {
   return data;
 }
 
+export async function updateQuizVisibility(payload: {
+  visible?: boolean;
+  startAt?: string | null;
+}) {
+  const { data } = await adminApi.put<QuizVisibilityInfo>('/quiz/visibility', payload);
+  return data;
+}
+
 export async function setQuizSectionVisible(visible: boolean) {
-  const { data } = await adminApi.put<{ sectionVisible: boolean }>(
-    '/quiz/visibility',
-    { visible },
-  );
+  const data = await updateQuizVisibility({
+    visible,
+    startAt: visible ? undefined : null,
+  });
   return data.sectionVisible;
 }
 

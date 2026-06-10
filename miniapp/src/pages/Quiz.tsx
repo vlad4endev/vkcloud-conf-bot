@@ -7,6 +7,7 @@ import {
   postQuizAnswer,
 } from '../api/client';
 import { useUserContext } from '../context/UserContext';
+import { isQuizHiddenInApp } from '../lib/quizVisibility';
 import {
   applyAnswerToQuizStatus,
   findNextQuestion,
@@ -111,7 +112,7 @@ export default function Quiz() {
           getQuizQuestions(),
         ]);
 
-        if (config.quiz_visible === 'false') {
+        if (isQuizHiddenInApp(config)) {
           if (!cancelled) {
             setSectionHidden(true);
             setStatus('idle');

@@ -15,8 +15,7 @@
 }
 
 .navBar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
   align-items: stretch;
   height: var(--nav-bar-height);
   min-height: var(--nav-bar-height);
@@ -34,6 +33,7 @@
 
 .link {
   position: relative;
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
   align-items: center;
