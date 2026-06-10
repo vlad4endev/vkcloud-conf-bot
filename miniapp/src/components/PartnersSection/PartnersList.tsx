@@ -38,7 +38,7 @@ export default function PartnersList() {
           <article className={styles.card}>
             {partner.logoUrl ? (
               <div className={styles.cardBrand}>
-                <PartnerLogo partner={partner} size="lg" />
+                <PartnerLogo partner={partner} variant="banner" />
               </div>
             ) : null}
             <div className={styles.cardBody}>
