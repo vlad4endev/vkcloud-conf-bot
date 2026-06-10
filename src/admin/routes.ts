@@ -135,11 +135,18 @@ const sectionVisibilitySchema = z.object({
 const quizVisibilityUpdateSchema = z
   .object({
     visible: z.boolean().optional(),
-    startAt: z.union([z.string().datetime(), z.null()]).optional(),
+    startAt: z.union([z.string().min(1), z.null()]).optional(),
   })
   .refine((data) => data.visible !== undefined || data.startAt !== undefined, {
     message: 'At least one field is required',
-  });
+  })
+  .refine(
+    (data) =>
+      data.startAt === undefined ||
+      data.startAt === null ||
+      !Number.isNaN(Date.parse(data.startAt)),
+    { message: 'Invalid startAt datetime', path: ['startAt'] },
+  );
 
 async function isPartnersSectionVisible(): Promise<boolean> {
   const config = await getConfigMap([PARTNERS_VISIBLE_CONFIG_KEY]);

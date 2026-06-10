@@ -8,7 +8,7 @@ import {
   getQuizPublicationMode,
   parseQuizStartAtFromInput,
   type QuizPublicationMode,
-} from '../../../src/shared/quizVisibility';
+} from '../lib/quizPublication';
 import { Badge, Button, Card, Input } from './ui';
 import { getErrorMessage } from '../lib/format';
 

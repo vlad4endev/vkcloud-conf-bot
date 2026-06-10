@@ -32,6 +32,11 @@ if [ ! -f dist-adminpanel/index.html ]; then
   exit 1
 fi
 
+if ! grep -rq 'Публикация в мини-приложении' dist-adminpanel/assets 2>/dev/null; then
+  echo "❌ В сборке admin-panel нет экрана публикации квиза — проверьте сборку"
+  exit 1
+fi
+
 if grep -q 'max-web-app' dist-adminpanel/index.html 2>/dev/null; then
   echo "❌ В сборке admin-panel найден max-web-app — что-то не так"
   exit 1

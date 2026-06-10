@@ -28,12 +28,14 @@ echo "🔄 Миграции Prisma (в контейнере)..."
 $COMPOSE run --rm bot npx prisma migrate deploy
 
 echo "🚀 Запуск сервисов (пересоздание контейнеров)..."
-$COMPOSE up -d --force-recreate bot admin
+chmod +x scripts/backup.sh scripts/backup-entrypoint.sh scripts/restore-backup.sh 2>/dev/null || true
+mkdir -p backups
+$COMPOSE up -d --force-recreate bot admin backup
 
 echo "🌐 Публикация miniapp и админ-панели..."
 chmod +x scripts/publish-miniapp.sh scripts/publish-admin-panel.sh
-./scripts/publish-miniapp.sh
 ./scripts/publish-admin-panel.sh
+./scripts/publish-miniapp.sh
 
 if command -v nginx >/dev/null 2>&1; then
   sudo nginx -t && sudo systemctl reload nginx
