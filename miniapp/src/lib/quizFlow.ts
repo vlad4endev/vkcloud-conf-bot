@@ -1,4 +1,7 @@
 import type { QuizQuestion, QuizStatus } from '../api/client';
+import { sortQuizQuestions } from '../../../src/shared/quizCategory';
+
+export { groupQuizQuestionsByCategory, countAnsweredInCategory } from '../../../src/shared/quizCategory';
 
 export function toAnsweredSet(answeredQuestionIds: string[]): Set<string> {
   return new Set(answeredQuestionIds);
@@ -8,7 +11,8 @@ export function findNextQuestion(
   questions: QuizQuestion[],
   answeredIds: ReadonlySet<string>,
 ): QuizQuestion | null {
-  return questions.find((question) => !answeredIds.has(question.id)) ?? null;
+  const sorted = sortQuizQuestions(questions);
+  return sorted.find((question) => !answeredIds.has(question.id)) ?? null;
 }
 
 export function applyAnswerToQuizStatus(

@@ -24,6 +24,7 @@ export type PublicConfig = Record<(typeof PUBLIC_CONFIG_KEYS)[number], string>;
 
 export type CachedQuizQuestionPublic = {
   id: string;
+  category: string;
   question: string;
   optionA: string;
   optionB: string;
@@ -89,6 +90,7 @@ export async function getCachedQuizQuestionsPublic(
   const rows = await prisma.quizQuestion.findMany({
     select: {
       id: true,
+      category: true,
       question: true,
       optionA: true,
       optionB: true,
@@ -96,7 +98,7 @@ export async function getCachedQuizQuestionsPublic(
       optionD: true,
       order: true,
     },
-    orderBy: { order: 'asc' },
+    orderBy: [{ category: 'asc' }, { order: 'asc' }],
   });
 
   quizQuestionsPublicCache = {
@@ -114,6 +116,7 @@ export async function getCachedQuizQuestionForAnswer(
     const rows = await prisma.quizQuestion.findMany({
       select: {
         id: true,
+        category: true,
         question: true,
         optionA: true,
         optionB: true,
@@ -122,7 +125,7 @@ export async function getCachedQuizQuestionForAnswer(
         order: true,
         correctOption: true,
       },
-      orderBy: { order: 'asc' },
+      orderBy: [{ category: 'asc' }, { order: 'asc' }],
     });
 
     quizQuestionsAnswerCache = {

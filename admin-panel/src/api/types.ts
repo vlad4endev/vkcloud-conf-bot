@@ -78,6 +78,7 @@ export interface ScheduleSession {
 
 export interface QuizQuestion {
   id: string;
+  category: string;
   question: string;
   optionA: string;
   optionB: string;

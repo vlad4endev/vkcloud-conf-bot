@@ -118,6 +118,7 @@ enum QuizCorrectOption {
 
 model QuizQuestion {
   id            String            @id @default(cuid())
+  category      String            @default("Общее")
   question      String            @db.Text
   optionA       String            @map("option_a")
   optionB       String            @map("option_b")
@@ -130,6 +131,7 @@ model QuizQuestion {
 
   results QuizResult[]
 
+  @@index([category], map: "quiz_questions_category_idx")
   @@map("quiz_questions")
 }
 

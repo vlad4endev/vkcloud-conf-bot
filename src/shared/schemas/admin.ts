@@ -94,6 +94,7 @@ export const scheduleReorderSchema = z.object({
 });
 
 export const quizQuestionCreateSchema = z.object({
+  category: z.string().trim().min(1).max(120).optional(),
   question: z.string().trim().min(1),
   optionA: z.string().trim().min(1),
   optionB: z.string().trim().min(1),

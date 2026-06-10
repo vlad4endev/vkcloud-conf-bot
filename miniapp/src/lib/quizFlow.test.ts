@@ -9,8 +9,9 @@ import {
 
 const QUESTIONS: QuizQuestion[] = [
   {
-    id: 'q1',
-    question: 'One',
+    id: 'q2',
+    category: 'Б',
+    question: 'Two',
     optionA: 'A',
     optionB: 'B',
     optionC: 'C',
@@ -18,8 +19,9 @@ const QUESTIONS: QuizQuestion[] = [
     order: 1,
   },
   {
-    id: 'q2',
-    question: 'Two',
+    id: 'q1',
+    category: 'А',
+    question: 'One',
     optionA: 'A',
     optionB: 'B',
     optionC: 'C',
@@ -28,6 +30,7 @@ const QUESTIONS: QuizQuestion[] = [
   },
   {
     id: 'q3',
+    category: 'А',
     question: 'Three',
     optionA: 'A',
     optionB: 'B',
@@ -47,10 +50,10 @@ const INITIAL_STATUS: QuizStatus = {
 };
 
 describe('quizFlow', () => {
-  it('finds the first unanswered question in order', () => {
-    const answered = toAnsweredSet(['q1']);
-    assert.equal(findNextQuestion(QUESTIONS, answered)?.id, 'q2');
+  it('finds the first unanswered question by category then order', () => {
     assert.equal(findNextQuestion(QUESTIONS, new Set())?.id, 'q1');
+    assert.equal(findNextQuestion(QUESTIONS, toAnsweredSet(['q1']))?.id, 'q3');
+    assert.equal(findNextQuestion(QUESTIONS, toAnsweredSet(['q1', 'q3']))?.id, 'q2');
     assert.equal(findNextQuestion(QUESTIONS, toAnsweredSet(['q1', 'q2', 'q3'])), null);
   });
 

@@ -2,7 +2,10 @@ import { Prisma, type QuizCorrectOption } from '@prisma/client';
 import { prisma } from '../db/client';
 import { invalidateAllContentCaches } from './invalidateContentCaches';
 
+import { normalizeQuizCategory } from './quizCategory';
+
 export type QuizQuestionInput = {
+  category?: string;
   question: string;
   optionA: string;
   optionB: string;
@@ -51,7 +54,11 @@ export async function createQuizQuestionRecord(
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       const created = await prisma.quizQuestion.create({
-        data: { ...data, order },
+        data: {
+          ...data,
+          category: normalizeQuizCategory(data.category),
+          order,
+        },
       });
       invalidateAllContentCaches();
       return created;
