@@ -10,7 +10,8 @@ import {
   getQuizResults,
   updateQuizQuestion,
 } from '../api/client';
-import type { QuizQuestion, QuizResultsResponse, QuizVisibilityInfo } from '../api/client';
+import type { QuizVisibilityInfo } from '../api/client';
+import type { QuizQuestion, QuizResultsResponse } from '../api/types';
 import {
   Badge,
   Button,
