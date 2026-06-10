@@ -85,9 +85,9 @@ export function QuizLiveProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     let eventSource: EventSource | null = null;
-    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+    let fallbackTimer: number | null = null;
     let fallbackDelayMs = FALLBACK_POLL_INITIAL_MS;
-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let reconnectTimer: number | null = null;
 
     const clearFallback = () => {
       if (fallbackTimer) {
