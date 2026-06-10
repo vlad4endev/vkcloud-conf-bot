@@ -1,11 +1,11 @@
 export type SessionTrack = 'all' | 'tech' | 'business';
 
-export const PARALLEL_TRACK_TABS: Array<{
-  id: Exclude<SessionTrack, 'all'>;
-  label: string;
-}> = [
-  { id: 'tech', label: 'зал Rosewood' },
-  { id: 'business', label: 'зал MAIN' },
-];
+export type ParallelTrack = Exclude<SessionTrack, 'all'>;
 
-export { formatHallLabel } from '../../../src/shared/scheduleTrack';
+export {
+  PARALLEL_TRACKS,
+  PARALLEL_TRACK_TABS,
+  PARALLEL_TRACK_BY_ID,
+  formatHallLabel,
+  formatTrackHallText,
+} from '../../../src/shared/scheduleTrack';
