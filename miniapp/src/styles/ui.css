@@ -46,6 +46,8 @@
   color: var(--color-success);
   font-size: 14px;
   font-weight: 500;
+  line-height: 1.45;
+  white-space: pre-line;
 }
 
 .error {

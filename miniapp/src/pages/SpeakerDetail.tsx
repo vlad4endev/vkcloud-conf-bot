@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   getApiErrorMessage,
   getSpeakerById,
@@ -9,11 +9,11 @@ import {
 } from '../api/client';
 import { useUserContext } from '../context/UserContext';
 import UserAvatarPlaceholder from '../components/UserAvatarPlaceholder';
+import SpeakerQuestionSuccessModal from '../components/SpeakerQuestionSuccessModal';
 import { formatSpeakerSessionLine } from '../lib/speakerSessions';
 
 export default function SpeakerDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { userId, haptic } = useUserContext();
 
   const [speaker, setSpeaker] = useState<Speaker | null>(null);
@@ -23,6 +23,7 @@ export default function SpeakerDetail() {
   const [question, setQuestion] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -50,9 +51,7 @@ export default function SpeakerDetail() {
       await postQuestion(id, { userId, question: question.trim() });
       setQuestion('');
       haptic('success');
-      navigate('/speakers', {
-        state: { notification: 'Вопрос отправлен спикеру!' },
-      });
+      setShowSuccessModal(true);
     } catch (error) {
       setSubmitError(getApiErrorMessage(error));
       haptic('error');
@@ -120,6 +119,11 @@ export default function SpeakerDetail() {
           Подтвердить отправку
         </button>
       </form>
+
+      <SpeakerQuestionSuccessModal
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
     </div>
   );
 }
