@@ -53,7 +53,7 @@ function readConfigValue(
   if (config instanceof Map) {
     return config.get(key);
   }
-  return config[key];
+  return (config as Record<string, string | undefined>)[key];
 }
 
 export function resolveQuizVisibilityFromConfig(
