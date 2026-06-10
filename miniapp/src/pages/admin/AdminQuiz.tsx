@@ -4,10 +4,13 @@ import {
   deleteQuizQuestion,
   getApiErrorMessage,
   getQuizQuestions,
+  setQuizSectionVisible,
 } from '../../api/adminClient';
 
 export default function AdminQuiz() {
   const [questions, setQuestions] = useState<Array<{ id: string; question: string }>>([]);
+  const [sectionVisible, setSectionVisible] = useState(true);
+  const [visibilitySaving, setVisibilitySaving] = useState(false);
   const [form, setForm] = useState({
     question: '',
     optionA: '',
@@ -20,9 +23,25 @@ export default function AdminQuiz() {
 
   async function load() {
     try {
-      setQuestions(await getQuizQuestions());
+      const data = await getQuizQuestions();
+      setQuestions(data.questions);
+      setSectionVisible(data.sectionVisible);
     } catch (e) {
       setMessage(getApiErrorMessage(e));
+    }
+  }
+
+  async function toggleSectionVisible(visible: boolean) {
+    if (visibilitySaving || visible === sectionVisible) return;
+    setVisibilitySaving(true);
+    try {
+      const next = await setQuizSectionVisible(visible);
+      setSectionVisible(next);
+      setMessage(next ? 'Раздел показывается' : 'Раздел скрыт');
+    } catch (e) {
+      setMessage(getApiErrorMessage(e));
+    } finally {
+      setVisibilitySaving(false);
     }
   }
 
@@ -55,6 +74,33 @@ export default function AdminQuiz() {
     <div className="page">
       <h1 className="title">Квиз</h1>
       {message ? <p className={message.includes('Ошиб') ? 'error' : 'success'}>{message}</p> : null}
+      {questions.length > 0 ? (
+        <div className="form" style={{ marginBottom: 16 }}>
+          <p className="muted">
+            {sectionVisible
+              ? 'Раздел «Квиз» виден в мини-приложении'
+              : 'Раздел скрыт в мини-приложении'}
+          </p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button
+              type="button"
+              className={sectionVisible ? 'btn' : 'btn btnSecondary'}
+              disabled={visibilitySaving}
+              onClick={() => void toggleSectionVisible(true)}
+            >
+              Отображать
+            </button>
+            <button
+              type="button"
+              className={!sectionVisible ? 'btn' : 'btn btnSecondary'}
+              disabled={visibilitySaving}
+              onClick={() => void toggleSectionVisible(false)}
+            >
+              Не отображать
+            </button>
+          </div>
+        </div>
+      ) : null}
       <div className="form">
         <textarea className="textarea" placeholder="Вопрос" value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} />
         <input className="input" placeholder="A" value={form.optionA} onChange={(e) => setForm((f) => ({ ...f, optionA: e.target.value }))} />

@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import type { QuizOption, QuizQuestion, QuizStatus } from '../api/client';
 import {
+  getConfig,
   getQuizQuestions,
   getQuizStatus,
   postQuizAnswer,
 } from '../api/client';
 import { useUserContext } from '../context/UserContext';
+import {
+  applyAnswerToQuizStatus,
+  findNextQuestion,
+  toAnsweredSet,
+} from '../lib/quizFlow';
 import quizStyles from './Quiz.module.css';
 
 type QuizPageStatus = 'loading' | 'idle' | 'in_progress' | 'finished';
@@ -18,6 +24,30 @@ const OPTION_LABELS: Record<QuizOption, string> = {
 };
 
 const OPTIONS: QuizOption[] = ['a', 'b', 'c', 'd'];
+const ANSWER_FEEDBACK_MS = 1500;
+
+const QUIZ_RULES = [
+  'Каждый участник может пройти квиз только один раз.',
+  'Все ответы на вопросы можно найти на стендах партнёров и экспонентов — подходите, общайтесь и знакомьтесь с компаниями.',
+  'За призом необходимо обратиться на стойку регистрации после прохождения квиза.',
+  'Получение подарков доступно с 12:00 в зоне регистрации.',
+  'Состав подарков может меняться, отдельные позиции могут закончиться.',
+] as const;
+
+function QuizRules() {
+  return (
+    <section className={quizStyles.rules} aria-labelledby="quiz-rules-title">
+      <h2 id="quiz-rules-title" className={quizStyles.rulesTitle}>
+        Основные правила
+      </h2>
+      <ul className={quizStyles.rulesList}>
+        {QUIZ_RULES.map((rule) => (
+          <li key={rule}>{rule}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 function optionText(question: QuizQuestion, option: QuizOption): string {
   const map = {
@@ -29,20 +59,13 @@ function optionText(question: QuizQuestion, option: QuizOption): string {
   return map[option];
 }
 
-function filterPendingQuestions(
-  allQuestions: QuizQuestion[],
-  answeredQuestionIds: string[],
-): QuizQuestion[] {
-  const answered = new Set(answeredQuestionIds);
-  return allQuestions.filter((question) => !answered.has(question.id));
-}
-
 export default function Quiz() {
   const { userId, haptic } = useUserContext();
 
   const [status, setStatus] = useState<QuizPageStatus>('loading');
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [allQuestions, setAllQuestions] = useState<QuizQuestion[]>([]);
+  const [answeredIds, setAnsweredIds] = useState<Set<string>>(() => new Set());
+  const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, QuizOption>>({});
   const [results, setResults] = useState<Record<string, boolean>>({});
   const [correctOptions, setCorrectOptions] = useState<
@@ -50,7 +73,17 @@ export default function Quiz() {
   >({});
   const [quizStatus, setQuizStatus] = useState<QuizStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sectionHidden, setSectionHidden] = useState(false);
   const [answering, setAnswering] = useState(false);
+
+  const statusRef = useRef(status);
+  statusRef.current = status;
+
+  const allQuestionsRef = useRef(allQuestions);
+  allQuestionsRef.current = allQuestions;
+
+  const answeredIdsRef = useRef(answeredIds);
+  answeredIdsRef.current = answeredIds;
 
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -72,31 +105,51 @@ export default function Quiz() {
 
     async function init() {
       try {
-        const [statusData, allQuestions] = await Promise.all([
+        const [config, statusData, questions] = await Promise.all([
+          getConfig(),
           getQuizStatus(uid),
           getQuizQuestions(),
         ]);
+
+        if (config.quiz_visible === 'false') {
+          if (!cancelled) {
+            setSectionHidden(true);
+            setStatus('idle');
+          }
+          return;
+        }
 
         if (cancelled) {
           return;
         }
 
+        const answered = toAnsweredSet(statusData.answeredQuestionIds);
+
         setQuizStatus(statusData);
+        setAllQuestions(questions);
+        setAnsweredIds(answered);
 
         if (statusData.isComplete) {
           setStatus('finished');
+          setCurrentQuestionId(null);
           return;
         }
 
-        const pendingQuestions = filterPendingQuestions(
-          allQuestions,
-          statusData.answeredQuestionIds,
-        );
+        if (statusRef.current === 'in_progress') {
+          const nextQuestion = findNextQuestion(questions, answered);
+          setCurrentQuestionId((prev) => {
+            if (prev && !answered.has(prev)) {
+              return prev;
+            }
+            return nextQuestion?.id ?? null;
+          });
+          return;
+        }
 
-        setQuestions(pendingQuestions);
-        setStatus(pendingQuestions.length > 0 ? 'idle' : 'finished');
+        setCurrentQuestionId(null);
+        setStatus(questions.length > 0 ? 'idle' : 'finished');
       } catch {
-        if (!cancelled) {
+        if (!cancelled && statusRef.current !== 'in_progress') {
           setError('Не удалось загрузить квиз');
           setStatus('idle');
         }
@@ -111,21 +164,29 @@ export default function Quiz() {
   }, [userId]);
 
   function handleStart() {
-    setCurrentIndex(0);
+    const nextQuestion = findNextQuestion(
+      allQuestionsRef.current,
+      answeredIdsRef.current,
+    );
+    if (!nextQuestion) {
+      setStatus('finished');
+      return;
+    }
+
+    setCurrentQuestionId(nextQuestion.id);
+    setError(null);
     setStatus('in_progress');
   }
 
   async function handleAnswer(option: QuizOption) {
-    if (answering) {
+    if (answering || !userId) {
       return;
     }
 
-    const question = questions[currentIndex];
+    const question = allQuestions.find((item) => item.id === currentQuestionId);
     if (!question || results[question.id] !== undefined) {
       return;
     }
-
-    const questionIndex = currentIndex;
 
     setAnswering(true);
     setError(null);
@@ -143,35 +204,50 @@ export default function Quiz() {
         ...prev,
         [question.id]: result.correctOption,
       }));
+
+      const nextAnsweredIds = new Set(answeredIdsRef.current);
+      nextAnsweredIds.add(question.id);
+      setAnsweredIds(nextAnsweredIds);
+      answeredIdsRef.current = nextAnsweredIds;
+
+      setQuizStatus((prev) =>
+        prev
+          ? applyAnswerToQuizStatus(prev, question.id, result.isCorrect)
+          : prev,
+      );
+
       haptic('success');
 
-      advanceTimerRef.current = setTimeout(async () => {
-        const isLast = questionIndex >= questions.length - 1;
+      if (advanceTimerRef.current) {
+        clearTimeout(advanceTimerRef.current);
+      }
 
-        if (isLast) {
-          try {
-            const updatedStatus = await getQuizStatus(userId);
-            setQuizStatus(updatedStatus);
-            setStatus(updatedStatus.isComplete ? 'finished' : 'idle');
-            if (!updatedStatus.isComplete) {
-              const allQuestions = await getQuizQuestions();
-              setQuestions(
-                filterPendingQuestions(
-                  allQuestions,
-                  updatedStatus.answeredQuestionIds,
-                ),
-              );
-              setCurrentIndex(0);
+      advanceTimerRef.current = setTimeout(() => {
+        const nextQuestion = findNextQuestion(
+          allQuestionsRef.current,
+          answeredIdsRef.current,
+        );
+
+        if (!nextQuestion) {
+          void (async () => {
+            try {
+              const updatedStatus = await getQuizStatus(userId);
+              setQuizStatus(updatedStatus);
+              setAnsweredIds(toAnsweredSet(updatedStatus.answeredQuestionIds));
+              setStatus(updatedStatus.isComplete ? 'finished' : 'idle');
+              setCurrentQuestionId(null);
+            } catch {
+              setError('Не удалось загрузить результаты');
+            } finally {
+              setAnswering(false);
             }
-          } catch {
-            setError('Не удалось загрузить результаты');
-          }
-        } else {
-          setCurrentIndex((prev) => prev + 1);
+          })();
+          return;
         }
 
+        setCurrentQuestionId(nextQuestion.id);
         setAnswering(false);
-      }, 1500);
+      }, ANSWER_FEEDBACK_MS);
     } catch {
       setError('Не удалось отправить ответ');
       haptic('error');
@@ -198,14 +274,22 @@ export default function Quiz() {
     return quizStyles.optionBtn;
   }
 
-  const currentQuestion = questions[currentIndex];
-  const answeredBefore = quizStatus?.answeredQuestions ?? 0;
-  const totalQuestions = quizStatus?.totalQuestions ?? questions.length;
-  const progress =
-    totalQuestions > 0
-      ? ((answeredBefore + currentIndex) / totalQuestions) * 100
+  const currentQuestion =
+    allQuestions.find((question) => question.id === currentQuestionId) ?? null;
+  const answeredBefore = quizStatus?.answeredQuestions ?? answeredIds.size;
+  const totalQuestions = quizStatus?.totalQuestions ?? allQuestions.length;
+  const questionNumber =
+    currentQuestion && totalQuestions > 0
+      ? Math.min(
+          answeredBefore -
+            (results[currentQuestion.id] !== undefined ? 1 : 0) +
+            1,
+          totalQuestions,
+        )
       : 0;
-  const hasProgress = (quizStatus?.answeredQuestions ?? 0) > 0;
+  const progress =
+    totalQuestions > 0 ? (answeredBefore / totalQuestions) * 100 : 0;
+  const hasProgress = answeredIds.size > 0;
 
   if (status === 'loading') {
     return (
@@ -232,7 +316,9 @@ export default function Quiz() {
 
       {status === 'idle' && (
         <>
-          {questions.length === 0 ? (
+          {sectionHidden ? (
+            <p className="placeholder">Раздел «Квиз» временно недоступен</p>
+          ) : allQuestions.length === 0 ? (
             <p className="placeholder">Квиз скоро появится</p>
           ) : (
             <>
@@ -243,6 +329,7 @@ export default function Quiz() {
                     : `Вопросов в квизе: ${totalQuestions}`}
                 </p>
               ) : null}
+              <QuizRules />
               <div className="actions">
                 <button
                   type="button"
@@ -260,7 +347,7 @@ export default function Quiz() {
       {status === 'in_progress' && currentQuestion && (
         <>
           <p className={quizStyles.questionMeta}>
-            Вопрос {answeredBefore + currentIndex + 1} из {totalQuestions}
+            Вопрос {questionNumber} из {totalQuestions}
           </p>
           <p className={quizStyles.question}>{currentQuestion.question}</p>
           <div className={quizStyles.options}>
@@ -279,19 +366,14 @@ export default function Quiz() {
         </>
       )}
 
+      {status === 'in_progress' && !currentQuestion && (
+        <p className="placeholder">Загрузка вопроса…</p>
+      )}
+
       {status === 'finished' && quizStatus && (
-        <>
-          {quizStatus.isWinner ? (
-            <p className={quizStyles.resultWinner} role="status">
-              🏆 Поздравляем! Вы победитель!
-            </p>
-          ) : (
-            <p className={quizStyles.resultScore} role="status">
-              Вы ответили правильно на {quizStatus.correctAnswers} из{' '}
-              {quizStatus.totalQuestions} вопросов
-            </p>
-          )}
-        </>
+        <p className={quizStyles.resultScore} role="status">
+          Спасибо за участие! Обратитесь на стойку регистрации за подарком.
+        </p>
       )}
     </div>
   );

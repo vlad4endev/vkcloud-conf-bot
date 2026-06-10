@@ -18,7 +18,8 @@ export type ConfigKey =
   | 'event_description'
   | 'sticker_url'
   | 'map_image_url'
-  | 'quiz_url';
+  | 'quiz_url'
+  | 'quiz_visible';
 
 export type AppConfig = Record<ConfigKey, string>;
 

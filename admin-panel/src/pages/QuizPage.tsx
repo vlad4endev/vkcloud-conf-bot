@@ -7,6 +7,7 @@ import {
   deleteQuizQuestion,
   getQuizQuestions,
   getQuizResults,
+  setQuizSectionVisible,
   updateQuizQuestion,
 } from '../api/client';
 import type { QuizQuestion, QuizResultsResponse } from '../api/types';
@@ -51,6 +52,8 @@ export default function QuizPage() {
   const { toast } = useToast();
   const [tab, setTab] = useState<'questions' | 'results'>('questions');
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [sectionVisible, setSectionVisible] = useState(true);
+  const [visibilitySaving, setVisibilitySaving] = useState(false);
   const [results, setResults] = useState<QuizResultsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<'create' | 'edit' | null>(null);
@@ -62,7 +65,8 @@ export default function QuizPage() {
     setLoading(true);
     try {
       const [q, r] = await Promise.all([getQuizQuestions(), getQuizResults()]);
-      setQuestions(q);
+      setQuestions(q.questions);
+      setSectionVisible(q.sectionVisible);
       setResults(r);
     } catch (error) {
       toast(getErrorMessage(error), 'error');
@@ -74,6 +78,23 @@ export default function QuizPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function toggleSectionVisible(visible: boolean) {
+    if (visibilitySaving || visible === sectionVisible) return;
+    setVisibilitySaving(true);
+    try {
+      const next = await setQuizSectionVisible(visible);
+      setSectionVisible(next);
+      toast(
+        next ? 'Раздел «Квиз» показывается в мини-приложении' : 'Раздел «Квиз» скрыт в мини-приложении',
+        'success',
+      );
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    } finally {
+      setVisibilitySaving(false);
+    }
+  }
 
   const rankedResults = useMemo(
     () => (results ? rankQuizResults(results.results) : []),
@@ -184,6 +205,39 @@ export default function QuizPage() {
           )
         }
       />
+
+      <Card className="mb-4 space-y-3">
+        <div>
+          <h3 className="font-semibold text-white">Раздел в мини-приложении</h3>
+          <p className="mt-1 text-sm text-slate-400">
+            {questions.length === 0
+              ? 'Вкладка «Квиз» появится у пользователей после добавления хотя бы одного вопроса'
+              : sectionVisible
+                ? 'Раздел «Квиз» виден в нижней навигации мини-приложения'
+                : 'Раздел скрыт — вкладка «Квиз» не показывается пользователям'}
+          </p>
+        </div>
+        {questions.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={sectionVisible ? 'primary' : 'secondary'}
+              size="sm"
+              disabled={visibilitySaving}
+              onClick={() => void toggleSectionVisible(true)}
+            >
+              Отображать
+            </Button>
+            <Button
+              variant={!sectionVisible ? 'primary' : 'secondary'}
+              size="sm"
+              disabled={visibilitySaving}
+              onClick={() => void toggleSectionVisible(false)}
+            >
+              Не отображать
+            </Button>
+          </div>
+        ) : null}
+      </Card>
 
       <div className="mb-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         <Button

@@ -247,9 +247,21 @@ export async function reorderSchedule(items: ReorderItem[]): Promise<ScheduleSes
   return data;
 }
 
-export async function getQuizQuestions(): Promise<QuizQuestion[]> {
-  const { data } = await api.get<QuizQuestion[]>('/quiz/questions');
+export type AdminQuizResponse = {
+  sectionVisible: boolean;
+  questions: QuizQuestion[];
+};
+
+export async function getQuizQuestions(): Promise<AdminQuizResponse> {
+  const { data } = await api.get<AdminQuizResponse>('/quiz/questions');
   return data;
+}
+
+export async function setQuizSectionVisible(visible: boolean): Promise<boolean> {
+  const { data } = await api.put<{ sectionVisible: boolean }>('/quiz/visibility', {
+    visible,
+  });
+  return data.sectionVisible;
 }
 
 export async function createQuizQuestion(

@@ -1,3 +1,45 @@
+.rules {
+  margin: 0 0 var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.rulesTitle {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.rulesList {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--color-text-muted, var(--color-text));
+}
+
+.rulesList li {
+  padding-left: 2px;
+}
+
+.prizeHint {
+  margin: var(--spacing-md) 0 0;
+  padding: var(--spacing-md);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--color-text-muted, var(--color-text));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
 .progressHint,
 .questionMeta {
   margin: 0 0 var(--spacing-md);

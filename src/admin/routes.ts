@@ -25,6 +25,11 @@ import {
 import { createQuizQuestionRecord } from '../shared/quizQuestion';
 import { isQuizComplete, isQuizWinner } from '../shared/quizStatus';
 import {
+  PARTNERS_VISIBLE_CONFIG_KEY,
+  QUIZ_VISIBLE_CONFIG_KEY,
+  isSectionVisible,
+} from '../shared/sectionVisibility';
+import {
   buildSessionSpeakersCreate,
   getNextScheduleSessionOrder,
   resolveSessionSpeakerIds,
@@ -117,16 +122,18 @@ const TEXT_CONFIG_KEYS = {
   botWelcome: 'bot_welcome',
 } as const;
 
-const PARTNERS_VISIBLE_CONFIG_KEY = 'partners_visible';
-
-const partnersVisibilitySchema = z.object({
+const sectionVisibilitySchema = z.object({
   visible: z.boolean(),
 });
 
 async function isPartnersSectionVisible(): Promise<boolean> {
   const config = await getConfigMap([PARTNERS_VISIBLE_CONFIG_KEY]);
-  const value = config.get(PARTNERS_VISIBLE_CONFIG_KEY);
-  return value !== 'false';
+  return isSectionVisible(config.get(PARTNERS_VISIBLE_CONFIG_KEY));
+}
+
+async function isQuizSectionVisible(): Promise<boolean> {
+  const config = await getConfigMap([QUIZ_VISIBLE_CONFIG_KEY]);
+  return isSectionVisible(config.get(QUIZ_VISIBLE_CONFIG_KEY));
 }
 
 const quizQuestionUpdateSchema = quizQuestionCreateSchema;
@@ -699,7 +706,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   });
 
   fastify.put('/partners/visibility', auth, async (request, reply) => {
-    const parsed = parseBody(partnersVisibilitySchema, request.body);
+    const parsed = parseBody(sectionVisibilitySchema, request.body);
     if (!parsed.success) {
       return validationError(reply, parsed.error);
     }
@@ -787,9 +794,28 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   );
 
   fastify.get('/quiz/questions', auth, async () => {
-    return prisma.quizQuestion.findMany({
-      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
-    });
+    const [questions, sectionVisible] = await Promise.all([
+      prisma.quizQuestion.findMany({
+        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      }),
+      isQuizSectionVisible(),
+    ]);
+
+    return { sectionVisible, questions };
+  });
+
+  fastify.put('/quiz/visibility', auth, async (request, reply) => {
+    const parsed = parseBody(sectionVisibilitySchema, request.body);
+    if (!parsed.success) {
+      return validationError(reply, parsed.error);
+    }
+
+    await upsertConfig(
+      QUIZ_VISIBLE_CONFIG_KEY,
+      parsed.data.visible ? 'true' : 'false',
+    );
+
+    return { sectionVisible: parsed.data.visible };
   });
 
   fastify.post('/quiz/questions', auth, async (request, reply) => {

@@ -1,10 +1,12 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getConfig } from '../api/client';
 import { appIcons } from '../icons';
 import AppIcon from './AppIcon';
 import BottomNavShell from './BottomNavShell';
 import navStyles from './BottomNavShell.module.css';
 
-const tabs = [
+const baseTabs = [
   { path: '/', label: 'О конференции', icon: appIcons.home },
   { path: '/schedule', label: 'Программа', icon: appIcons.schedule },
   { path: '/quiz', label: 'Квиз', icon: appIcons.quiz },
@@ -33,6 +35,15 @@ function isTabActive(pathname: string, tabPath: string): boolean {
 
 export default function BottomNav() {
   const { pathname } = useLocation();
+  const [quizVisible, setQuizVisible] = useState(true);
+
+  useEffect(() => {
+    getConfig()
+      .then((config) => setQuizVisible(config.quiz_visible !== 'false'))
+      .catch(() => setQuizVisible(true));
+  }, []);
+
+  const tabs = baseTabs.filter((tab) => tab.path !== '/quiz' || quizVisible);
 
   return (
     <BottomNavShell ariaLabel="Основная навигация">

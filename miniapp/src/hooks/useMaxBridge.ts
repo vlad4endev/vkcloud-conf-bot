@@ -4,6 +4,7 @@ import {
   readStoredUser,
   readWebAppUser,
   resolveInitialUser,
+  type WebAppUser,
 } from '../lib/webApp';
 
 type HapticType = 'success' | 'error' | 'warning';
@@ -19,46 +20,59 @@ export function useMaxBridge() {
 
   useEffect(() => {
     let cancelled = false;
+    let settled = false;
     let attempts = 0;
 
-    const applyUser = (user: { userId: number; userName: string }) => {
+    const applyUser = (user: WebAppUser, finalize = false) => {
       if (cancelled) {
         return;
       }
-      setUserId(user.userId);
-      setUserName(user.userName);
+
+      setUserId((prev) => (prev === user.userId ? prev : user.userId));
+      setUserName((prev) => (prev === user.userName ? prev : user.userName));
       setIsReady(true);
+
+      if (finalize) {
+        settled = true;
+      }
     };
 
-    const init = () => {
-      if (cancelled) {
+    const fromWebApp = readWebAppUser();
+    if (fromWebApp) {
+      applyUser(fromWebApp, true);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const fromStorage = readStoredUser();
+    if (fromStorage) {
+      applyUser(fromStorage);
+    }
+
+    const pollId = window.setInterval(() => {
+      if (cancelled || settled) {
+        window.clearInterval(pollId);
         return;
       }
 
-      const fromWebApp = readWebAppUser();
-      if (fromWebApp) {
-        console.log('[MaxBridge] user from WebApp:', fromWebApp.userId);
-        applyUser(fromWebApp);
-        return;
-      }
-
-      const fromStorage = readStoredUser();
-      if (fromStorage) {
-        applyUser(fromStorage);
-        return;
-      }
-
-      if (attempts >= POLL_MAX_ATTEMPTS) {
-        applyUser(createDevUser());
+      const webAppUser = readWebAppUser();
+      if (webAppUser) {
+        applyUser(webAppUser, true);
+        window.clearInterval(pollId);
         return;
       }
 
       attempts += 1;
-    };
-
-    init();
-
-    const pollId = window.setInterval(init, POLL_MS);
+      if (attempts >= POLL_MAX_ATTEMPTS) {
+        if (!fromStorage) {
+          applyUser(createDevUser(), true);
+        } else {
+          settled = true;
+        }
+        window.clearInterval(pollId);
+      }
+    }, POLL_MS);
 
     return () => {
       cancelled = true;

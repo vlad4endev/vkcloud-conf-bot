@@ -21,6 +21,11 @@ import {
 import { quizOptionSchema } from '../shared/schemas/admin';
 import { getUserQuizStatus } from '../shared/quizStatus';
 import {
+  PARTNERS_VISIBLE_CONFIG_KEY,
+  QUIZ_VISIBLE_CONFIG_KEY,
+  isSectionVisible,
+} from '../shared/sectionVisibility';
+import {
   scheduleSessionInclude,
   serializeScheduleSessions,
 } from '../shared/scheduleSession';
@@ -106,7 +111,15 @@ const CONFIG_KEYS = [
   'sticker_url',
   'map_image_url',
   'quiz_url',
+  QUIZ_VISIBLE_CONFIG_KEY,
 ] as const;
+
+async function isQuizSectionVisible(): Promise<boolean> {
+  const row = await prisma.config.findUnique({
+    where: { key: QUIZ_VISIBLE_CONFIG_KEY },
+  });
+  return isSectionVisible(row?.value);
+}
 
 const questionToSpeakerSchema = z.object({
   userId: z.coerce.number().int().positive().optional(),
@@ -195,10 +208,10 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const visibilityRow = await prisma.config.findUnique({
-      where: { key: 'partners_visible' },
+      where: { key: PARTNERS_VISIBLE_CONFIG_KEY },
     });
 
-    if (visibilityRow?.value === 'false') {
+    if (!isSectionVisible(visibilityRow?.value)) {
       return [];
     }
 
@@ -337,6 +350,10 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     '/quiz/questions',
     { preHandler: requireRegisteredMaxUser },
     async () => {
+      if (!(await isQuizSectionVisible())) {
+        return [];
+      }
+
       return prisma.quizQuestion.findMany({
         select: quizQuestionSelect,
         orderBy: { order: 'asc' },
@@ -353,14 +370,22 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
       return validationError(reply, parsed.error);
     }
 
-    const [user, question] = await Promise.all([
-      findUserByMaxUserId(parsed.data.userId),
-      prisma.quizQuestion.findUnique({ where: { id: parsed.data.questionId } }),
-    ]);
-
-    if (!user) {
-      return notFound(reply, 'User');
+    if (!(await isQuizSectionVisible())) {
+      return reply.status(403).send({ error: 'Quiz is not available' });
     }
+
+    const verifiedUser = (request as AuthenticatedRequest).verifiedUser;
+    if (!verifiedUser) {
+      return reply.status(403).send({ error: 'MAX init data required' });
+    }
+
+    if (Number(verifiedUser.maxUserId) !== parsed.data.userId) {
+      return reply.status(403).send({ error: 'User mismatch' });
+    }
+
+    const question = await prisma.quizQuestion.findUnique({
+      where: { id: parsed.data.questionId },
+    });
 
     if (!question) {
       return notFound(reply, 'Question');
@@ -371,12 +396,12 @@ export async function miniappRoutes(app: FastifyInstance): Promise<void> {
     await prisma.quizResult.upsert({
       where: {
         userId_questionId: {
-          userId: user.id,
+          userId: verifiedUser.id,
           questionId: question.id,
         },
       },
       create: {
-        userId: user.id,
+        userId: verifiedUser.id,
         questionId: question.id,
         answer: parsed.data.answer,
         isCorrect,
