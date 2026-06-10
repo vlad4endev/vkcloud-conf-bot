@@ -5,6 +5,10 @@ import { pipeline } from 'stream/promises';
 import type { MultipartFile } from '@fastify/multipart';
 
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+export const PARTNER_LOGO_EXTENSIONS = new Set([
+  ...ALLOWED_EXTENSIONS,
+  '.svg',
+]);
 
 function assertSafeSubfolder(subfolder: string): void {
   const normalized = path.normalize(subfolder);
@@ -20,12 +24,14 @@ function assertSafeSubfolder(subfolder: string): void {
 export async function saveUploadedFile(
   file: MultipartFile,
   subfolder: string,
+  allowedExtensions: Set<string> = ALLOWED_EXTENSIONS,
 ): Promise<string> {
   assertSafeSubfolder(subfolder);
 
   const ext = path.extname(file.filename).toLowerCase();
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
-    throw new Error('Invalid file type. Allowed: jpg, jpeg, png, webp');
+  if (!allowedExtensions.has(ext)) {
+    const allowed = [...allowedExtensions].map((e) => e.slice(1)).join(', ');
+    throw new Error(`Invalid file type. Allowed: ${allowed}`);
   }
 
   if (file.file.truncated) {

@@ -47,7 +47,7 @@ import {
   scheduleTimeToDate,
   scheduleTimeToMinutes,
 } from '../shared/scheduleTime';
-import { saveUploadedFile } from '../shared/upload';
+import { PARTNER_LOGO_EXTENSIONS, saveUploadedFile } from '../shared/upload';
 import { getRouteId, notFound, parseBody, validationError } from './lib/http';
 
 const loginSchema = z.object({
@@ -1235,7 +1235,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
         return reply.status(400).send({ error: 'Logo file is required' });
       }
 
-      const url = await saveUploadedFile(file, 'partners');
+      const url = await saveUploadedFile(file, 'partners', PARTNER_LOGO_EXTENSIONS);
 
       try {
         await prisma.partner.update({

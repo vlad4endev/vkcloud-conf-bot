@@ -277,11 +277,13 @@ export default function PartnersPage() {
             <Card key={partner.id} className="space-y-3">
               <div className="flex items-start gap-3">
                 {partner.logoUrl ? (
-                  <img
-                    src={partner.logoUrl}
-                    alt=""
-                    className="h-16 w-16 shrink-0 rounded-xl border border-[var(--color-border)] object-contain bg-white/5 p-1 sm:h-20 sm:w-20"
-                  />
+                  <span className="flex shrink-0 items-center">
+                    <img
+                      src={partner.logoUrl}
+                      alt=""
+                      className="block h-auto max-h-16 w-auto max-w-[200px] object-contain sm:max-h-20 sm:max-w-[240px]"
+                    />
+                  </span>
                 ) : (
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-slate-500 sm:h-20 sm:w-20">
                     ?
@@ -336,11 +338,13 @@ export default function PartnersPage() {
             <span className="text-sm text-slate-400">Логотип</span>
             <div className="flex flex-wrap items-start gap-4">
               {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt=""
-                  className="h-28 w-28 rounded-xl border border-[var(--color-border)] object-contain bg-white/5 p-2"
-                />
+                <span className="flex items-center">
+                  <img
+                    src={previewUrl}
+                    alt=""
+                    className="block h-auto max-h-24 w-auto max-w-[280px] object-contain"
+                  />
+                </span>
               ) : (
                 <div className="flex h-28 w-28 items-center justify-center rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)] text-slate-500">
                   <AppIcon icon={panelIcons.photo} size={28} />

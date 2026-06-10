@@ -1,32 +1,8 @@
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getPartners, type Partner } from '../../api/client';
+import PartnerLogo from './PartnerLogo';
 import styles from './PartnersSection.module.css';
-
-function PartnerLogo({ partner }: { partner: Partner }) {
-  if (partner.logoUrl) {
-    return (
-      <img
-        src={partner.logoUrl}
-        alt=""
-        className={styles.logo}
-        width={44}
-        height={44}
-        loading="lazy"
-        decoding="async"
-      />
-    );
-  }
-
-  return (
-    <span
-      className={`${styles.logo} ${styles.logoFallback}`}
-      aria-hidden
-    >
-      {partner.name.slice(0, 3)}
-    </span>
-  );
-}
 
 export default function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -61,7 +37,7 @@ export default function PartnersList() {
         <li key={partner.id}>
           <article className={styles.card}>
             <div className={styles.cardHeader}>
-              <PartnerLogo partner={partner} />
+              <PartnerLogo partner={partner} size="lg" />
               <h2 className={styles.cardName}>{partner.name}</h2>
             </div>
             {partner.description ? (

@@ -216,8 +216,14 @@ export default function AdminPartners() {
             <img
               src={preview}
               alt=""
-              className="cardPhoto"
-              style={{ borderRadius: 8, width: 56, height: 56, objectFit: 'contain' }}
+              style={{
+                display: 'block',
+                maxHeight: 56,
+                maxWidth: 180,
+                width: 'auto',
+                height: 'auto',
+                objectFit: 'contain',
+              }}
             />
           ) : (
             <div
@@ -230,7 +236,7 @@ export default function AdminPartners() {
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/svg+xml"
             hidden
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -290,11 +296,13 @@ export default function AdminPartners() {
                   src={partner.logoUrl}
                   alt=""
                   style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 8,
+                    display: 'block',
+                    maxHeight: 48,
+                    maxWidth: 160,
+                    width: 'auto',
+                    height: 'auto',
                     objectFit: 'contain',
-                    border: '1px solid var(--color-border)',
+                    flexShrink: 0,
                   }}
                 />
               ) : null}
