@@ -5,7 +5,6 @@ import {
   deletePartnerLogo,
   getApiErrorMessage,
   getPartners,
-  setPartnersSectionVisible,
   updatePartner,
   uploadPartnerLogo,
   type AdminPartner,
@@ -39,8 +38,6 @@ function logoPreviewUrl(logo: LogoDraft): string | null {
 
 export default function AdminPartners() {
   const [partners, setPartners] = useState<AdminPartner[]>([]);
-  const [sectionVisible, setSectionVisible] = useState(true);
-  const [visibilitySaving, setVisibilitySaving] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
@@ -51,25 +48,9 @@ export default function AdminPartners() {
 
   async function load() {
     try {
-      const data = await getPartners();
-      setPartners(data.partners);
-      setSectionVisible(data.sectionVisible);
+      setPartners(await getPartners());
     } catch (e) {
       setMessage(getApiErrorMessage(e));
-    }
-  }
-
-  async function toggleSectionVisible(visible: boolean) {
-    if (visibilitySaving || visible === sectionVisible) return;
-    setVisibilitySaving(true);
-    try {
-      const next = await setPartnersSectionVisible(visible);
-      setSectionVisible(next);
-      setMessage(next ? 'Блок показывается на главной' : 'Блок скрыт с главной');
-    } catch (e) {
-      setMessage(getApiErrorMessage(e));
-    } finally {
-      setVisibilitySaving(false);
     }
   }
 
@@ -138,54 +119,8 @@ export default function AdminPartners() {
     <div className="page">
       <h1 className="title">Партнёры</h1>
       {message ? (
-        <p
-          className={
-            message === 'Сохранено' ||
-            message === 'Блок показывается на главной' ||
-            message === 'Блок скрыт с главной'
-              ? 'success'
-              : 'error'
-          }
-        >
-          {message}
-        </p>
+        <p className={message === 'Сохранено' ? 'success' : 'error'}>{message}</p>
       ) : null}
-
-      <div className="session">
-        <p className="sessionTitle">Блок на главной</p>
-        <p className="sessionMeta">
-          {partners.length === 0
-            ? 'На главной ничего не показывается, пока не добавлен хотя бы один партнёр'
-            : sectionVisible
-              ? 'Партнёры видны пользователям под разделом «О мероприятии»'
-              : 'Раздел партнёров скрыт в мини-приложении'}
-        </p>
-        {partners.length > 0 ? (
-          <div
-            className="actions"
-            style={{ marginTop: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}
-          >
-            <button
-              type="button"
-              className={sectionVisible ? 'btn' : 'btn btnSecondary'}
-              style={{ width: 'auto', flex: 1 }}
-              disabled={visibilitySaving}
-              onClick={() => void toggleSectionVisible(true)}
-            >
-              Отображать
-            </button>
-            <button
-              type="button"
-              className={!sectionVisible ? 'btn' : 'btn btnSecondary'}
-              style={{ width: 'auto', flex: 1 }}
-              disabled={visibilitySaving}
-              onClick={() => void toggleSectionVisible(false)}
-            >
-              Не отображать
-            </button>
-          </div>
-        ) : null}
-      </div>
 
       <div className="form">
         <input
@@ -213,22 +148,34 @@ export default function AdminPartners() {
 
         <div className="actions" style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           {preview ? (
-            <img
-              src={preview}
-              alt=""
+            <div
               style={{
-                display: 'block',
-                maxHeight: 56,
-                maxWidth: 180,
-                width: 'auto',
-                height: 'auto',
-                objectFit: 'contain',
+                width: 120,
+                height: 72,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                borderRadius: 8,
+                border: '1px solid var(--color-border)',
               }}
-            />
+            >
+              <img
+                src={preview}
+                alt=""
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+              />
+            </div>
           ) : (
             <div
               className="avatar"
-              style={{ borderRadius: 8, width: 56, height: 56, fontSize: 12 }}
+              style={{
+                borderRadius: 8,
+                width: 120,
+                height: 72,
+                fontSize: 12,
+                flexShrink: 0,
+              }}
             >
               ?
             </div>
@@ -291,21 +238,26 @@ export default function AdminPartners() {
         {partners.map((partner) => (
           <li key={partner.id} className="session">
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              {partner.logoUrl ? (
-                <img
-                  src={partner.logoUrl}
-                  alt=""
-                  style={{
-                    display: 'block',
-                    maxHeight: 48,
-                    maxWidth: 160,
-                    width: 'auto',
-                    height: 'auto',
-                    objectFit: 'contain',
-                    flexShrink: 0,
-                  }}
-                />
-              ) : null}
+              <div
+                style={{
+                  width: 88,
+                  height: 48,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {partner.logoUrl ? (
+                  <img
+                    src={partner.logoUrl}
+                    alt=""
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <span className="sessionMeta">?</span>
+                )}
+              </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p className="sessionTitle">{partner.name}</p>
                 {partner.description ? (

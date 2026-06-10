@@ -277,11 +277,11 @@ export default function PartnersPage() {
             <Card key={partner.id} className="space-y-3">
               <div className="flex items-start gap-3">
                 {partner.logoUrl ? (
-                  <span className="flex shrink-0 items-center">
+                  <span className="flex h-16 w-24 shrink-0 items-center justify-center sm:h-20 sm:w-28">
                     <img
                       src={partner.logoUrl}
                       alt=""
-                      className="block h-auto max-h-16 w-auto max-w-[200px] object-contain sm:max-h-20 sm:max-w-[240px]"
+                      className="max-h-full max-w-full object-contain"
                     />
                   </span>
                 ) : (
@@ -338,11 +338,11 @@ export default function PartnersPage() {
             <span className="text-sm text-slate-400">Логотип</span>
             <div className="flex flex-wrap items-start gap-4">
               {previewUrl ? (
-                <span className="flex items-center">
+                <span className="flex h-28 w-40 items-center justify-center rounded-xl bg-[var(--color-surface-2)] p-2">
                   <img
                     src={previewUrl}
                     alt=""
-                    className="block h-auto max-h-24 w-auto max-w-[280px] object-contain"
+                    className="max-h-full max-w-full object-contain"
                   />
                 </span>
               ) : (

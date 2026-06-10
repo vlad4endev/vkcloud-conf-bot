@@ -13,22 +13,14 @@ type PartnerLogoProps = {
   partner: Pick<Partner, 'name' | 'logoUrl'>;
   size?: PartnerLogoSize;
   className?: string;
-  fullWidth?: boolean;
 };
 
 export default function PartnerLogo({
   partner,
   size = 'md',
   className,
-  fullWidth = false,
 }: PartnerLogoProps) {
-  const wrapClass = [
-    styles.logoWrap,
-    fullWidth ? styles.logoWrapFull : '',
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const wrapClass = [styles.logoWrap, className].filter(Boolean).join(' ');
 
   if (partner.logoUrl) {
     return (
