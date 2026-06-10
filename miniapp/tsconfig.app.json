@@ -21,6 +21,14 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../src/shared/**/*.ts"],
-  "exclude": ["src/**/*.test.ts", "../src/shared/jwt.ts"]
+  "include": [
+    "src",
+    "../src/shared/quizCategory.ts",
+    "../src/shared/quizLiveState.ts",
+    "../src/shared/quizVisibility.ts",
+    "../src/shared/sectionVisibility.ts",
+    "../src/shared/scheduleTrack.ts",
+    "../src/shared/registrationMessages.ts"
+  ],
+  "exclude": ["src/**/*.test.ts"]
 }
