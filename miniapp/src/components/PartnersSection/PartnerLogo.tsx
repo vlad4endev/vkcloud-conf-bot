@@ -15,7 +15,7 @@ const sizeClass: Record<PartnerLogoSize, string> = {
 type PartnerLogoProps = {
   partner: Pick<Partner, 'name' | 'logoUrl' | 'logoScale'>;
   size?: PartnerLogoSize;
-  variant?: 'default' | 'banner';
+  variant?: 'default' | 'banner' | 'card';
   className?: string;
 };
 
@@ -27,7 +27,7 @@ export default function PartnerLogo({
 }: PartnerLogoProps) {
   const [logoBoost, setLogoBoost] = useState(1);
   const imgRef = useRef<HTMLImageElement>(null);
-  const isBanner = variant === 'banner';
+  const isScaled = variant === 'banner' || variant === 'card';
   const manualScale = partnerLogoScaleFactor(partner.logoScale);
 
   useEffect(() => {
@@ -41,23 +41,37 @@ export default function PartnerLogo({
 
   const handleLogoLoad = useCallback(
     (event: SyntheticEvent<HTMLImageElement>) => {
-      if (!isBanner) return;
+      if (!isScaled) return;
       applyLogoBoost(event.currentTarget);
     },
-    [applyLogoBoost, isBanner],
+    [applyLogoBoost, isScaled],
   );
 
   useEffect(() => {
-    if (!isBanner) return;
+    if (!isScaled) return;
     const img = imgRef.current;
     if (img?.complete && img.naturalWidth > 0) {
       applyLogoBoost(img);
     }
-  }, [applyLogoBoost, isBanner, partner.logoUrl]);
+  }, [applyLogoBoost, isScaled, partner.logoUrl]);
+
+  const scaledWrapClass =
+    variant === 'card'
+      ? styles.logoWrapCard
+      : variant === 'banner'
+        ? styles.logoWrapBanner
+        : null;
+
+  const scaledImageClass =
+    variant === 'card'
+      ? styles.logoImageCard
+      : variant === 'banner'
+        ? styles.logoImageBanner
+        : null;
 
   const wrapClass = [
     styles.logoWrap,
-    isBanner ? styles.logoWrapBanner : null,
+    scaledWrapClass,
     className,
   ]
     .filter(Boolean)
@@ -72,12 +86,12 @@ export default function PartnerLogo({
           alt={partner.name}
           className={[
             styles.logoImage,
-            isBanner ? styles.logoImageBanner : sizeClass[size],
+            scaledImageClass ?? sizeClass[size],
           ]
             .filter(Boolean)
             .join(' ')}
           style={
-            isBanner
+            isScaled
               ? {
                   transform: `scale(${manualScale * logoBoost})`,
                 }

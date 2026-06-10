@@ -36,18 +36,13 @@ export default function PartnersList() {
       {partners.map((partner) => (
         <li key={partner.id}>
           <article className={styles.card}>
-            {partner.logoUrl ? (
-              <div className={styles.cardBrand}>
-                <PartnerLogo partner={partner} variant="banner" />
+            <div className={styles.logoColumn}>
+              <div className={styles.logoBox}>
+                <PartnerLogo partner={partner} variant="card" />
               </div>
-            ) : null}
-            <div className={styles.cardBody}>
-              <div className={styles.cardHeader}>
-                {!partner.logoUrl ? (
-                  <PartnerLogo partner={partner} size="md" />
-                ) : null}
-                <h2 className={styles.cardName}>{partner.name}</h2>
-              </div>
+            </div>
+            <div className={styles.content}>
+              <h2 className={styles.cardName}>{partner.name}</h2>
               {partner.description ? (
                 <p className={styles.description}>{partner.description}</p>
               ) : null}
