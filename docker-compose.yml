@@ -88,6 +88,29 @@ services:
     networks:
       - app-network
 
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-vkconf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vkconf_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-vkcloud_conf}
+      BACKUP_DIR: /backups
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-2}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/scripts/backup.sh:ro
+      - ./scripts/backup-entrypoint.sh:/scripts/backup-entrypoint.sh:ro
+      - uploads_data:/uploads:ro
+    entrypoint: ['/bin/sh', '/scripts/backup-entrypoint.sh']
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge

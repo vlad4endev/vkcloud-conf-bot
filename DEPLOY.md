@@ -235,6 +235,40 @@ docker compose logs -f admin
 
 ---
 
+## Резервные копии (каждые 2 часа)
+
+Контейнер `backup` в `docker-compose.yml` автоматически сохраняет:
+
+- дамп PostgreSQL (`database.sql.gz`);
+- архив загрузок (`uploads.tar.gz`).
+
+Файлы лежат на сервере в `/opt/vkconf/backups/YYYYMMDD-HHMMSS/`.  
+Старые копии удаляются через `BACKUP_RETENTION_DAYS` (по умолчанию 7 дней).
+
+```bash
+# Запуск / проверка
+docker compose up -d backup
+docker compose logs -f backup
+
+# Ручной бэкап
+./scripts/backup.sh
+ls -la backups/
+
+# Восстановление (осторожно — перезапишет БД)
+./scripts/restore-backup.sh 20260610-120000
+```
+
+Настройки в `.env`:
+
+| Переменная | По умолчанию | Описание |
+|---|---|---|
+| `BACKUP_INTERVAL_HOURS` | `2` | Интервал между копиями |
+| `BACKUP_RETENTION_DAYS` | `7` | Сколько дней хранить |
+
+Рекомендуется дополнительно копировать каталог `backups/` на другой диск или в облако (rsync, S3).
+
+---
+
 ## Обновление релиза
 
 ```bash

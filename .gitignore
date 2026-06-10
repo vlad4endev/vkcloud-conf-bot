@@ -17,6 +17,9 @@ miniapp/dist/
 # Uploads (генерируются на сервере)
 uploads/
 
+# Резервные копии (локально / на VPS)
+backups/
+
 # Logs
 *.log
 npm-debug.log*
