@@ -11,12 +11,12 @@ type TrackSwitcherProps = {
 export default function TrackSwitcher({ activeTrack, onChange }: TrackSwitcherProps) {
   return (
     <div className="mt-10 text-center">
-      <h3 className="text-xl font-bold text-white sm:text-2xl">Выберите трек</h3>
+      <h3 className="text-xl font-bold text-white sm:text-2xl">Выберите зал</h3>
 
       <div
         className="mt-6 border-b border-white/12"
         role="tablist"
-        aria-label="Треки конференции"
+        aria-label="Залы конференции"
       >
         <div className="mx-auto flex max-w-lg">
           {PARALLEL_TRACK_TABS.map((tab) => {

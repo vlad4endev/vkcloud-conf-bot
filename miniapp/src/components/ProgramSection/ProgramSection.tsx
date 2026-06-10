@@ -5,6 +5,7 @@ import { getSchedule, type ScheduleSession, type SessionTrack } from '../../api/
 import AppIcon from '../AppIcon';
 import { appIcons } from '../../icons';
 import { formatScheduleTime } from '../../lib/scheduleFormat';
+import { formatHallLabel } from '../../lib/scheduleTrack';
 import TrackSwitcher from './TrackSwitcher';
 
 type ProgramItem = {
@@ -49,7 +50,7 @@ function SessionCard({ item }: { item: ProgramItem }) {
       </h3>
 
       {item.location ? (
-        <p className="mt-2 text-sm text-white/60">{item.location}</p>
+        <p className="mt-2 text-sm text-white/60">{formatHallLabel(item.location)}</p>
       ) : null}
 
       {item.speakers.length > 0 && (
@@ -171,7 +172,7 @@ function TimelineRow({ item }: { item: ProgramItem }) {
 
 function TimelineList({
   items,
-  emptyMessage = 'Сессий в этом треке пока нет',
+  emptyMessage = 'Сессий в этом зале пока нет',
   hideWhenEmpty = false,
 }: {
   items: ProgramItem[];

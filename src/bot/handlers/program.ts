@@ -1,5 +1,6 @@
 import type { Bot, Context } from '@maxhub/max-bot-api';
 import { prisma } from '../../db/client';
+import { formatHallLabel } from '../../shared/scheduleTrack';
 import {
   chunkText,
   formatSessionDate,
@@ -53,7 +54,9 @@ export async function sendProgram(ctx: Context): Promise<void> {
       const time = `${formatSessionTime(session.startTime)}–${formatSessionTime(session.endTime)}`;
       const speakerNames = session.sessionSpeakers.map((link) => link.speaker.name);
       const speaker = speakerNames.length > 0 ? ` — ${speakerNames.join(', ')}` : '';
-      const location = session.location ? ` (${session.location})` : '';
+      const location = session.location
+        ? ` (${formatHallLabel(session.location)})`
+        : '';
       text += `\n${time}  ${session.title}${speaker}${location}`;
       if (session.description) {
         text += `\n   ${session.description}`;
