@@ -63,6 +63,11 @@
   border-radius: var(--radius-md);
 }
 
+.categoryCardComplete {
+  border-color: rgba(0, 200, 117, 0.35);
+  background: rgba(0, 200, 117, 0.06);
+}
+
 .categoryHeader {
   display: flex;
   align-items: center;
@@ -78,8 +83,23 @@
 }
 
 .categoryCount {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   color: var(--color-text-muted, var(--color-text));
+}
+
+.categoryCompleteBadge {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-success);
+  background: rgba(0, 200, 117, 0.12);
+  border: 1px solid rgba(0, 200, 117, 0.3);
+  border-radius: 999px;
 }
 
 .categoryTrack {
@@ -94,6 +114,10 @@
   background: var(--color-primary);
   border-radius: 2px;
   transition: width 0.3s ease;
+}
+
+.categoryFillComplete {
+  background: var(--color-success);
 }
 
 .categoryBadge {
@@ -139,6 +163,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.exitActions {
+  margin-top: var(--spacing-lg);
 }
 
 .optionBtn {

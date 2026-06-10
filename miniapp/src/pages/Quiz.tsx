@@ -201,6 +201,17 @@ export default function Quiz() {
     setStatus('in_progress');
   }
 
+  function handleExit() {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
+
+    setAnswering(false);
+    setCurrentQuestionId(null);
+    setStatus('idle');
+  }
+
   async function handleAnswer(option: QuizOption) {
     if (answering || !userId) {
       return;
@@ -352,6 +363,7 @@ export default function Quiz() {
             <p className="placeholder">Квиз скоро появится</p>
           ) : (
             <>
+              <QuizRules />
               {quizStatus && totalQuestions > 0 ? (
                 <p className={quizStyles.progressHint}>
                   {hasProgress
@@ -364,17 +376,33 @@ export default function Quiz() {
                   className={quizStyles.categoryList}
                   aria-label="Категории квиза"
                 >
-                  {categoryProgress.map(({ category, total, answered }) => (
-                    <div key={category} className={quizStyles.categoryCard}>
+                  {categoryProgress.map(({ category, total, answered, isComplete }) => (
+                    <div
+                      key={category}
+                      className={
+                        isComplete
+                          ? `${quizStyles.categoryCard} ${quizStyles.categoryCardComplete}`
+                          : quizStyles.categoryCard
+                      }
+                    >
                       <div className={quizStyles.categoryHeader}>
                         <span className={quizStyles.categoryTitle}>{category}</span>
                         <span className={quizStyles.categoryCount}>
+                          {isComplete ? (
+                            <span className={quizStyles.categoryCompleteBadge}>
+                              Пройдено
+                            </span>
+                          ) : null}
                           {answered} / {total}
                         </span>
                       </div>
                       <div className={quizStyles.categoryTrack} aria-hidden>
                         <div
-                          className={quizStyles.categoryFill}
+                          className={
+                            isComplete
+                              ? `${quizStyles.categoryFill} ${quizStyles.categoryFillComplete}`
+                              : quizStyles.categoryFill
+                          }
                           style={{
                             width: `${total > 0 ? (answered / total) * 100 : 0}%`,
                           }}
@@ -384,7 +412,6 @@ export default function Quiz() {
                   ))}
                 </section>
               ) : null}
-              <QuizRules />
               <div className="actions">
                 <button
                   type="button"
@@ -418,6 +445,16 @@ export default function Quiz() {
                 {OPTION_LABELS[option]}. {optionText(currentQuestion, option)}
               </button>
             ))}
+          </div>
+          <div className={quizStyles.exitActions}>
+            <button
+              type="button"
+              className="btn btnSecondary"
+              onClick={handleExit}
+              disabled={answering && !(currentQuestion.id in results)}
+            >
+              Выйти
+            </button>
           </div>
         </>
       )}

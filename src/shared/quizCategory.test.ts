@@ -38,8 +38,15 @@ describe('quizCategory', () => {
     assert.deepEqual(
       countAnsweredInCategory(QUESTIONS, new Set(['q1'])),
       [
-        { category: 'А', total: 2, answered: 1 },
-        { category: 'Б', total: 1, answered: 0 },
+        { category: 'А', total: 2, answered: 1, isComplete: false },
+        { category: 'Б', total: 1, answered: 0, isComplete: false },
+      ],
+    );
+    assert.deepEqual(
+      countAnsweredInCategory(QUESTIONS, new Set(['q1', 'q3'])),
+      [
+        { category: 'А', total: 2, answered: 2, isComplete: true },
+        { category: 'Б', total: 1, answered: 0, isComplete: false },
       ],
     );
   });

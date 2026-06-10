@@ -15,6 +15,7 @@ export type QuizCategoryProgress = {
   category: string;
   total: number;
   answered: number;
+  isComplete: boolean;
 };
 
 export function normalizeQuizCategory(category?: string | null): string {
@@ -61,10 +62,16 @@ export function countAnsweredInCategory(
   questions: readonly QuizQuestionWithCategory[],
   answeredIds: ReadonlySet<string>,
 ): QuizCategoryProgress[] {
-  return groupQuizQuestionsByCategory(questions).map((group) => ({
-    category: group.category,
-    total: group.questions.length,
-    answered: group.questions.filter((question) => answeredIds.has(question.id))
-      .length,
-  }));
+  return groupQuizQuestionsByCategory(questions).map((group) => {
+    const answered = group.questions.filter((question) =>
+      answeredIds.has(question.id),
+    ).length;
+
+    return {
+      category: group.category,
+      total: group.questions.length,
+      answered,
+      isComplete: answered === group.questions.length,
+    };
+  });
 }
