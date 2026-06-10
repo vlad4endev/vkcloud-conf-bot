@@ -36,27 +36,36 @@ export default function PartnersList() {
       {partners.map((partner) => (
         <li key={partner.id}>
           <article className={styles.card}>
-            <div className={styles.cardHeader}>
-              <PartnerLogo partner={partner} size="lg" />
-              <h2 className={styles.cardName}>{partner.name}</h2>
-            </div>
-            {partner.description ? (
-              <p className={styles.description}>{partner.description}</p>
+            {partner.logoUrl ? (
+              <div className={styles.cardBrand}>
+                <PartnerLogo partner={partner} size="lg" fullWidth />
+              </div>
             ) : null}
-            <a
-              href={partner.url}
-              className={styles.link}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Перейти на сайт
-              <ExternalLink
-                className={styles.linkIcon}
-                size={15}
-                strokeWidth={2}
-                aria-hidden
-              />
-            </a>
+            <div className={styles.cardBody}>
+              <div className={styles.cardHeader}>
+                {!partner.logoUrl ? (
+                  <PartnerLogo partner={partner} size="md" />
+                ) : null}
+                <h2 className={styles.cardName}>{partner.name}</h2>
+              </div>
+              {partner.description ? (
+                <p className={styles.description}>{partner.description}</p>
+              ) : null}
+              <a
+                href={partner.url}
+                className={styles.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Перейти на сайт
+                <ExternalLink
+                  className={styles.linkIcon}
+                  size={15}
+                  strokeWidth={2}
+                  aria-hidden
+                />
+              </a>
+            </div>
           </article>
         </li>
       ))}

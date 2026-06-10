@@ -13,19 +13,29 @@ type PartnerLogoProps = {
   partner: Pick<Partner, 'name' | 'logoUrl'>;
   size?: PartnerLogoSize;
   className?: string;
+  fullWidth?: boolean;
 };
 
 export default function PartnerLogo({
   partner,
   size = 'md',
   className,
+  fullWidth = false,
 }: PartnerLogoProps) {
+  const wrapClass = [
+    styles.logoWrap,
+    fullWidth ? styles.logoWrapFull : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   if (partner.logoUrl) {
     return (
-      <span className={`${styles.logoWrap} ${className ?? ''}`.trim()}>
+      <span className={wrapClass}>
         <img
           src={partner.logoUrl}
-          alt=""
+          alt={partner.name}
           className={`${styles.logoImage} ${sizeClass[size]}`}
           loading="lazy"
           decoding="async"
@@ -35,10 +45,7 @@ export default function PartnerLogo({
   }
 
   return (
-    <span
-      className={`${styles.logoWrap} ${styles.logoFallback} ${className ?? ''}`.trim()}
-      aria-hidden
-    >
+    <span className={`${wrapClass} ${styles.logoFallback}`.trim()} aria-hidden>
       {partner.name.slice(0, 3)}
     </span>
   );
