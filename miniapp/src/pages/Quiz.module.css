@@ -226,13 +226,13 @@
 
 .resultCardWinner {
   background:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 200, 117, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 119, 255, 0.2) 0%, transparent 55%),
     linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%);
-  border-color: rgba(0, 200, 117, 0.38);
+  border-color: rgba(0, 119, 255, 0.45);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
     0 16px 32px rgba(0, 0, 0, 0.45),
-    0 0 32px rgba(0, 200, 117, 0.14);
+    0 0 36px rgba(0, 119, 255, 0.18);
 }
 
 .resultAccentBar {
@@ -257,9 +257,9 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--color-success) 25%,
-    var(--color-highlight) 50%,
-    var(--color-success) 75%,
+    var(--color-primary) 25%,
+    var(--color-accent-soft) 50%,
+    var(--color-primary) 75%,
     transparent 100%
   );
 }
@@ -280,11 +280,11 @@
 }
 
 .resultCardWinner .resultIconWrap {
-  color: var(--color-success);
+  color: var(--color-accent-soft);
   background:
-    radial-gradient(circle at 35% 30%, rgba(0, 200, 117, 0.28) 0%, rgba(0, 200, 117, 0.08) 100%);
-  border-color: rgba(0, 200, 117, 0.45);
-  box-shadow: 0 0 24px rgba(0, 200, 117, 0.18);
+    radial-gradient(circle at 35% 30%, rgba(0, 119, 255, 0.34) 0%, rgba(0, 119, 255, 0.1) 100%);
+  border-color: rgba(77, 155, 255, 0.5);
+  box-shadow: 0 0 28px rgba(0, 119, 255, 0.24);
 }
 
 .resultTitle {
@@ -311,13 +311,13 @@
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.04em;
-  color: var(--color-highlight);
-  text-shadow: 0 0 32px rgba(200, 245, 66, 0.35);
+  color: var(--color-primary);
+  text-shadow: 0 0 32px rgba(0, 119, 255, 0.4);
 }
 
 .resultCardWinner .scoreValue {
-  color: var(--color-success);
-  text-shadow: 0 0 32px rgba(0, 200, 117, 0.35);
+  color: var(--color-accent-soft);
+  text-shadow: 0 0 36px rgba(77, 155, 255, 0.45);
 }
 
 .scoreLabel {
