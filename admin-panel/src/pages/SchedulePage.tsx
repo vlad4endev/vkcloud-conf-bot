@@ -37,8 +37,8 @@ type SessionForm = {
 
 const TRACK_OPTIONS: Array<{ value: SessionTrack; label: string }> = [
   { value: 'all', label: 'Общий трек' },
-  { value: 'tech', label: 'Технический блок · зал Rosewood' },
-  { value: 'business', label: 'Бизнес-блок · зал Main' },
+  { value: 'tech', label: 'Технический трек · зал Rosewood' },
+  { value: 'business', label: 'Бизнес-трек · зал Main' },
 ];
 
 const emptyForm: SessionForm = {
