@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Trophy } from 'lucide-react';
 import type { QuizOption, QuizQuestion, QuizStatus } from '../api/client';
+import AppIcon from '../components/AppIcon';
 import {
   getApiErrorMessage,
   getQuizQuestions,
@@ -49,6 +51,21 @@ function QuizRules() {
       </ul>
     </section>
   );
+}
+
+function formatPointsLabel(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod100 >= 11 && mod100 <= 14) {
+    return 'баллов';
+  }
+  if (mod10 === 1) {
+    return 'балл';
+  }
+  if (mod10 >= 2 && mod10 <= 4) {
+    return 'балла';
+  }
+  return 'баллов';
 }
 
 function optionText(question: QuizQuestion, option: QuizOption): string {
@@ -464,9 +481,41 @@ export default function Quiz() {
       )}
 
       {status === 'finished' && quizStatus && (
-        <p className={quizStyles.resultScore} role="status">
-          Спасибо за участие! Обратитесь на стойку регистрации за подарком.
-        </p>
+        <section
+          className={
+            quizStatus.isWinner
+              ? `${quizStyles.resultCard} ${quizStyles.resultCardWinner}`
+              : quizStyles.resultCard
+          }
+          role="status"
+          aria-live="polite"
+        >
+          <div className={quizStyles.resultAccentBar} aria-hidden />
+
+          <div className={quizStyles.resultIconWrap}>
+            <AppIcon icon={Trophy} size={28} />
+          </div>
+
+          <h2 className={quizStyles.resultTitle}>Спасибо за участие!</h2>
+
+          <div className={quizStyles.scoreBlock}>
+            <span className={quizStyles.scoreValue}>
+              {quizStatus.correctAnswers}
+            </span>
+            <span className={quizStyles.scoreLabel}>
+              {formatPointsLabel(quizStatus.correctAnswers)}
+            </span>
+          </div>
+
+          <p className={quizStyles.resultMeta}>
+            {quizStatus.correctAnswers} из {quizStatus.totalQuestions} правильных
+            ответов
+          </p>
+
+          <p className={quizStyles.resultPrize}>
+            Обратитесь на стойку регистрации за подарком.
+          </p>
+        </section>
       )}
     </div>
   );

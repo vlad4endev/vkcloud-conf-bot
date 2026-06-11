@@ -207,24 +207,149 @@
   color: var(--color-error);
 }
 
-.resultWinner {
-  padding: var(--spacing-lg) var(--spacing-md);
+.resultCard {
+  position: relative;
+  margin-top: var(--spacing-sm);
+  padding: calc(var(--spacing-lg) + 4px) var(--spacing-md) var(--spacing-md);
   text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-success);
-  background: rgba(0, 200, 117, 0.12);
-  border: 1px solid rgba(0, 200, 117, 0.35);
-  border-radius: var(--radius-md);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 119, 255, 0.14) 0%, transparent 55%),
+    linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%);
+  border: 1px solid rgba(0, 119, 255, 0.32);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 16px 32px rgba(0, 0, 0, 0.45),
+    0 0 32px rgba(0, 119, 255, 0.1);
+  animation: resultCardIn 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.resultScore {
-  padding: var(--spacing-lg) var(--spacing-md);
-  text-align: center;
-  font-size: 16px;
-  font-weight: 500;
+.resultCardWinner {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 200, 117, 0.16) 0%, transparent 55%),
+    linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%);
+  border-color: rgba(0, 200, 117, 0.38);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 16px 32px rgba(0, 0, 0, 0.45),
+    0 0 32px rgba(0, 200, 117, 0.14);
+}
+
+.resultAccentBar {
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-primary) 25%,
+    var(--color-highlight) 50%,
+    var(--color-primary) 75%,
+    transparent 100%
+  );
+  opacity: 0.9;
+}
+
+.resultCardWinner .resultAccentBar {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-success) 25%,
+    var(--color-highlight) 50%,
+    var(--color-success) 75%,
+    transparent 100%
+  );
+}
+
+.resultIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto var(--spacing-md);
+  border-radius: 50%;
+  color: var(--color-primary);
+  background:
+    radial-gradient(circle at 35% 30%, rgba(0, 119, 255, 0.28) 0%, rgba(0, 119, 255, 0.08) 100%);
+  border: 1px solid rgba(0, 119, 255, 0.45);
+  box-shadow: 0 0 24px rgba(0, 119, 255, 0.18);
+}
+
+.resultCardWinner .resultIconWrap {
+  color: var(--color-success);
+  background:
+    radial-gradient(circle at 35% 30%, rgba(0, 200, 117, 0.28) 0%, rgba(0, 200, 117, 0.08) 100%);
+  border-color: rgba(0, 200, 117, 0.45);
+  box-shadow: 0 0 24px rgba(0, 200, 117, 0.18);
+}
+
+.resultTitle {
+  margin: 0 0 var(--spacing-md);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+}
+
+.scoreBlock {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.scoreValue {
+  font-family: var(--font-display);
+  font-size: clamp(44px, 14vw, 56px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--color-highlight);
+  text-shadow: 0 0 32px rgba(200, 245, 66, 0.35);
+}
+
+.resultCardWinner .scoreValue {
+  color: var(--color-success);
+  text-shadow: 0 0 32px rgba(0, 200, 117, 0.35);
+}
+
+.scoreLabel {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.resultMeta {
+  margin: 0 0 var(--spacing-md);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.resultPrize {
+  margin: 0;
+  padding-top: var(--spacing-md);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-divider);
+}
+
+@keyframes resultCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
