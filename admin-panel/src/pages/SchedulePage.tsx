@@ -24,6 +24,7 @@ import {
 import { useToast } from '../context/ToastContext';
 import { downloadAdminExport } from '../lib/download';
 import { formatScheduleTime, getErrorMessage } from '../lib/format';
+import { formatTrackHallText } from '../../../src/shared/scheduleTrack';
 
 type SessionForm = {
   startTime: string;
@@ -37,8 +38,8 @@ type SessionForm = {
 
 const TRACK_OPTIONS: Array<{ value: SessionTrack; label: string }> = [
   { value: 'all', label: 'Общий трек' },
-  { value: 'tech', label: 'Технический трек · зал Rosewood' },
-  { value: 'business', label: 'Бизнес-трек · зал Main' },
+  { value: 'tech', label: formatTrackHallText('tech') },
+  { value: 'business', label: formatTrackHallText('business') },
 ];
 
 const emptyForm: SessionForm = {

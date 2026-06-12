@@ -13,8 +13,8 @@ export type ParallelTrackInfo = {
 };
 
 export const PARALLEL_TRACKS: ParallelTrackInfo[] = [
-  { id: 'tech', title: 'Технический трек', hall: 'зал Rosewood' },
-  { id: 'business', title: 'Бизнес-трек', hall: 'зал Main' },
+  { id: 'tech', title: 'Технологический трек', hall: 'малый зал' },
+  { id: 'business', title: 'Бизнес-трек', hall: 'главный зал' },
 ];
 
 /** @deprecated Используйте PARALLEL_TRACKS */
@@ -31,12 +31,21 @@ export const SESSION_TRACK_LABELS: Record<SessionTrack, string> = {
   business: PARALLEL_TRACK_BY_ID.business.title,
 };
 
-/** Подписи локации в БД → id трека (включая старые «блок») */
+/** Подписи локации в БД → id трека (включая устаревшие варианты) */
 const LOCATION_TO_TRACK: Record<string, ParallelTrack> = {
+  'Технологический трек': 'tech',
   'Технический трек': 'tech',
   'Технический блок': 'tech',
+  'Технологический блок': 'tech',
   'Бизнес-трек': 'business',
   'Бизнес-блок': 'business',
+  'малый зал': 'tech',
+  'зал Rosewood': 'tech',
+  Rosewood: 'tech',
+  'главный зал': 'business',
+  'зал Main': 'business',
+  'зал MAIN': 'business',
+  Main: 'business',
 };
 
 export function formatTrackHallText(track: ParallelTrack): string {
