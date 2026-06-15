@@ -1,7 +1,7 @@
 import ActionIcon from '../components/ActionIcon';
-import { ListCardMeta } from '../components/mobileList';
+import { ListCardActions, ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
-import { getQuestions } from '../api/client';
+import { deleteSpeakerQuestion, getQuestions } from '../api/client';
 import type { SpeakerQuestion } from '../api/types';
 import {
   Button,
@@ -46,6 +46,17 @@ export default function QuestionsPage() {
     );
   });
 
+  async function handleDelete(item: SpeakerQuestion) {
+    if (!confirm('Удалить вопрос?')) return;
+    try {
+      await deleteSpeakerQuestion(item.id);
+      toast('Вопрос удалён', 'success');
+      await load();
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -82,8 +93,22 @@ export default function QuestionsPage() {
         <div className="space-y-3">
           {filtered.map((item) => (
             <Card key={item.id} className="space-y-0">
-              <p className="text-xs font-medium text-blue-400">{item.speaker.name}</p>
-              <p className="mt-2 whitespace-pre-wrap text-white">{item.question}</p>
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-blue-400">{item.speaker.name}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-white">{item.question}</p>
+                </div>
+                <ListCardActions>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void handleDelete(item)}
+                    aria-label="Удалить"
+                  >
+                    <ActionIcon name="delete" />
+                  </Button>
+                </ListCardActions>
+              </div>
               <ListCardMeta>
                 <span className="text-slate-400">{item.user.fullName}</span>
                 <span className="break-all text-slate-500">{item.user.email}</span>

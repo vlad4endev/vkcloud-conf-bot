@@ -310,9 +310,17 @@ export async function getQuestions(): Promise<SpeakerQuestion[]> {
   return data;
 }
 
+export async function deleteSpeakerQuestion(id: string): Promise<void> {
+  await api.delete(`/questions/${id}`);
+}
+
 export async function getFeedback(): Promise<FeedbackItem[]> {
   const { data } = await api.get<FeedbackItem[]>('/feedback');
   return data;
+}
+
+export async function deleteFeedback(id: string): Promise<void> {
+  await api.delete(`/feedback/${id}`);
 }
 
 export async function getNotifications(

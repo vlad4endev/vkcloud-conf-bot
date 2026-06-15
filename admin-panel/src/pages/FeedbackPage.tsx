@@ -1,7 +1,7 @@
 import ActionIcon from '../components/ActionIcon';
-import { ListCardMeta } from '../components/mobileList';
+import { ListCardActions, ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
-import { getFeedback } from '../api/client';
+import { deleteFeedback, getFeedback } from '../api/client';
 import type { FeedbackItem } from '../api/types';
 import {
   Button,
@@ -34,6 +34,17 @@ export default function FeedbackPage() {
     void load();
   }, [load]);
 
+  async function handleDelete(item: FeedbackItem) {
+    if (!confirm('Удалить отзыв?')) return;
+    try {
+      await deleteFeedback(item.id);
+      toast('Отзыв удалён', 'success');
+      await load();
+    } catch (error) {
+      toast(getErrorMessage(error), 'error');
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -62,7 +73,19 @@ export default function FeedbackPage() {
         <div className="space-y-3">
           {items.map((item) => (
             <Card key={item.id} className="space-y-0">
-              <p className="whitespace-pre-wrap text-white">{item.text}</p>
+              <div className="flex items-start gap-3">
+                <p className="min-w-0 flex-1 whitespace-pre-wrap text-white">{item.text}</p>
+                <ListCardActions>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void handleDelete(item)}
+                    aria-label="Удалить"
+                  >
+                    <ActionIcon name="delete" />
+                  </Button>
+                </ListCardActions>
+              </div>
               <ListCardMeta>
                 {item.user ? (
                   <>

@@ -1305,6 +1305,24 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     });
   });
 
+  fastify.delete<{ Params: { id: string } }>(
+    '/questions/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Question');
+      }
+
+      try {
+        await prisma.questionToSpeaker.delete({ where: { id } });
+        return reply.status(204).send();
+      } catch {
+        return notFound(reply, 'Question');
+      }
+    },
+  );
+
   fastify.get('/feedback', auth, async () => {
     return prisma.feedback.findMany({
       orderBy: { createdAt: 'desc' },
@@ -1313,6 +1331,24 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       },
     });
   });
+
+  fastify.delete<{ Params: { id: string } }>(
+    '/feedback/:id',
+    auth,
+    async (request, reply) => {
+      const id = getRouteId(request.params);
+      if (!id) {
+        return notFound(reply, 'Feedback');
+      }
+
+      try {
+        await prisma.feedback.delete({ where: { id } });
+        return reply.status(204).send();
+      } catch {
+        return notFound(reply, 'Feedback');
+      }
+    },
+  );
 
   fastify.get('/schedule', auth, async () => {
     const sessions = await prisma.scheduleSession.findMany({
