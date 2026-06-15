@@ -114,7 +114,7 @@ function SpeakerRow({
     .toUpperCase();
 
   return (
-    <li className="flex items-center gap-3">
+    <li className="flex items-start gap-3">
       {speaker.avatar ? (
         <img
           src={speaker.avatar}
@@ -139,7 +139,7 @@ function SpeakerRow({
           {speaker.name}
         </Link>
         {speaker.profession ? (
-          <p className="truncate text-xs text-white/55">{speaker.profession}</p>
+          <p className="line-clamp-3 text-xs leading-snug text-white/55">{speaker.profession}</p>
         ) : null}
       </div>
     </li>
