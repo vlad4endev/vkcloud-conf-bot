@@ -53,7 +53,7 @@ const ADMIN_ACCOUNTS = [
   {
     email: 'admin@vkcloud.ru',
     name: 'Администратор',
-    password: 'VkC0nf!Admin#2026',
+    password: 'Admin123!',
   },
   {
     email: 'polina.shchegoleva@vkteam.ru',
