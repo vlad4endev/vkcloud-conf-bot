@@ -65,6 +65,7 @@ export default function LoginPage() {
           <Input
             label="Email"
             type="email"
+            name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -73,6 +74,7 @@ export default function LoginPage() {
           <Input
             label="Пароль"
             type="password"
+            name="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -81,9 +83,11 @@ export default function LoginPage() {
           <Input
             label="Кодовое слово"
             type="password"
+            name="admin-code-word"
             value={codeWord}
             onChange={(e) => setCodeWord(e.target.value)}
             required
+            autoComplete="one-time-code"
           />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Вход…' : 'Войти'}

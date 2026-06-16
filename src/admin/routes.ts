@@ -346,7 +346,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     const { email, password, codeWord } = parsed.data;
 
     if (codeWord !== env.ADMIN_CODE_WORD) {
-      return reply.status(401).send({ error: 'Invalid code word' });
+      return reply.status(401).send({ error: 'Неверное кодовое слово' });
     }
 
     const admin = await prisma.admin.findUnique({
@@ -354,7 +354,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     });
 
     if (!admin || !(await bcrypt.compare(password, admin.password))) {
-      return reply.status(401).send({ error: 'Invalid credentials' });
+      return reply.status(401).send({ error: 'Неверный email или пароль' });
     }
 
     const token = await fastify.jwt.sign({

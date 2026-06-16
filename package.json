@@ -22,6 +22,7 @@
     "db:migrate": "npx prisma migrate deploy",
     "db:push": "npx prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:upsert-admin": "npx tsx scripts/upsert-admin.ts",
     "db:studio": "npx prisma studio"
   },
   "prisma": {
