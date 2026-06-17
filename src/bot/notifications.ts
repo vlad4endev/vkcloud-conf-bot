@@ -14,7 +14,7 @@ let schedulerRunning = false;
 
 const BROADCAST_BATCH_SIZE = 100;
 const NOTIFICATION_BATCH_SIZE = 10;
-/** Retry immediate broadcasts that failed in the admin API. */
+/** Retry immediate broadcasts if admin delivery failed. */
 const STUCK_IMMEDIATE_MS = 2 * 60 * 1000;
 
 export interface BroadcastResult {
@@ -231,7 +231,7 @@ export async function processDueNotifications(): Promise<void> {
     where: {
       isSent: false,
       OR: [
-        { scheduledAt: { lte: now } },
+        { scheduledAt: { not: null, lte: now } },
         {
           scheduledAt: null,
           createdAt: { lte: stuckImmediateBefore },
@@ -244,7 +244,12 @@ export async function processDueNotifications(): Promise<void> {
 
   for (const notification of pending) {
     try {
-      await deliverNotification(notification.id, notification.text);
+      const success = await deliverNotification(notification.id, notification.text);
+      if (!success) {
+        console.warn(
+          `Notification ${notification.id}: skipped or no messages delivered, will retry`,
+        );
+      }
     } catch (error) {
       console.error(
         `Failed to process notification ${notification.id}, will retry:`,

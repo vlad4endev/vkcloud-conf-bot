@@ -65,6 +65,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-vkconf}:${POSTGRES_PASSWORD:-vkconf_secret}@postgres:5432/${POSTGRES_DB:-vkcloud_conf}
+      BOT_INTERNAL_URL: http://bot:3000
       NODE_ENV: production
     ports:
       - '3001:3001'

@@ -7,7 +7,8 @@ import type {
 } from 'fastify';
 import * as XLSX from 'xlsx';
 import { z } from 'zod';
-import { countBroadcastRecipients, deliverNotification } from '../bot/notifications';
+import { countBroadcastRecipients } from '../bot/notifications';
+import { scheduleImmediateBroadcast } from './notificationDelivery';
 import { prisma } from '../db/client';
 import { env } from '../shared/env';
 import { parseMaxProfileName } from '../shared/maxProfileName';
@@ -600,21 +601,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       data: { text, isSent: false },
     });
 
-    void deliverNotification(notification.id, text)
-      .then((success) => {
-        if (success) {
-          fastify.log.info(
-            { notificationId: notification.id },
-            'Immediate broadcast completed',
-          );
-        }
-      })
-      .catch((error) => {
-        fastify.log.error(
-          { err: error, notificationId: notification.id },
-          'Immediate broadcast failed',
-        );
-      });
+    scheduleImmediateBroadcast(notification.id, text, fastify.log);
 
     return reply.status(202).send({
       accepted: true,
