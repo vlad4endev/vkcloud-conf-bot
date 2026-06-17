@@ -179,6 +179,29 @@ async function releaseNotificationClaim(notificationId: string): Promise<void> {
   });
 }
 
+/** Atomically claims and delivers a notification; safe to call from API and cron. */
+export async function deliverNotification(
+  notificationId: string,
+  text: string,
+): Promise<boolean> {
+  const claimed = await claimNotification(notificationId);
+  if (!claimed) {
+    return false;
+  }
+
+  try {
+    const result = await broadcastToAll(text);
+    const success = await finalizeBroadcast(notificationId, result);
+    if (!success) {
+      await releaseNotificationClaim(notificationId);
+    }
+    return success;
+  } catch (error) {
+    await releaseNotificationClaim(notificationId);
+    throw error;
+  }
+}
+
 async function finalizeBroadcast(
   notificationId: string,
   result: BroadcastResult,
@@ -198,20 +221,6 @@ async function finalizeBroadcast(
     `Notification ${notificationId}: 0/${result.recipientCount} messages delivered`,
   );
   return false;
-}
-
-export async function finalizeImmediateBroadcast(
-  notificationId: string,
-  result: BroadcastResult,
-): Promise<boolean> {
-  const success = await finalizeBroadcast(notificationId, result);
-  if (success) {
-    await prisma.notification.update({
-      where: { id: notificationId },
-      data: { isSent: true, sentAt: new Date() },
-    });
-  }
-  return success;
 }
 
 export async function processDueNotifications(): Promise<void> {
@@ -234,19 +243,9 @@ export async function processDueNotifications(): Promise<void> {
   });
 
   for (const notification of pending) {
-    const claimed = await claimNotification(notification.id);
-    if (!claimed) {
-      continue;
-    }
-
     try {
-      const result = await broadcastToAll(notification.text);
-      const success = await finalizeBroadcast(notification.id, result);
-      if (!success) {
-        await releaseNotificationClaim(notification.id);
-      }
+      await deliverNotification(notification.id, notification.text);
     } catch (error) {
-      await releaseNotificationClaim(notification.id);
       console.error(
         `Failed to process notification ${notification.id}, will retry:`,
         error,

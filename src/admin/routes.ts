@@ -7,7 +7,7 @@ import type {
 } from 'fastify';
 import * as XLSX from 'xlsx';
 import { z } from 'zod';
-import { broadcastToAll, countBroadcastRecipients, finalizeImmediateBroadcast } from '../bot/notifications';
+import { countBroadcastRecipients, deliverNotification } from '../bot/notifications';
 import { prisma } from '../db/client';
 import { env } from '../shared/env';
 import { parseMaxProfileName } from '../shared/maxProfileName';
@@ -600,15 +600,11 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       data: { text, isSent: false },
     });
 
-    void broadcastToAll(text)
-      .then(async (result) => {
-        const success = await finalizeImmediateBroadcast(
-          notification.id,
-          result,
-        );
+    void deliverNotification(notification.id, text)
+      .then((success) => {
         if (success) {
           fastify.log.info(
-            { notificationId: notification.id, ...result },
+            { notificationId: notification.id },
             'Immediate broadcast completed',
           );
         }
