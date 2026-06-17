@@ -8,14 +8,16 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  maxUserId  BigInt   @unique @map("max_user_id")
-  chatId     BigInt   @map("chat_id")
-  fullName   String   @map("full_name")
-  email      String
-  isVerified Boolean  @default(false) @map("is_verified")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(cuid())
+  maxUserId        BigInt   @unique @map("max_user_id")
+  chatId           BigInt   @map("chat_id")
+  fullName         String   @map("full_name")
+  email            String
+  profileFirstName String   @default("") @map("profile_first_name")
+  profileLastName  String   @default("") @map("profile_last_name")
+  isVerified       Boolean  @default(false) @map("is_verified")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   questions   QuestionToSpeaker[]
   feedbacks   Feedback[]

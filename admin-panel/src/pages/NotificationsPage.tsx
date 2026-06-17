@@ -3,11 +3,12 @@ import { ListCardActions, ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
 import {
   deleteNotification,
+  getNotificationRecipients,
   getNotifications,
   sendNotification,
   updateNotification,
 } from '../api/client';
-import type { Notification } from '../api/types';
+import type { Notification, NotificationRecipients } from '../api/types';
 import {
   Badge,
   Button,
@@ -33,6 +34,7 @@ export default function NotificationsPage() {
   const [pending, setPending] = useState<Notification[]>([]);
   const [history, setHistory] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recipients, setRecipients] = useState<NotificationRecipients | null>(null);
 
   const [text, setText] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
@@ -46,12 +48,14 @@ export default function NotificationsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [pendingList, historyList] = await Promise.all([
+      const [pendingList, historyList, recipientsCount] = await Promise.all([
         getNotifications('pending'),
         getNotifications('sent'),
+        getNotificationRecipients(),
       ]);
       setPending(pendingList);
       setHistory(historyList);
+      setRecipients(recipientsCount);
     } catch (error) {
       toast(getErrorMessage(error), 'error');
     } finally {
@@ -85,7 +89,7 @@ export default function NotificationsPage() {
         'accepted' in result &&
         (result as { accepted?: boolean }).accepted
       ) {
-        toast('Рассылка запущена в фоне — сообщения уйдут участникам постепенно', 'success');
+        toast('Рассылка запущена в фоне — сообщения уйдут получателям постепенно', 'success');
       } else {
         toast(
           immediate
@@ -171,7 +175,7 @@ export default function NotificationsPage() {
           rows={6}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Текст для участников в боте MAX…"
+          placeholder="Текст для участников и незарегистрированных пользователей в боте MAX…"
         />
 
         <label className="block space-y-1.5">
@@ -187,8 +191,11 @@ export default function NotificationsPage() {
         </label>
 
         <p className="text-xs text-slate-500">
-          Мгновенная рассылка работает, если бот запущен и доступен сервису admin.
-          Отложенная сохраняется в БД — cron бота отправит подтверждённым участникам.
+          {recipients
+            ? `Сообщение уйдёт ${recipients.total} получателям: ${recipients.verified} зарегистрированных и ${recipients.unregistered} незарегистрированных (запустили бота). `
+            : 'Сообщение уйдёт зарегистрированным и незарегистрированным пользователям, запустившим бота. '}
+          Мгновенная — сразу, отложенная — cron каждую минуту. Если доставлено 0
+          из N, рассылка останется в «Запланированных» для повтора.
         </p>
 
         <div className="flex flex-wrap gap-2">

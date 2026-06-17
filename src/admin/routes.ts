@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import type { Prisma } from '@prisma/client';
 import type {
   FastifyInstance,
   FastifyReply,
@@ -6,9 +7,10 @@ import type {
 } from 'fastify';
 import * as XLSX from 'xlsx';
 import { z } from 'zod';
-import { broadcastToAll } from '../bot/notifications';
+import { broadcastToAll, countBroadcastRecipients, finalizeImmediateBroadcast } from '../bot/notifications';
 import { prisma } from '../db/client';
 import { env } from '../shared/env';
+import { parseMaxProfileName } from '../shared/maxProfileName';
 import type { AdminJwtPayload } from '../shared/jwt';
 import {
   quizQuestionCreateSchema,
@@ -60,6 +62,7 @@ const loginSchema = z.object({
 
 const usersQuerySchema = z.object({
   search: z.string().trim().optional(),
+  verified: z.enum(['true', 'false']).optional(),
 });
 
 const userUpdateSchema = z
@@ -193,6 +196,41 @@ function formatDateTime(date: Date): string {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function resolveProfileNames(user: {
+  fullName: string;
+  profileFirstName: string;
+  profileLastName: string;
+}): { firstName: string; lastName: string } {
+  if (user.profileFirstName || user.profileLastName) {
+    return {
+      firstName: user.profileFirstName,
+      lastName: user.profileLastName,
+    };
+  }
+
+  return parseMaxProfileName(user.fullName);
+}
+
+function buildUsersSearchFilter(search: string, includeProfileFields: boolean) {
+  const or: Prisma.UserWhereInput[] = [
+    { fullName: { contains: search, mode: 'insensitive' } },
+    { email: { contains: search, mode: 'insensitive' } },
+  ];
+
+  if (includeProfileFields) {
+    or.push(
+      { profileFirstName: { contains: search, mode: 'insensitive' } },
+      { profileLastName: { contains: search, mode: 'insensitive' } },
+    );
+
+    if (/^\d+$/.test(search)) {
+      or.push({ maxUserId: BigInt(search) });
+    }
+  }
+
+  return { OR: or };
 }
 
 async function getConfigMap(
@@ -373,6 +411,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     const [
       usersTotal,
       usersVerified,
+      usersUnverified,
       speakers,
       scheduleSessions,
       questions,
@@ -382,6 +421,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { isVerified: true } }),
+      prisma.user.count({ where: { isVerified: false } }),
       prisma.speaker.count(),
       prisma.scheduleSession.count(),
       prisma.questionToSpeaker.count(),
@@ -393,6 +433,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     return {
       usersTotal,
       usersVerified,
+      usersUnverified,
       speakers,
       scheduleSessions,
       questions,
@@ -408,17 +449,21 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       return validationError(reply, query.error);
     }
 
-    const { search } = query.data;
+    const { search, verified } = query.data;
+
+    const filters = [];
+    if (search) {
+      filters.push(buildUsersSearchFilter(search, verified === 'false'));
+    }
+    if (verified === 'true') {
+      filters.push({ isVerified: true });
+    }
+    if (verified === 'false') {
+      filters.push({ isVerified: false });
+    }
 
     return prisma.user.findMany({
-      where: search
-        ? {
-            OR: [
-              { fullName: { contains: search, mode: 'insensitive' } },
-              { email: { contains: search, mode: 'insensitive' } },
-            ],
-          }
-        : undefined,
+      where: filters.length > 0 ? { AND: filters } : undefined,
       orderBy: { createdAt: 'desc' },
     });
   });
@@ -469,6 +514,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
 
   fastify.get('/users/export', auth, async (_request, reply) => {
     const users = await prisma.user.findMany({
+      where: { isVerified: true },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -480,6 +526,29 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }));
 
     return createExcelResponse(reply, rows, 'users.xlsx');
+  });
+
+  fastify.get('/users/unregistered/export', auth, async (_request, reply) => {
+    const users = await prisma.user.findMany({
+      where: { isVerified: false },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const rows = users.map((user) => {
+      const profile = resolveProfileNames(user);
+      return {
+        'MAX User ID': user.maxUserId.toString(),
+        Имя: profile.firstName,
+        Фамилия: profile.lastName,
+        'Дата запуска бота': formatDateTime(user.createdAt),
+      };
+    });
+
+    return createExcelResponse(reply, rows, 'unregistered-users.xlsx');
+  });
+
+  fastify.get('/notifications/recipients', auth, async () => {
+    return countBroadcastRecipients();
   });
 
   fastify.get('/notifications', auth, async (request, reply) => {
@@ -532,15 +601,17 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     });
 
     void broadcastToAll(text)
-      .then(async (sentCount) => {
-        await prisma.notification.update({
-          where: { id: notification.id },
-          data: { isSent: true, sentAt: new Date() },
-        });
-        fastify.log.info(
-          { notificationId: notification.id, sentCount },
-          'Immediate broadcast completed',
+      .then(async (result) => {
+        const success = await finalizeImmediateBroadcast(
+          notification.id,
+          result,
         );
+        if (success) {
+          fastify.log.info(
+            { notificationId: notification.id, ...result },
+            'Immediate broadcast completed',
+          );
+        }
       })
       .catch((error) => {
         fastify.log.error(

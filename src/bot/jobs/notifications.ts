@@ -1,7 +1,14 @@
 import type { Bot } from '@maxhub/max-bot-api';
 import { prisma } from '../../db/client';
+import {
+  broadcastToAll,
+  finalizeImmediateBroadcast,
+  setBotInstance,
+} from '../notifications';
 
 export async function processPendingNotifications(bot: Bot): Promise<void> {
+  setBotInstance(bot);
+
   const now = new Date();
   const pending = await prisma.notification.findMany({
     where: {
@@ -12,29 +19,13 @@ export async function processPendingNotifications(bot: Bot): Promise<void> {
     orderBy: { createdAt: 'asc' },
   });
 
-  if (pending.length === 0) {
-    return;
-  }
-
-  const users = await prisma.user.findMany({
-    select: { chatId: true },
-  });
-
   for (const notification of pending) {
-    for (const user of users) {
-      try {
-        await bot.api.sendMessageToChat(Number(user.chatId), notification.text);
-      } catch (error) {
-        console.error(
-          `Failed to send notification ${notification.id} to chat ${user.chatId}:`,
-          error,
-        );
-      }
+    const result = await broadcastToAll(notification.text);
+    const success = await finalizeImmediateBroadcast(notification.id, result);
+    if (!success) {
+      console.error(
+        `Notification ${notification.id}: delivery failed, will retry on next cron tick`,
+      );
     }
-
-    await prisma.notification.update({
-      where: { id: notification.id },
-      data: { isSent: true, sentAt: new Date() },
-    });
   }
 }

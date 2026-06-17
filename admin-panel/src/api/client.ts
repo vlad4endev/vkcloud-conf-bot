@@ -5,13 +5,14 @@ import type {
   FeedbackItem,
   LinksConfig,
   LoginResponse,
+  Notification,
+  NotificationRecipients,
   QuizQuestion,
   QuizResultsResponse,
   ReorderItem,
   ScheduleSession,
   SessionTrack,
   Speaker,
-  Notification,
   Partner,
   SpeakerQuestion,
   TextsConfig,
@@ -94,9 +95,20 @@ export async function getStats(): Promise<DashboardStats> {
   return data;
 }
 
-export async function getUsers(search?: string): Promise<User[]> {
+export async function getUsers(
+  search?: string,
+  verified?: boolean,
+): Promise<User[]> {
+  const params: Record<string, string> = {};
+  if (search) {
+    params.search = search;
+  }
+  if (verified !== undefined) {
+    params.verified = verified ? 'true' : 'false';
+  }
+
   const { data } = await api.get<User[]>('/users', {
-    params: search ? { search } : undefined,
+    params: Object.keys(params).length > 0 ? params : undefined,
   });
   return data;
 }
@@ -321,6 +333,11 @@ export async function getFeedback(): Promise<FeedbackItem[]> {
 
 export async function deleteFeedback(id: string): Promise<void> {
   await api.delete(`/feedback/${id}`);
+}
+
+export async function getNotificationRecipients(): Promise<NotificationRecipients> {
+  const { data } = await api.get<NotificationRecipients>('/notifications/recipients');
+  return data;
 }
 
 export async function getNotifications(

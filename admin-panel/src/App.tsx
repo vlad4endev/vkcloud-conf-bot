@@ -12,6 +12,8 @@ import SchedulePage from './pages/SchedulePage';
 import SettingsPage from './pages/SettingsPage';
 import PartnersPage from './pages/PartnersPage';
 import SpeakersPage from './pages/SpeakersPage';
+import UsersLayout from './components/UsersLayout';
+import UnregisteredUsersPage from './pages/UnregisteredUsersPage';
 import UsersPage from './pages/UsersPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -37,7 +39,10 @@ export default function App() {
               }
             >
               <Route index element={<DashboardPage />} />
-              <Route path="users" element={<UsersPage />} />
+              <Route path="users" element={<UsersLayout />}>
+                <Route index element={<UsersPage />} />
+                <Route path="unregistered" element={<UnregisteredUsersPage />} />
+              </Route>
               <Route path="speakers" element={<SpeakersPage />} />
               <Route path="partners" element={<PartnersPage />} />
               <Route path="schedule" element={<SchedulePage />} />

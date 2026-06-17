@@ -4,6 +4,7 @@ import { sessions } from '../shared/types';
 import { resolveBotUsername } from '../shared/maxMiniAppLink';
 import { getConfirmKeyboard, getMainMenuKeyboard } from './keyboards';
 import { MESSAGES } from './messages';
+import { trackUnregisteredBotUser } from './services/user';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const EMAIL_IN_TEXT_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i;
@@ -151,10 +152,15 @@ export async function handleStart(ctx: Context) {
       return sendMainMenu(ctx);
     }
 
+    await trackUnregisteredBotUser(ctx);
+
     sessions.set(userId, { state: 'waiting_name', createdAt: Date.now() });
     await ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
   } catch (error) {
     console.error('handleStart error:', error);
+    await trackUnregisteredBotUser(ctx).catch((trackError) => {
+      console.error('trackUnregisteredBotUser error:', trackError);
+    });
     sessions.set(userId, { state: 'waiting_name', createdAt: Date.now() });
     await ctx.reply(MESSAGES.WELCOME, { format: 'markdown' });
   }
@@ -186,6 +192,10 @@ export async function handleMessage(ctx: Context) {
 
   if (existing?.isVerified) {
     return;
+  }
+
+  if (!existing) {
+    await trackUnregisteredBotUser(ctx);
   }
 
   const text = (ctx.message?.body?.text ?? '').trim();

@@ -1,26 +1,45 @@
 import type { Context } from '@maxhub/max-bot-api';
 import type { User } from '@prisma/client';
 import { prisma } from '../../db/client';
+import { parseMaxProfileName } from '../../shared/maxProfileName';
 
-export async function ensureBotUser(ctx: Context): Promise<User | null> {
+function resolveChatId(ctx: Context): number | undefined {
+  const chatId = ctx.chatId ?? ctx.message?.recipient?.chat_id;
+  return chatId == null ? undefined : chatId;
+}
+
+/** Сохраняет пользователя, запустившего бота, до завершения регистрации. */
+export async function trackUnregisteredBotUser(ctx: Context): Promise<User | null> {
   const maxUser = ctx.user;
-  const chatId = ctx.chatId;
+  const chatId = resolveChatId(ctx);
 
   if (!maxUser || chatId === undefined) {
     return null;
   }
 
+  const maxUserId = BigInt(maxUser.user_id);
+  const displayName = maxUser.name?.trim() || 'Участник';
+  const { firstName, lastName } = parseMaxProfileName(maxUser.name);
+
   return prisma.user.upsert({
-    where: { maxUserId: BigInt(maxUser.user_id) },
+    where: { maxUserId },
     create: {
-      maxUserId: BigInt(maxUser.user_id),
+      maxUserId,
       chatId: BigInt(chatId),
-      fullName: maxUser.name,
+      fullName: displayName,
       email: '',
+      profileFirstName: firstName,
+      profileLastName: lastName,
+      isVerified: false,
     },
     update: {
       chatId: BigInt(chatId),
-      fullName: maxUser.name,
+      profileFirstName: firstName,
+      profileLastName: lastName,
     },
   });
+}
+
+export async function ensureBotUser(ctx: Context): Promise<User | null> {
+  return trackUnregisteredBotUser(ctx);
 }

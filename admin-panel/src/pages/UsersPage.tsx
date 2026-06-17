@@ -36,7 +36,7 @@ export default function UsersPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setUsers(await getUsers(debouncedSearch || undefined));
+      setUsers(await getUsers(debouncedSearch || undefined, true));
     } catch (error) {
       toast(getErrorMessage(error), 'error');
     } finally {
@@ -106,8 +106,8 @@ export default function UsersPage() {
   return (
     <div>
       <PageHeader
-        title="Участники"
-        description="Поиск, редактирование и экспорт зарегистрированных пользователей"
+        title="Зарегистрированные"
+        description="Участники, завершившие регистрацию в боте"
         actions={
           <Button
             variant="secondary"
@@ -143,7 +143,9 @@ export default function UsersPage() {
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold text-white">{user.fullName}</h3>
-                  <p className="mt-0.5 break-all text-sm text-slate-400">{user.email}</p>
+                  <p className="mt-0.5 break-all text-sm text-slate-400">
+                    {user.email || '—'}
+                  </p>
                   <p className="mt-1 font-mono text-xs text-slate-500">MAX: {user.maxUserId}</p>
                 </div>
                 <ListCardActions>
@@ -164,9 +166,7 @@ export default function UsersPage() {
               </div>
               <ListCardMeta>
                 <button type="button" onClick={() => void toggleVerified(user)}>
-                  <Badge tone={user.isVerified ? 'success' : 'warning'}>
-                    {user.isVerified ? 'Подтверждён' : 'Не подтверждён'}
-                  </Badge>
+                  <Badge tone="success">Зарегистрирован</Badge>
                 </button>
                 <span>{formatDateTime(user.createdAt)}</span>
               </ListCardMeta>
@@ -181,7 +181,6 @@ export default function UsersPage() {
                 <th className="px-4 py-3 font-medium">ФИО</th>
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 font-medium">MAX ID</th>
-                <th className="px-4 py-3 font-medium">Статус</th>
                 <th className="px-4 py-3 font-medium">Регистрация</th>
                 <th className="px-4 py-3 font-medium" />
               </tr>
@@ -193,16 +192,9 @@ export default function UsersPage() {
                   className="border-t border-[var(--color-border)] hover:bg-slate-900/50"
                 >
                   <td className="px-4 py-3 font-medium text-white">{user.fullName}</td>
-                  <td className="px-4 py-3 text-slate-300">{user.email}</td>
+                  <td className="px-4 py-3 text-slate-300">{user.email || '—'}</td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-400">
                     {user.maxUserId}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button type="button" onClick={() => void toggleVerified(user)}>
-                      <Badge tone={user.isVerified ? 'success' : 'warning'}>
-                        {user.isVerified ? 'Подтверждён' : 'Не подтверждён'}
-                      </Badge>
-                    </button>
                   </td>
                   <td className="px-4 py-3 text-slate-400">
                     {formatDateTime(user.createdAt)}

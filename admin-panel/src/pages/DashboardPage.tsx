@@ -13,7 +13,8 @@ const statLinks: Array<{
   suffix?: string;
 }> = [
   { key: 'usersTotal', label: 'Участников', to: '/users' },
-  { key: 'usersVerified', label: 'Подтверждённых', to: '/users' },
+  { key: 'usersVerified', label: 'Зарегистрированных', to: '/users' },
+  { key: 'usersUnverified', label: 'Не зарегистрированных', to: '/users/unregistered' },
   { key: 'speakers', label: 'Спикеров', to: '/speakers' },
   { key: 'scheduleSessions', label: 'Сессий в программе', to: '/schedule' },
   { key: 'quizQuestions', label: 'Вопросов квиза', to: '/quiz' },

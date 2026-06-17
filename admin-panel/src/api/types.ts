@@ -12,6 +12,7 @@ export interface LoginResponse {
 export interface DashboardStats {
   usersTotal: number;
   usersVerified: number;
+  usersUnverified: number;
   speakers: number;
   scheduleSessions: number;
   questions: number;
@@ -26,6 +27,8 @@ export interface User {
   chatId: string;
   fullName: string;
   email: string;
+  profileFirstName: string;
+  profileLastName: string;
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -118,6 +121,12 @@ export interface FeedbackItem {
   text: string;
   createdAt: string;
   user: { id: string; fullName: string; email: string } | null;
+}
+
+export interface NotificationRecipients {
+  total: number;
+  verified: number;
+  unregistered: number;
 }
 
 export interface Notification {
