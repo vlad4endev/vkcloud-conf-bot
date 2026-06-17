@@ -10,6 +10,7 @@ import { ZodError } from 'zod';
 import { env } from '../shared/env';
 import '../shared/jwt';
 import { miniappRoutes } from '../miniapp/routes';
+import { startNotificationScheduler } from '../bot/notifications';
 import { startQuizLiveBroadcaster } from '../shared/quizLiveBroadcaster';
 import { adminRoutes } from './routes';
 
@@ -88,6 +89,7 @@ export async function createAdminServer() {
 
 if (require.main === module) {
   void (async () => {
+    startNotificationScheduler();
     startQuizLiveBroadcaster();
     const app = await createAdminServer();
     const port = env.ADMIN_PORT;
