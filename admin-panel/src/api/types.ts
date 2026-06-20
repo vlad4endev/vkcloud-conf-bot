@@ -21,6 +21,8 @@ export interface DashboardStats {
   notificationsPending: number;
 }
 
+export type UserPlatform = 'telegram' | 'max';
+
 export interface User {
   id: string;
   maxUserId: string;
@@ -29,6 +31,9 @@ export interface User {
   email: string;
   profileFirstName: string;
   profileLastName: string;
+  platform?: UserPlatform;
+  platformUserId?: string;
+  username?: string | null;
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;

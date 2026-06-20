@@ -1,4 +1,5 @@
 import ActionIcon from '../components/ActionIcon';
+import OpenChatButton from '../components/OpenChatButton';
 import { ListCardActions, ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
 import { deleteUser, getUsers, updateUser } from '../api/client';
@@ -149,6 +150,7 @@ export default function UsersPage() {
                   <p className="mt-1 font-mono text-xs text-slate-500">MAX: {user.maxUserId}</p>
                 </div>
                 <ListCardActions>
+                  <OpenChatButton user={user} />
                   <Button variant="ghost" size="sm" onClick={() => openEdit(user)}>
                     <ActionIcon name="edit" />
                   </Button>
@@ -182,7 +184,7 @@ export default function UsersPage() {
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 font-medium">MAX ID</th>
                 <th className="px-4 py-3 font-medium">Регистрация</th>
-                <th className="px-4 py-3 font-medium" />
+                <th className="px-4 py-3 font-medium">Действия</th>
               </tr>
             </thead>
             <tbody>
@@ -199,8 +201,9 @@ export default function UsersPage() {
                   <td className="px-4 py-3 text-slate-400">
                     {formatDateTime(user.createdAt)}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <OpenChatButton user={user} />
                       <Button variant="ghost" size="sm" onClick={() => openEdit(user)}>
                         <ActionIcon name="edit" />
                       </Button>

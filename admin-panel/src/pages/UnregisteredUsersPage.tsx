@@ -1,4 +1,5 @@
 import ActionIcon from '../components/ActionIcon';
+import OpenChatButton from '../components/OpenChatButton';
 import { ListCardActions, ListCardMeta } from '../components/mobileList';
 import { useCallback, useEffect, useState } from 'react';
 import { deleteUser, getUsers } from '../api/client';
@@ -133,6 +134,7 @@ export default function UnregisteredUsersPage() {
                       </p>
                     </div>
                     <ListCardActions>
+                      <OpenChatButton user={user} />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -161,7 +163,7 @@ export default function UnregisteredUsersPage() {
                   <th className="px-4 py-3 font-medium">Фамилия</th>
                   <th className="px-4 py-3 font-medium">MAX ID</th>
                   <th className="px-4 py-3 font-medium">Запуск бота</th>
-                  <th className="px-4 py-3 font-medium" />
+                  <th className="px-4 py-3 font-medium">Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -180,17 +182,20 @@ export default function UnregisteredUsersPage() {
                       <td className="px-4 py-3 text-slate-400">
                         {formatDateTime(user.createdAt)}
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Удалить"
-                          onClick={() => void handleDelete(user)}
-                        >
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <OpenChatButton user={user} />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Удалить"
+                            onClick={() => void handleDelete(user)}
+                          >
                           <span className="text-red-400">
                             <ActionIcon name="delete" />
                           </span>
-                        </Button>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
